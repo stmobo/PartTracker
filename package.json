@@ -1,0 +1,17 @@
+{
+  "name": "partstracker",
+  "version": "0.1.0",
+  "description": "Parts and system assembly tracking web application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sebastian Mobo <stmobo@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "concurrently": "^3.4.0",
+    "express": "^4.15.2",
+    "monk": "^4.0.0"
+  }
+}
