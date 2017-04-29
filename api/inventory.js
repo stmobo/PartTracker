@@ -49,6 +49,10 @@ function getReservedPartsCount(req, part) {
     ]).then(
         (doc) => {
             //console.log("getReservedPartsCount: type: " + typeof doc + " : " + JSON.stringify(doc));
+            if(doc[0] === undefined) {
+                return 0;
+            }
+
             ret = parseInt(doc[0].reserved);
             if(ret !== ret) {
                 return 0;
@@ -181,7 +185,7 @@ router.delete('/:id', function(req, res) {
 
 /* Update an inventory item. */
 router.put('/:id', function(req, res) {
-    console.log("Body: " + JSON.stringify(req.body));
+    //console.log("Body: " + JSON.stringify(req.body));
     if(!checkRequestParameter(req, res, 'name')) { return; }
     if(!checkRequestParameter(req, res, 'count')) { return; }
 
@@ -196,6 +200,8 @@ router.put('/:id', function(req, res) {
                 { $set: { name: req.body.name, count: parseInt(req.body.count) } }
             );
         }
+    ).then(
+        () => { return req.inv.findOne({ _id: monk.id(req.params.id) }) }
     ).then(
         (doc) => {
             res.status(200);
@@ -300,12 +306,14 @@ router.put("/:id/reservations/:rid", (req, res) => {
             if(requested_parts > avail_parts) {
                 return Promise.reject("Not enough parts available");
             }
-            
+
             return req.rsvp.update(
                 { _id: monk.id(req.params.rid) },
                 { $set: { requester: req.body.requester, count: parseInt(req.body.count) } }
             );
         }
+    ).then(
+        () => { return req.rsvp.findOne({ _id: monk.id(req.params.rid) }) }
     ).then(
         (doc) => {
             res.status(200);
