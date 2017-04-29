@@ -22,7 +22,7 @@ var InventoryItemView = Backbone.View.extend({
 
         tr_ctxt_class = "info";
 
-        if(parseInt(this.model.reserved) == parseInt(this.model.count)) {
+        if(this.model.get('available') == 0) {
             data['status'] = "Unavailable";
             tr_ctxt_class = 'warning';
         } else {
