@@ -4,6 +4,7 @@
   "description": "Parts and system assembly tracking web application",
   "main": "index.js",
   "scripts": {
+    "build": "browserify client-js/main.js -o static/js/bundle.js --debug",
     "start": "node index.js",
     "postinstall": "mkdir -p data/db",
     "test": "concurrently --kill-others \"mongod --dbpath ./data/db --port 27017\" \"npm run-script start\""
@@ -19,5 +20,8 @@
     "express": "^4.15.2",
     "jquery": "^3.2.1",
     "monk": "^4.0.0"
+  },
+  "devDependencies": {
+    "browserify": "^14.3.0"
   }
 }
