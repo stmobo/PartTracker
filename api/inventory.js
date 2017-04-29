@@ -259,4 +259,32 @@ router.post('/:id/reservations', (req, res) => {
     );
 });
 
+router.get("/:id/reservations/:rid", (req, res) => {
+    req.rsvp.findOne({ _id: monk.id(req.params.rid) }).then(
+        (doc) => {
+            res.status(200);
+            sendReservation(doc, res);
+        }
+    ).catch(
+        (err) => {
+            res.status(500);
+            res.send(err.toString());
+        }
+    );
+});
+
+router.delete("/:id/reservations/:rid", (req, res) => {
+    req.rsvp.remove({ _id: monk.id(req.params.rid) }).then(
+        () => {
+            res.status(200);
+            res.end();
+        }
+    ).catch(
+        (err) => {
+            res.status(500);
+            res.send(err.toString());
+        }
+    );
+});
+
 module.exports = router;
