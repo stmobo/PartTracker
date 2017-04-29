@@ -12,7 +12,8 @@ reservations.ensureIndex( {part: 1} );
 
 router.use(bodyParser.json());
 router.use(function(req, res, next) {
-    req.db = inventory;
+    req.inv = inventory;
+    req.rsvp = reservations
     next();
 });
 
@@ -41,21 +42,27 @@ function checkRequestParameter(req, res, key) {
     return true;
 }
 
-function getReservedPartsCount(part) {
-    return reservations.aggregate([
+function getReservedPartsCount(req, part) {
+    return req.rsvp.aggregate([
         { $match: { part: part } },
         { $group: { _id: null, reserved: { $sum: "$count" } } }
     ]).then(
         (doc) => {
-            return doc.reserved;
+            //console.log("getReservedPartsCount: type: " + typeof doc + " : " + JSON.stringify(doc));
+            ret = parseInt(doc[0].reserved);
+            if(ret !== ret) {
+                return 0;
+            } else {
+                return ret;
+            }
         }
     );
 }
 
-function getAvailablePartsCount(part) {
+function getAvailablePartsCount(req, part) {
     return Promise.all([
-        req.db.findOne({ _id: part }).then((doc) => { return doc.count; }),
-        getReservedPartsCount(part)
+        req.inv.findOne({ _id: part }).then((doc) => { return doc.count; }),
+        getReservedPartsCount(req, part)
     ]).then(
         (retn) => {
             return retn[0] - retn[1];
@@ -67,19 +74,22 @@ function getAvailablePartsCount(part) {
 
 /* Return a listing of all inventory items. */
 router.get('/', function(req, res) {
-    req.db.find({}, { name: 1, count: 1 }).then(
+    req.inv.find({}, { name: 1, count: 1 }).then(
         (docs) => {
-            promises = []
-
-            docs.forEach((doc) => {
-                promises.push(
-                    getReservedPartsCount(doc._id).then(
+            promises = docs.map(
+                (doc) => {
+                    return getReservedPartsCount(req, doc._id).then(
                         (reserved) => {
-                            return { id: monk.id(doc._id), name: doc.name, count: doc.count, reserved: reserved }
+                            return {
+                                id: monk.id(doc._id),
+                                name: doc.name,
+                                count: doc.count,
+                                reserved: reserved
+                            }
                         }
-                    )
-                );
-            });
+                    );
+                }
+            );
 
             return Promise.all(promises);
         }
@@ -104,13 +114,13 @@ router.get('/', function(req, res) {
   - 'count': initial inventory count
  */
 router.post('/', function(req, res) {
-    req.db.count( { name: req.body.name } ).then(
+    req.inv.count( { name: req.body.name } ).then(
         (count) => {
             if(count > 0) {
                 return Promise.reject("item exists already");
             } else {
                 /* insert new item into DB: */
-                return req.db.insert(
+                return req.inv.insert(
                     {
                         name: req.body.name,
                         count: parseInt(req.body.count)
@@ -140,7 +150,7 @@ router.post('/', function(req, res) {
 /* Get information on one inventory item. */
 router.get('/:id', function(req, res) {
     var retn = [];
-    req.db.findOne({ _id: monk.id(req.params.id) }).then(
+    req.inv.findOne({ _id: monk.id(req.params.id) }).then(
         (doc) => {
             res.status(200);
             sendInventoryItem(doc, res);
@@ -154,7 +164,7 @@ router.get('/:id', function(req, res) {
 });
 
 router.delete('/:id', function(req, res) {
-    req.db.remove({ _id: monk.id(req.params.id) }).then(
+    req.inv.remove({ _id: monk.id(req.params.id) }).then(
         () => {
             res.status(200);
             res.end();
@@ -172,7 +182,7 @@ router.post('/:id/add', function(req, res) {
     console.log("Body: " + JSON.stringify(req.body));
     if(!checkRequestParameter(req, res, 'count')) { return; }
 
-    req.db.update(
+    req.inv.update(
         { _id: monk.id(req.params.id) },
         { $inc: { count: parseInt(req.body.count) } }
     ).then(
@@ -190,7 +200,7 @@ router.post('/:id/add', function(req, res) {
 
 /* Get info on part reservations. */
 router.get('/:id/reservations', (req, res) => {
-    reservations.find( { part: monk.id(req.params.id) }, { count:1, requester: 1 } ).then(
+    req.rsvp.find( { part: monk.id(req.params.id) }, { count:1, requester: 1 } ).then(
         (docs) => {
             retn = [];
 
@@ -219,22 +229,22 @@ router.post('/:id/reservations', (req, res) => {
     if(!checkRequestParameter(req, res, 'requester')) { return; }
     requested_parts = parseInt(req.body.count);
 
-    getAvailablePartsCount(monk.id(req.params.id)).then(
+    getAvailablePartsCount(req, monk.id(req.params.id)).then(
         (avail_parts) => {
             if(requested_parts > avail_parts) {
                 return Promise.reject("Not enough parts available");
             }
 
-            return reservations.insert({
+            return req.rsvp.insert({
                 part: monk.id(req.params.id),
-                count: count,
-                requester: requester
+                count: parseInt(req.body.count),
+                requester: req.body.requester
             });
         }
     ).then(
         (doc) => {
             res.status(200);
-            sendReservation(doc);
+            sendReservation(doc, res);
         }
     ).catch(
         (err) => {
