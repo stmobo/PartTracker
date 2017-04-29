@@ -4,7 +4,9 @@
   "description": "Parts and system assembly tracking web application",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "postinstall": "mkdir -p data/db",
+    "test": "concurrently --kill-others \"mongod --dbpath ./data/db --port 27017\" \"npm run-script start\""
   },
   "author": "Sebastian Mobo <stmobo@gmail.com>",
   "license": "MIT",
