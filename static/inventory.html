@@ -10,13 +10,18 @@
     </head>
     <body>
 
-        <!-- Template for list view, ignore: -->
+        <!-- Template for list view: -->
         <script type="text/template" id="inv-row-template">
             <td><%= name %></td>
             <td><%= status %></td>
             <td><%= available %></td>
             <td><%= reserved %></td>
             <td><%= count %></td>
+        </script>
+
+        <!-- Template for item reservation view: -->
+        <script type="text/template" id="inv-rsvp-template">
+            <li class="inv-rsvp-item"><%= count %> reserved by <strong><%= requester %></strong></li>
         </script>
 
         <table class="table table-hover" id="inv-table">

@@ -34,17 +34,24 @@ var Inventory = Backbone.Collection.extend({
 });
 
 
-var Reservations = Backbone.Collection.extend({
+var AllReservations = Backbone.Collection.extend({
     url: "/api/reservations",
     model: ReservationModel
 });
 
+var PartReservations = Backbone.Collection.extend({
+    model: ReservationModel,
+    url: function() { return "/api/inventory/"+this.partID+"/reservations"; }
+})
 
-
+function getPartReservations(partID) {
+    return new PartReservations({ partID: partID });
+}
 
 module.exports = {
     Item: ItemModel,
     Reservation: ReservationModel,
     Inventory: Inventory,
-    Reservations: Reservations
+    AllReservations: AllReservations,
+    getPartReservations: getPartReservations
 };

@@ -3,12 +3,47 @@ var _ = require('underscore');
 var Backbone = require('backbone');
 var models = require('./models.js');
 
+var ItemReservationView = Backbone.View.extend({
+    tagName: 'ul',
+    className: 'inv-rsvp-list',
+    tmpl: _.template($('#inv-rsvp-template').html()),
+
+    initialize: function () {
+        this.hidden = true;
+        this.listenTo(this.collection, 'sync', this.render);
+    },
+
+    toggleHidden: function () {
+        if(this.hidden) {
+            this.$el.slideDown();
+        } else {
+            this.$el.slideUp();
+        }
+
+        this.hidden = !this.hidden;
+    },
+
+    render: function() {
+        $('.inv-rsvp-item').remove();
+
+        this.collection.each(
+            (model) => {
+                var html = this.tmpl(model.toJSON());
+                this.$el.append($(html));
+            },
+            this
+        );
+
+        this.$el.hide();
+
+        return this;
+    },
+});
+
 var InventoryItemView = Backbone.View.extend({
     tagName: 'tr',
     className: 'inv-list-item',
     tmpl: _.template($('#inv-row-template').html()),
-
-    initialize: function() {},
 
     render: function() {
         data = {
