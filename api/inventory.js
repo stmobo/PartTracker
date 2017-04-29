@@ -165,6 +165,8 @@ router.get('/:id', function(req, res) {
 
 router.delete('/:id', function(req, res) {
     req.inv.remove({ _id: monk.id(req.params.id) }).then(
+        req.rsvp.remove( { part: monk.id(req.params.id) } )
+    ).then(
         () => {
             res.status(200);
             res.end();
@@ -177,14 +179,23 @@ router.delete('/:id', function(req, res) {
     );
 });
 
-/* Add to an inventory item count. */
-router.post('/:id/add', function(req, res) {
+/* Update an inventory item. */
+router.put('/:id', function(req, res) {
     console.log("Body: " + JSON.stringify(req.body));
+    if(!checkRequestParameter(req, res, 'name')) { return; }
     if(!checkRequestParameter(req, res, 'count')) { return; }
 
-    req.inv.update(
-        { _id: monk.id(req.params.id) },
-        { $inc: { count: parseInt(req.body.count) } }
+    getReservedPartsCount(req, monk.id(req.params.id)).then(
+        (rsvp_count) => {
+            if(rsvp_count > req.body.count) {
+                return Promise.reject("Cannot satisfy reservations with lowered inventory count.");
+            }
+
+            return req.inv.update(
+                { _id: monk.id(req.params.id) },
+                { $set: { name: req.body.name, count: parseInt(req.body.count) } }
+            );
+        }
     ).then(
         (doc) => {
             res.status(200);
@@ -232,7 +243,7 @@ router.post('/:id/reservations', (req, res) => {
     getAvailablePartsCount(req, monk.id(req.params.id)).then(
         (avail_parts) => {
             if(requested_parts > avail_parts) {
-                return Promise.reject("Not enough parts available");
+                return Promise.reject("Not enough parts available to satisfy new reservation.");
             }
 
             return req.rsvp.insert({
@@ -261,6 +272,41 @@ router.post('/:id/reservations', (req, res) => {
 
 router.get("/:id/reservations/:rid", (req, res) => {
     req.rsvp.findOne({ _id: monk.id(req.params.rid) }).then(
+        (doc) => {
+            res.status(200);
+            sendReservation(doc, res);
+        }
+    ).catch(
+        (err) => {
+            res.status(500);
+            res.send(err.toString());
+        }
+    );
+});
+
+router.put("/:id/reservations/:rid", (req, res) => {
+    if(!checkRequestParameter(req, res, 'count')) { return; }
+    if(!checkRequestParameter(req, res, 'requester')) { return; }
+
+    requested_parts = parseInt(req.body.count);
+
+    Promise.all([
+        getAvailablePartsCount(req, monk.id(req.params.id)),    // total available parts
+        req.rsvp.findOne({ _id: monk.id(req.params.rid) }).then( (doc) => { return doc.count; } ) // parts from this RSVP pre-update
+    ]).then(
+        (ret) => {
+            avail_parts = ret[0] + ret[1];
+
+            if(requested_parts > avail_parts) {
+                return Promise.reject("Not enough parts available");
+            }
+            
+            return req.rsvp.update(
+                { _id: monk.id(req.params.rid) },
+                { $set: { requester: req.body.requester, count: parseInt(req.body.count) } }
+            );
+        }
+    ).then(
         (doc) => {
             res.status(200);
             sendReservation(doc, res);
