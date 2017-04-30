@@ -12,27 +12,29 @@
 
         <!-- Template for list view: -->
         <script type="text/template" id="inv-row-template">
-            <td><%= name %></td>
-            <td><%= status %></td>
-            <td><%= available %></td>
-            <td><%= reserved %></td>
-            <td><%= count %></td>
+            <div class="col-md-7"><%= name %></div>
+            <div class="col-md-2"><%= status %></div>
+            <div class="col-md-1"><%= available %></div>
+            <div class="col-md-1"><%= reserved %></div>
+            <div class="col-md-1"><%= count %></div>
         </script>
 
         <!-- Template for item reservation view: -->
         <script type="text/template" id="inv-rsvp-template">
-            <li class="inv-rsvp-item"><%= count %> reserved by <strong><%= requester %></strong></li>
+            <li class="inv-rsvp-item">
+                <%= count %> reserved by <strong><%= requester %></strong>
+            </li>
         </script>
 
-        <table class="table table-hover" id="inv-table">
-            <tr>
-                <th>Item Name</th>
-                <th>Status</th>
-                <th># Available</th>
-                <th># Reserved</th>
-                <th># Total</th>
-            </tr>
-        </table>
+        <div class="container-fluid" id="inv-table">
+            <div class="row">
+                <div class="col-md-7"><strong>Item Name</strong></div>
+                <div class="col-md-2"><strong>Status</strong></div>
+                <div class="col-md-1"><strong>Available</strong></div>
+                <div class="col-md-1"><strong>Reserved</strong></div>
+                <div class="col-md-1"><strong>Total</strong></div>
+            </div>
+        </div>
 
         <script src="js/bundle.js" charset="utf-8"></script>
     </body>

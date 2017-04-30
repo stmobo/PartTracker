@@ -9,41 +9,60 @@ var ItemReservationView = Backbone.View.extend({
     tmpl: _.template($('#inv-rsvp-template').html()),
 
     initialize: function () {
-        this.hidden = true;
         this.listenTo(this.collection, 'sync', this.render);
+        this.hidden = true;
     },
 
     toggleHidden: function () {
-        if(this.hidden) {
-            this.$el.slideDown();
+        if(!this.hidden) {
+            this.$el.hide();
         } else {
-            this.$el.slideUp();
+            this.$el.show();
         }
 
         this.hidden = !this.hidden;
     },
 
     render: function() {
-        $('.inv-rsvp-item').remove();
+        // prep the DOM:
+        // clear out the old content, recreate the <td> element
+        this.$('.inv-rsvp-item').remove();
 
         this.collection.each(
             (model) => {
                 var html = this.tmpl(model.toJSON());
-                this.$el.append($(html));
+                this.$el.append(html);
             },
             this
         );
 
-        this.$el.hide();
+        if(this.hidden){
+            this.$el.hide();
+        }
 
         return this;
     },
 });
 
 var InventoryItemView = Backbone.View.extend({
-    tagName: 'tr',
-    className: 'inv-list-item',
+    tagName: 'div',
+    className: 'inv-list-item row',
     tmpl: _.template($('#inv-row-template').html()),
+
+    initialize: function () {
+        this.partRsvps = models.getPartReservations(this.model.get('id'));
+        this.rsvpView = new ItemReservationView({ collection: this.partRsvps });
+
+        this.partRsvps.fetch();
+    },
+
+    events: {
+        'click' : 'onClick'
+    },
+
+    onClick: function () {
+        this.rsvpView.toggleHidden();
+    },
 
     render: function() {
         data = {
@@ -66,6 +85,13 @@ var InventoryItemView = Backbone.View.extend({
 
         var html = this.tmpl(data);
         this.$el.html(html).addClass(tr_ctxt_class);
+
+        this.partRsvps.fetch().then(
+            () => {
+                this.$el.after(this.rsvpView.$el);
+            }
+        )
+
         return this;
     }
 });

@@ -236,6 +236,18 @@ router.get('/inventory/:id/reservations', (req, res) => {
     );
 });
 
+/* Redirect all part-specific reservation requests to the reservation route */
+router.all('/inventory/:id/reservations/:rid*', (req, res) => {
+    // find subroute:
+    subroute = req.path.split('/inventory/'+req.params.id+'/reservations/'+req.params.rid);
+
+    if(subroute.length > 1) {
+        res.redirect(req.baseUrl+'/reservations/'+req.params.rid+subroute[1]);
+    } else {
+        res.status(404).send("Could not split path.");
+    }
+});
+
 /* Get info on all part reservations. */
 router.get('/reservations', (req, res) => {
     req.rsvp.find( {}, { count:1, requester: 1 } ).then(
