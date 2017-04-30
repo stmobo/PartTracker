@@ -222,7 +222,7 @@ router.get('/inventory/:id/reservations', (req, res) => {
             retn = [];
 
             docs.forEach((doc) => {
-                retn.push({ id: monk.id(doc._id), requester: doc.requester, count: doc.count });
+                retn.push({ id: monk.id(doc._id), part:req.params.id, requester: doc.requester, count: doc.count });
             });
 
             res.status(200);
@@ -242,10 +242,19 @@ router.all('/inventory/:id/reservations/:rid*', (req, res) => {
     subroute = req.path.split('/inventory/'+req.params.id+'/reservations/'+req.params.rid);
 
     if(subroute.length > 1) {
-        res.redirect(req.baseUrl+'/reservations/'+req.params.rid+subroute[1]);
+        res.redirect(307, req.baseUrl+'/reservations/'+req.params.rid+subroute[1]);
     } else {
         res.status(404).send("Could not split path.");
     }
+});
+router.post('/inventory/:id/reservations', (req, res) => {
+    res.redirect(307, req.baseUrl+'/reservations');
+});
+router.put('/inventory/:id/reservations', (req, res) => {
+    res.redirect(307, req.baseUrl+'/reservations');
+});
+router.delete('/inventory/:id/reservations', (req, res) => {
+    res.redirect(307, req.baseUrl+'/reservations');
 });
 
 /* Get info on all part reservations. */
