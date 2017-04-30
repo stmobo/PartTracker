@@ -54,8 +54,14 @@ var ItemReservationView = Backbone.View.extend({
 
     onSubmitRsvp: function (evt) {
         console.log("Submit New RSVP clicked...");
-        console.log(this.$('#requester').val());
-        console.log(this.$('#count').val());
+        console.log(this.collection.partID);
+
+        this.collection.create({
+            requester: this.$("#requester").val(),
+            count: this.$("#count").val(),
+            part: this.collection.partID,
+        });
+
         this.hideRsvpForm();
 
         evt.preventDefault();

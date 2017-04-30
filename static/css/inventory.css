@@ -1,0 +1,13 @@
+.inv-list-item, .inv-list-header {
+    border-bottom-style: inset;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+
+.status-unavailable {
+    background-color: #ff7272;
+}
+
+.status-available {
+    /*background-color: #82ff8a;*/
+}

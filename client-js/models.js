@@ -41,6 +41,7 @@ var Reservations = Backbone.Collection.extend({
 
 function getPartReservations(partID) {
     var rsvp = new Reservations();
+    rsvp.partID = partID;
     rsvp.url = "/api/inventory/"+partID+"/reservations";
 
     return rsvp;
