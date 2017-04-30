@@ -18,11 +18,6 @@ var ItemReservationView = Backbone.View.extend({
         'click .add-new-rsvp': 'onNewRsvp',
         'submit .new-rsvp-form': 'onSubmitRsvp',
         'reset .new-rsvp-form': 'onResetRsvp',
-        'click button,form': 'onClick',
-    },
-
-    onClick: function (evt) {
-        evt.stopPropagation();
     },
 
     toggleHidden: function () {
@@ -48,8 +43,6 @@ var ItemReservationView = Backbone.View.extend({
     onNewRsvp: function(evt) {
         console.log("Add New RSVP clicked...");
         this.showRsvpForm();
-
-        evt.stopImmediatePropagation();
     },
 
     onSubmitRsvp: function (evt) {
@@ -79,8 +72,8 @@ var ItemReservationView = Backbone.View.extend({
     render: function() {
         // prep the DOM:
         // clear out the old content, recreate the <td> element
-        this.$('.inv-rsvp-item').remove();
-        this.$('.add-new-rsvp, .new-rsvp-form').remove();
+        this.$('.inv-rsvp-item').detach();
+        this.$('.add-new-rsvp, .new-rsvp-form').detach();
 
         this.collection.each(
             (model) => {
@@ -98,6 +91,8 @@ var ItemReservationView = Backbone.View.extend({
 
         this.$('.new-rsvp-form').hide();
 
+        this.delegateEvents();
+
         return this;
     },
 });
@@ -111,11 +106,14 @@ var InventoryItemView = Backbone.View.extend({
         this.partRsvps = models.getPartReservations(this.model.get('id'));
         this.rsvpView = new ItemReservationView({ collection: this.partRsvps });
 
+        this.listenTo(this.model, 'sync', this.render);
+        this.model.listenTo(this.partRsvps, 'sync', this.fetch);
+        
         this.partRsvps.fetch();
     },
 
     events: {
-        'click' : 'onClick'
+        'click .inv-data-row,li' : 'onClick',
     },
 
     onClick: function (evt) {
@@ -143,13 +141,15 @@ var InventoryItemView = Backbone.View.extend({
         }
 
         var html = this.tmpl(data);
-        this.$el.html(html).addClass(tr_ctxt_class);
 
-        this.partRsvps.fetch().then(
-            () => {
-                this.$el.append(this.rsvpView.$el);
-            }
-        )
+        /* do $el.html, but rebind events in the middle... */
+        this.$el.empty();
+
+        this.delegateEvents();
+        this.rsvpView.delegateEvents();
+
+        this.$el.append(html).addClass(tr_ctxt_class);
+        this.$el.append(this.rsvpView.el);
 
         return this;
     }
@@ -169,7 +169,7 @@ var InventoryListView = Backbone.View.extend({
         this.collection.each(
             (model) => {
                 var view = new InventoryItemView({model: model});
-                inv_table.append(view.render().$el);
+                inv_table.append(view.render().el);
             },
             this
         );
