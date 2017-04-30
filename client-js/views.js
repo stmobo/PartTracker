@@ -10,23 +10,71 @@ var ItemReservationView = Backbone.View.extend({
 
     initialize: function () {
         this.listenTo(this.collection, 'sync', this.render);
+
         this.hidden = true;
+    },
+
+    events: {
+        'click .add-new-rsvp': 'onNewRsvp',
+        'submit .new-rsvp-form': 'onSubmitRsvp',
+        'reset .new-rsvp-form': 'onResetRsvp',
+        'click button,form': 'onClick',
+    },
+
+    onClick: function (evt) {
+        evt.stopPropagation();
     },
 
     toggleHidden: function () {
         if(!this.hidden) {
-            this.$el.hide();
+            this.$el.slideUp();
         } else {
-            this.$el.show();
+            this.$el.slideDown();
         }
 
         this.hidden = !this.hidden;
+    },
+
+    showRsvpForm: function () {
+        this.$('.new-rsvp-form').slideDown();
+        this.$('.add-new-rsvp').slideUp();
+    },
+
+    hideRsvpForm: function () {
+        this.$('.new-rsvp-form').slideUp();
+        this.$('.add-new-rsvp').slideDown();
+    },
+
+    onNewRsvp: function(evt) {
+        console.log("Add New RSVP clicked...");
+        this.showRsvpForm();
+
+        evt.stopImmediatePropagation();
+    },
+
+    onSubmitRsvp: function (evt) {
+        console.log("Submit New RSVP clicked...");
+        console.log(this.$('#requester').val());
+        console.log(this.$('#count').val());
+        this.hideRsvpForm();
+
+        evt.preventDefault();
+    },
+
+    onResetRsvp: function (evt) {
+        console.log("Reset New RSVP clicked...");
+        this.$('#requester').val('');
+        this.$('#count').val('0');
+        this.hideRsvpForm();
+
+        evt.preventDefault();
     },
 
     render: function() {
         // prep the DOM:
         // clear out the old content, recreate the <td> element
         this.$('.inv-rsvp-item').remove();
+        this.$('.add-new-rsvp, .new-rsvp-form').remove();
 
         this.collection.each(
             (model) => {
@@ -36,9 +84,13 @@ var ItemReservationView = Backbone.View.extend({
             this
         );
 
+        this.$el.append($('#inv-rsvp-add-template').html());
+
         if(this.hidden){
             this.$el.hide();
         }
+
+        this.$('.new-rsvp-form').hide();
 
         return this;
     },
@@ -60,7 +112,7 @@ var InventoryItemView = Backbone.View.extend({
         'click' : 'onClick'
     },
 
-    onClick: function () {
+    onClick: function (evt) {
         this.rsvpView.toggleHidden();
     },
 
@@ -74,13 +126,14 @@ var InventoryItemView = Backbone.View.extend({
             available: this.model.get('available')
         };
 
-        tr_ctxt_class = "info";
+        tr_ctxt_class = "";
 
         if(this.model.get('available') == 0) {
             data['status'] = "Unavailable";
-            tr_ctxt_class = 'warning';
+            tr_ctxt_class = 'status-unavailable';
         } else {
             data['status'] = "Available";
+            tr_ctxt_class = 'status-available';
         }
 
         var html = this.tmpl(data);
@@ -88,7 +141,7 @@ var InventoryItemView = Backbone.View.extend({
 
         this.partRsvps.fetch().then(
             () => {
-                this.$el.after(this.rsvpView.$el);
+                this.$el.append(this.rsvpView.$el);
             }
         )
 
