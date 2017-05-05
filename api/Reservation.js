@@ -54,7 +54,7 @@ Reservation.prototype.summary = function () {
             return {
                 id: this.id(),
                 part: retn[0],
-                count: retn[1]
+                count: retn[1],
                 requester: retn[2]
             };
         }

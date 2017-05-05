@@ -3,19 +3,13 @@ var monk = require('monk');
 var bodyParser = require('body-parser');
 
 var dbAPI = require('api/db.js');
+var common = require('api/routing.js');
+
 var Item = require('api/Item.js');
 var Reservation = require('api/Reservation.js');
 
 var router = express.Router();
 router.use(bodyParser.json());
-
-function checkRequestParameter(req, res, key) {
-    if(!(key in req.body)) {
-        res.status(400).send("Missing parameter: \'"+key+"\". ");
-        return false;
-    }
-    return true;
-}
 
 /* Method handlers: */
 
@@ -32,17 +26,7 @@ router.get('/inventory', function(req, res) {
 
             return Promise.all(promises);
         }
-    ).then(
-        (retn) => {
-            res.status(200);
-            res.json(retn);
-        }
-    ).catch(
-        (err) => {
-            res.status(500);
-            res.send(err.toString());
-        }
-    );
+    ).then(common.jsonSuccess(res), common.apiErrorHandler);
 });
 
 /*
@@ -60,30 +44,13 @@ router.post('/inventory', function(req, res) {
     dbAPI.inventory.count( { name: req.body.name } ).then(
         (count) => {
             if(count > 0) {
-                return Promise.reject("item exists already");
+                return Promise.reject("Item already exists.");
             } else {
                 item = new Item(req.body.name, req.body.count);
                 return item.save();
             }
         }
-    ).then(
-        (item) => { return item.summary(); }
-    ).then(
-        (summ) => {
-            res.status(200).json(summ);
-        }
-    ).catch(
-        (err) => {
-            if(err instanceof Error) {
-                // handle actual errors
-                res.status(500);
-                res.send(err.toString());
-            } else if(err === "item exists already") {
-                res.status(400);
-                res.send(err);
-            }
-        }
-    );
+    ).then(common.jsonSuccess(res), common.apiErrorHandler);
 });
 
 /* Get information on one inventory item. */
@@ -95,40 +62,16 @@ router.get('/inventory/:id', function(req, res) {
             if(exists) {
                 return item.summary();
             } else {
-                return Promise.reject("item does not exist");
+                return Promise.reject("Item does not exist.");
             }
         }
-    ).then(
-        (summ) => {
-            res.status(200).json(summ);
-        }
-    ).catch(
-        (err) => {
-            if(err === "item does not exist") {
-                res.status(400);
-                res.send("Item does not exist within inventory.");
-            } else {
-                res.status(500);
-                res.send(err.toString());
-            }
-        }
-    );
+    ).then(common.jsonSuccess(res), common.apiErrorHandler);
 });
 
 router.delete('/inventory/:id', function(req, res) {
     item = new Item(monk.id(req.params.id));
 
-    item.delete().then(
-        () => {
-            res.status(200);
-            res.end();
-        }
-    ).catch(
-        (err) => {
-            res.status(500);
-            res.send(err.toString());
-        }
-    );
+    item.delete().then(common.emptySuccess(res), common.apiErrorHandler);
 });
 
 /* Update an inventory item. */
@@ -138,35 +81,19 @@ router.put('/inventory/:id', function(req, res) {
 
     var item = new Item(monk.id(req.params.id));
 
-    item.reserved().then(
+    common.checkRequestParameters(req, 'name', 'count').then(
+        () => { return item.reserved(); }
+    ).then(
         (rsvp_count) => {
-            if(rsvp_count > req.body.count) {
+            if(rsvp_count > req.body.count)
                 return Promise.reject("Cannot satisfy reservations with lowered inventory count.");
-            }
 
             this.name(req.body.name);
             this.count(parseInt(req.body.count));
 
             return this.save();
         }
-    ).then(
-        (it) => { return it.summary(); }
-    ).then(
-        (summ) => {
-            res.status(200);
-            res.json(summ);
-        }
-    ).catch(
-        (err) => {
-            if(err === "Cannot satisfy reservations with lowered inventory count.") {
-                res.status(400);
-            } else {
-                res.status(500);
-            }
-
-            res.send(err.toString());
-        }
-    );
+    ).then(common.jsonSuccess(res), common.apiErrorHandler);
 });
 
 /* Get info on part reservations. */
@@ -178,17 +105,7 @@ router.get('/inventory/:id/reservations', (req, res) => {
             /* Convert all RSVPs to (promises for) summaries */
             return Promise.all(rsvps.map((rsvp) => { return rsvp.summary(); }));
         }
-    ).then(
-        (summs) => {
-            res.status(200);
-            res.json(summs);
-        }
-    ).catch(
-        (err) => {
-            res.status(500);
-            res.send(err.toString());
-        }
-    );
+    ).then(common.jsonSuccess(res), common.apiErrorHandler);
 });
 
 /* Redirect all part-specific reservation requests to the reservation route */

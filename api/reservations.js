@@ -3,19 +3,14 @@ var monk = require('monk');
 var bodyParser = require('body-parser');
 
 var dbAPI = require('api/db.js');
+var common = require('api/routing.js');
+
 var Item = require('api/Item.js');
 var Reservation = require('api/Reservation.js');
 
 var router = express.Router();
 router.use(bodyParser.json());
 
-function checkRequestParameter(req, res, key) {
-    if(!(key in req.body)) {
-        res.status(400).send("Missing parameter: \'"+key+"\". ");
-        return false;
-    }
-    return true;
-}
 
 /* Get info on all part reservations. */
 router.get('/reservations', (req, res) => {
@@ -30,17 +25,7 @@ router.get('/reservations', (req, res) => {
 
             return Promise.all(promises);
         }
-    ).then(
-        (rsvps) => {
-            res.status(200);
-            res.json(rsvps);
-        }
-    ).catch(
-        (err) => {
-            res.status(500);
-            res.send(err.toString());
-        }
-    );
+    ).then(common.jsonSuccess(res), common.apiErrorHandler);
 });
 
 /* Add new reservation.
@@ -50,18 +35,16 @@ router.get('/reservations', (req, res) => {
     - "requester": name of team / person to reserve the parts under.
  */
 router.post('/reservations', (req, res) => {
-    if(!checkRequestParameter(req, res, 'part')) { return; }
-    if(!checkRequestParameter(req, res, 'count')) { return; }
-    if(!checkRequestParameter(req, res, 'requester')) { return; }
-    requested_parts = parseInt(req.body.count);
-
-    var item = new Item(monk.id(req.body.part));
-
-    item.available().then(
+    common.checkRequestParameters(req, 'part', 'count', 'requester').then(
+        () => {
+            var item = new Item(monk.id(req.body.part));
+            return item.available();
+        }
+    ).then(
         (avail_parts) => {
-            if(requested_parts > avail_parts) {
+            requested_parts = parseInt(req.body.count);
+            if(requested_parts > avail_parts)
                 return Promise.reject("Not enough parts available to satisfy new reservation.");
-            }
 
             var rsvp = new Reservation(
                 undefined,
@@ -72,24 +55,7 @@ router.post('/reservations', (req, res) => {
 
             return rsvp.save();
         }
-    ).then(
-        (rsvp) => { return rsvp.summary(); }
-    ).then(
-        (summ) => {
-            res.status(200);
-            res.json(summ);
-        }
-    ).catch(
-        (err) => {
-            if(err instanceof Error) {
-                res.status(500);
-            } else {
-                res.status(400);
-            }
-
-            res.send(err.toString());
-        }
-    );
+    ).then(common.jsonSuccess(res), common.apiErrorHandler);
 });
 
 router.get("/reservations/:rid", (req, res) => {
@@ -101,33 +67,17 @@ router.get("/reservations/:rid", (req, res) => {
                 return Promise.reject("Reservation not found in database.");
             return rsvp.summary();
         }
-    ).then(
-        (summ) => {
-            res.status(200);
-            res.json(summ);
-        }
-    ).catch(
-        (err) => {
-            if(err instanceof Error) {
-                res.status(500);
-            } else {
-                res.status(400);
-            }
-
-            res.send(err.toString());
-        }
-    );
+    ).then(common.jsonSuccess(res), common.apiErrorHandler);
 });
 
 router.put("/reservations/:rid", (req, res) => {
-    if(!checkRequestParameter(req, res, 'part')) { return; }
-    if(!checkRequestParameter(req, res, 'count')) { return; }
-    if(!checkRequestParameter(req, res, 'requester')) { return; }
-
     rsvp = new Reservation(monk.id(req.params.rid));
-    requested_parts = parseInt(req.body.count);
 
-    rsvp.part().then(
+    common.checkRequestParameters(req, 'part', 'count', 'requester').then(
+        () => {
+            return rsvp.part();
+        }
+    ).then(
         (part) => {
             if(part.id().toString() !== req.body.part) {
                 return part.available();
@@ -140,6 +90,7 @@ router.put("/reservations/:rid", (req, res) => {
         }
     ).then(
         (avail_parts) => {
+            requested_parts = parseInt(req.body.count);
             if(requested_parts > avail_parts)
                 return Promise.reject("Not enough parts available to satisfy new reservation.");
 
@@ -149,39 +100,13 @@ router.put("/reservations/:rid", (req, res) => {
 
             return rsvp.save();
         }
-    ).then(
-        (rsvp) => { return rsvp.summary(); }
-    ).then(
-        (summ) => {
-            res.status(200);
-            res.json(summ);
-        }
-    ).catch(
-        (err) => {
-            if(err instanceof Error) {
-                res.status(500);
-            } else {
-                res.status(400);
-            }
-            res.send(err.toString());
-        }
-    );
+    ).then(common.jsonSuccess(res), common.apiErrorHandler);
 });
 
 router.delete("/reservations/:rid", (req, res) => {
     rsvp = new Reservation(monk.id(req.params.rid));
 
-    rsvp.delete().then(
-        () => {
-            res.status(200);
-            res.end();
-        }
-    ).catch(
-        (err) => {
-            res.status(500);
-            res.send(err.toString());
-        }
-    );
+    rsvp.delete().then(common.emptySuccess(res), common.apiErrorHandler);
 });
 
 module.exports = router;
