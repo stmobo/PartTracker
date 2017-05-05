@@ -6,7 +6,7 @@ const reservations = conn.get('reservations');
 
 reservations.ensureIndex( {part: 1} );
 
-function DatabaseItem(database, id) {
+var DatabaseItem = function(database, id) {
     this.db = database;
     if(id === undefined) {
         this._id = monk.id();

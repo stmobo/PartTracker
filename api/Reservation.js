@@ -1,8 +1,9 @@
 var monk = require('monk');
+var ObjectID = require('mongodb').ObjectID;
 var dbAPI = require('api/db.js');
 var Item = require('api/Item.js');
 
-function Reservation(id, part, count, requester) {
+var Reservation = function(id, part, count, requester) {
     if((id instanceof ObjectID) || (typeof id === 'string')) {
         /* Load an item from the DB */
         dbAPI.DatabaseItem.call(this, dbAPI.reservations, id);
@@ -22,7 +23,7 @@ function Reservation(id, part, count, requester) {
     this._count = count;
 
 };
-Reservation.prototype = Object.create(dbAPI.DatabaseItem);
+Reservation.prototype = Object.create(dbAPI.DatabaseItem.prototype);
 Reservation.prototype.constructor = Reservation;
 
 Reservation.prototype.count = function(v) { return this.prop('count', v); };

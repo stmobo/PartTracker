@@ -7,7 +7,7 @@
     "build": "browserify client-js/main.js -o static/js/bundle.js --debug",
     "start": "node index.js",
     "postinstall": "mkdir -p data/db",
-    "test": "concurrently --kill-others \"mongod --dbpath ./data/db --port 27017\" \"npm run-script start\""
+    "test": "concurrently -c \"green,cyan\" --kill-others \"mongod --dbpath ./data/db --port 27017\" \"npm run-script start\""
   },
   "author": "Sebastian Mobo <stmobo@gmail.com>",
   "license": "MIT",

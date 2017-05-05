@@ -1,8 +1,9 @@
-var monk = require('monk');
-var dbAPI = require('api/db.js');
-var Reservation = require('api/Reservation.js');    // yes I know this is a circular ref
 
-function Item(id, count) {
+var monk = require('monk');
+var ObjectID = require('mongodb').ObjectID;
+var dbAPI = require('api/db.js');
+
+var Item = function (id, count) {
     if(id instanceof ObjectID) {
         /* Load an item from the DB */
         dbAPI.DatabaseItem.call(this, dbAPI.inventory, id);
@@ -25,7 +26,7 @@ function Item(id, count) {
         }
     }
 };
-Item.prototype = Object.create(dbAPI.DatabaseItem);
+Item.prototype = Object.create(dbAPI.DatabaseItem.prototype);
 Item.prototype.constructor = Item;
 
 Item.prototype.delete = function () {
@@ -91,7 +92,7 @@ Item.prototype.summary = function () {
 Item.prototype.reservations = function () {
     return dbAPI.reservations.find({part: this.id()}, {}).then(
         (docs) => {
-            return docs.map((doc) => { return new Reservation(doc._id); });
+            return docs.map((doc) => { return doc._id; });
         }
     );
 };

@@ -19,14 +19,14 @@ router.get('/inventory', function(req, res) {
         (docs) => {
             promises = docs.map(
                 (doc) => {
-                    it = new Item(doc._id);
-                    return it.summary();
+                    item = new Item(doc._id);
+                    return item.summary();
                 }
             );
 
             return Promise.all(promises);
         }
-    ).then(common.jsonSuccess(res), common.apiErrorHandler);
+    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(res));
 });
 
 /*
@@ -50,7 +50,7 @@ router.post('/inventory', function(req, res) {
                 return item.save();
             }
         }
-    ).then(common.jsonSuccess(res), common.apiErrorHandler);
+    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(res));
 });
 
 /* Get information on one inventory item. */
@@ -65,13 +65,13 @@ router.get('/inventory/:id', function(req, res) {
                 return Promise.reject("Item does not exist.");
             }
         }
-    ).then(common.jsonSuccess(res), common.apiErrorHandler);
+    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(res));
 });
 
 router.delete('/inventory/:id', function(req, res) {
     item = new Item(monk.id(req.params.id));
 
-    item.delete().then(common.emptySuccess(res), common.apiErrorHandler);
+    item.delete().then(common.emptySuccess(res)).catch(common.apiErrorHandler(res));
 });
 
 /* Update an inventory item. */
@@ -93,7 +93,7 @@ router.put('/inventory/:id', function(req, res) {
 
             return this.save();
         }
-    ).then(common.jsonSuccess(res), common.apiErrorHandler);
+    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(res));
 });
 
 /* Get info on part reservations. */
@@ -101,11 +101,16 @@ router.get('/inventory/:id/reservations', (req, res) => {
     var item = new Item(monk.id(req.params.id));
 
     item.reservations().then(
-        (rsvps) => {
+        (ids) => {
             /* Convert all RSVPs to (promises for) summaries */
-            return Promise.all(rsvps.map((rsvp) => { return rsvp.summary(); }));
+            return Promise.all(ids.map(
+                (id) => {
+                    rsvp = new Reservation(id);
+                    return rsvp.summary();
+                }
+            ));
         }
-    ).then(common.jsonSuccess(res), common.apiErrorHandler);
+    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(res));
 });
 
 /* Redirect all part-specific reservation requests to the reservation route */
