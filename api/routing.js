@@ -50,7 +50,7 @@ module.exports = {
 
     emptySuccess: function (r) {
         return (function (res) {
-            res.status(200).end();
+            res.status(204).end();
         }).bind(this, r);
     }
 }
