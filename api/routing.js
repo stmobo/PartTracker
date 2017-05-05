@@ -16,6 +16,7 @@ module.exports = {
             if(!(param in req.body))
                 return Promise.reject("Missing parameter: \'"+param+"\'");
         }
+        return Promise.resolve();
     },
 
     /* Catch handler for API handler functions using promises. */
@@ -31,26 +32,30 @@ module.exports = {
         }).bind(this, r);
     },
 
-    /* Sends an object as JSON along with an HTTP 200 code.
+    /* Sends an object as JSON along with a given response code.
      * If the incoming object is an Item or a Reservation,
      * then it will be converted to a summary before being sent. */
-    jsonSuccess: function(r) {
-        return (function (res, obj) {
+    sendJSON: function(r, c) {
+        return (function (res, stat, obj) {
             if(obj instanceof Item || obj instanceof Reservation) {
                 return obj.summary().then(
                     (summ) => {
-                        res.status(200).json(summ);
+                        res.status(stat).json(summ);
                     }
                 );
             } else {
-                res.status(200).json(obj);
+                res.status(stat).json(obj);
             }
-        }).bind(this, r);
+        }).bind(this, r, c);
+    },
+
+    jsonSuccess: function (r) {
+        return module.exports.sendJSON(r, 200);
     },
 
     emptySuccess: function (r) {
         return (function (res) {
             res.status(204).end();
         }).bind(this, r);
-    }
+    },
 }

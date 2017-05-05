@@ -55,7 +55,7 @@ router.post('/reservations', (req, res) => {
 
             return rsvp.save();
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(res));
+    ).then(common.sendJSON(res, 201)).catch(common.apiErrorHandler(res));
 });
 
 router.get("/reservations/:rid", (req, res) => {

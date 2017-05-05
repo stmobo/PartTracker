@@ -50,7 +50,7 @@ router.post('/inventory', function(req, res) {
                 return item.save();
             }
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(res));
+    ).then(common.sendJSON(res, 201)).catch(common.apiErrorHandler(res));
 });
 
 /* Get information on one inventory item. */
