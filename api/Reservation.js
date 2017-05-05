@@ -16,7 +16,7 @@ var Reservation = function(id, part, count, requester) {
     } else if((part instanceof ObjectID) || (typeof part === 'string')) {
         this._part = monk.id(part);
     } else {
-        this._part = null;
+        this._part = undefined;
     }
 
     this._requester = requester;
