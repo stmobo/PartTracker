@@ -2,37 +2,12 @@ var express = require('express');
 var monk = require('monk');
 var bodyParser = require('body-parser');
 
+var dbAPI = require('api/db.js');
+var Item = require('api/Item.js');
+var Reservation = require('api/Reservation.js');
+
 var router = express.Router();
-
-const db = monk('localhost:27017/partstracker');
-const inventory = db.get('inventory');
-const reservations = db.get('reservations');
-
-reservations.ensureIndex( {part: 1} );
-
 router.use(bodyParser.json());
-router.use(function(req, res, next) {
-    req.inv = inventory;
-    req.rsvp = reservations
-    next();
-});
-
-function sendInventoryItem(doc, res) {
-    res.json({
-        id: monk.id(doc._id),
-        name: doc.name,
-        count: doc.count
-    });
-}
-
-function sendReservation(doc, res) {
-    res.json({
-        id: monk.id(doc._id),
-        part: monk.id(doc.part),
-        count: doc.count,
-        requester: doc.requester
-    });
-}
 
 function checkRequestParameter(req, res, key) {
     if(!(key in req.body)) {
@@ -46,20 +21,12 @@ function checkRequestParameter(req, res, key) {
 
 /* Return a listing of all inventory items. */
 router.get('/inventory', function(req, res) {
-    req.inv.find({}, { name: 1, count: 1 }).then(
+    dbAPI.inventory.find({}, {}).then(
         (docs) => {
             promises = docs.map(
                 (doc) => {
-                    return getReservedPartsCount(req, doc._id).then(
-                        (reserved) => {
-                            return {
-                                id: monk.id(doc._id),
-                                name: doc.name,
-                                count: doc.count,
-                                reserved: reserved
-                            }
-                        }
-                    );
+                    it = new Item(doc._id);
+                    return it.summary();
                 }
             );
 
@@ -86,24 +53,24 @@ router.get('/inventory', function(req, res) {
   - 'count': initial inventory count
  */
 router.post('/inventory', function(req, res) {
-    req.inv.count( { name: req.body.name } ).then(
+    if(!checkRequestParameter(req, res, 'name') || !checkRequestParameter(req, res, 'count')) {
+        return;
+    }
+
+    dbAPI.inventory.count( { name: req.body.name } ).then(
         (count) => {
             if(count > 0) {
                 return Promise.reject("item exists already");
             } else {
-                /* insert new item into DB: */
-                return req.inv.insert(
-                    {
-                        name: req.body.name,
-                        count: parseInt(req.body.count)
-                    }
-                );
+                item = new Item(req.body.name, req.body.count);
+                return item.save();
             }
         }
     ).then(
-        (doc) => {
-            res.status(200);
-            sendInventoryItem(doc, res);
+        (item) => { return item.summary(); }
+    ).then(
+        (summ) => {
+            res.status(200).json(summ);
         }
     ).catch(
         (err) => {
@@ -121,24 +88,37 @@ router.post('/inventory', function(req, res) {
 
 /* Get information on one inventory item. */
 router.get('/inventory/:id', function(req, res) {
-    var retn = [];
-    req.inv.findOne({ _id: monk.id(req.params.id) }).then(
-        (doc) => {
-            res.status(200);
-            sendInventoryItem(doc, res);
+    var item = new Item(monk.id(req.params.id));
+
+    item.exists().then(
+        (exists) => {
+            if(exists) {
+                return item.summary();
+            } else {
+                return Promise.reject("item does not exist");
+            }
+        }
+    ).then(
+        (summ) => {
+            res.status(200).json(summ);
         }
     ).catch(
         (err) => {
-            res.status(500);
-            res.send(err.toString());
+            if(err === "item does not exist") {
+                res.status(400);
+                res.send("Item does not exist within inventory.");
+            } else {
+                res.status(500);
+                res.send(err.toString());
+            }
         }
     );
 });
 
 router.delete('/inventory/:id', function(req, res) {
-    req.inv.remove({ _id: monk.id(req.params.id) }).then(
-        req.rsvp.remove( { part: monk.id(req.params.id) } )
-    ).then(
+    item = new Item(monk.id(req.params.id));
+
+    item.delete().then(
         () => {
             res.status(200);
             res.end();
@@ -153,31 +133,37 @@ router.delete('/inventory/:id', function(req, res) {
 
 /* Update an inventory item. */
 router.put('/inventory/:id', function(req, res) {
-    //console.log("Body: " + JSON.stringify(req.body));
     if(!checkRequestParameter(req, res, 'name')) { return; }
     if(!checkRequestParameter(req, res, 'count')) { return; }
 
-    getReservedPartsCount(req, monk.id(req.params.id)).then(
+    var item = new Item(monk.id(req.params.id));
+
+    item.reserved().then(
         (rsvp_count) => {
             if(rsvp_count > req.body.count) {
                 return Promise.reject("Cannot satisfy reservations with lowered inventory count.");
             }
 
-            return req.inv.update(
-                { _id: monk.id(req.params.id) },
-                { $set: { name: req.body.name, count: parseInt(req.body.count) } }
-            );
+            this.name(req.body.name);
+            this.count(parseInt(req.body.count));
+
+            return this.save();
         }
     ).then(
-        () => { return req.inv.findOne({ _id: monk.id(req.params.id) }) }
+        (it) => { return it.summary(); }
     ).then(
-        (doc) => {
+        (summ) => {
             res.status(200);
-            sendInventoryItem(doc, res);
+            res.json(summ);
         }
     ).catch(
         (err) => {
-            res.status(500);
+            if(err === "Cannot satisfy reservations with lowered inventory count.") {
+                res.status(400);
+            } else {
+                res.status(500);
+            }
+
             res.send(err.toString());
         }
     );
@@ -185,16 +171,17 @@ router.put('/inventory/:id', function(req, res) {
 
 /* Get info on part reservations. */
 router.get('/inventory/:id/reservations', (req, res) => {
-    req.rsvp.find( { part: monk.id(req.params.id) }, { count:1, requester: 1 } ).then(
-        (docs) => {
-            retn = [];
+    var item = new Item(monk.id(req.params.id));
 
-            docs.forEach((doc) => {
-                retn.push({ id: monk.id(doc._id), part:req.params.id, requester: doc.requester, count: doc.count });
-            });
-
+    item.reservations().then(
+        (rsvps) => {
+            /* Convert all RSVPs to (promises for) summaries */
+            return Promise.all(rsvps.map((rsvp) => { return rsvp.summary(); }));
+        }
+    ).then(
+        (summs) => {
             res.status(200);
-            res.json(retn);
+            res.json(summs);
         }
     ).catch(
         (err) => {
@@ -223,145 +210,6 @@ router.put('/inventory/:id/reservations', (req, res) => {
 });
 router.delete('/inventory/:id/reservations', (req, res) => {
     res.redirect(307, req.baseUrl+'/reservations');
-});
-
-/* Get info on all part reservations. */
-router.get('/reservations', (req, res) => {
-    req.rsvp.find( {}, { count:1, requester: 1 } ).then(
-        (docs) => {
-            retn = [];
-
-            docs.forEach((doc) => {
-                retn.push({ id: monk.id(doc._id), part: doc.part, requester: doc.requester, count: doc.count });
-            });
-
-            res.status(200);
-            res.json(retn);
-        }
-    ).catch(
-        (err) => {
-            res.status(500);
-            res.send(err.toString());
-        }
-    );
-});
-
-/* Add new reservation.
-   Parameters:
-    - "part": part ID to reserve.
-    - "count": number of parts to reserve.
-    - "requester": name of team / person to reserve the parts under.
- */
-router.post('/reservations', (req, res) => {
-    if(!checkRequestParameter(req, res, 'part')) { return; }
-    if(!checkRequestParameter(req, res, 'count')) { return; }
-    if(!checkRequestParameter(req, res, 'requester')) { return; }
-    requested_parts = parseInt(req.body.count);
-
-    getAvailablePartsCount(req, monk.id(req.body.part)).then(
-        (avail_parts) => {
-            if(requested_parts > avail_parts) {
-                return Promise.reject("Not enough parts available to satisfy new reservation.");
-            }
-
-            return req.rsvp.insert({
-                part: monk.id(req.body.part),
-                count: parseInt(req.body.count),
-                requester: req.body.requester
-            });
-        }
-    ).then(
-        (doc) => {
-            res.status(200);
-            sendReservation(doc, res);
-        }
-    ).catch(
-        (err) => {
-            if(err instanceof Error) {
-                res.status(500);
-                res.send(err.toString());
-            } else {
-                res.status(400);
-                res.send(err);
-            }
-        }
-    );
-});
-
-router.get("/reservations/:rid", (req, res) => {
-    req.rsvp.findOne({ _id: monk.id(req.params.rid) }).then(
-        (doc) => {
-            res.status(200);
-            sendReservation(doc, res);
-        }
-    ).catch(
-        (err) => {
-            res.status(500);
-            res.send(err.toString());
-        }
-    );
-});
-
-router.put("/reservations/:rid", (req, res) => {
-    if(!checkRequestParameter(req, res, 'part')) { return; }
-    if(!checkRequestParameter(req, res, 'count')) { return; }
-    if(!checkRequestParameter(req, res, 'requester')) { return; }
-
-    requested_parts = parseInt(req.body.count);
-
-    req.rsvp.findOne({ _id: monk.id(req.params.rid) }).then(
-        (doc) => {
-            if(doc.part.toString() !== req.body.part) {
-                return getAvailablePartsCount(req, monk.id(req.body.part));
-            } else {
-                return Promise.all([
-                    getAvailablePartsCount(req, monk.id(req.body.part)),                                      // total available parts
-                    req.rsvp.findOne({ _id: monk.id(req.params.rid) }).then( (doc) => { return doc.count; } ) // parts from this RSVP pre-update
-                ]).then(
-                    (retn) => {
-                        return retn[0] + retn[1];
-                    }
-                )
-            }
-        }
-    ).then(
-        (avail_parts) => {
-            if(requested_parts > avail_parts) {
-                return Promise.reject("Not enough parts available to satisfy new reservation.");
-            }
-
-            return req.rsvp.update(
-                { _id: monk.id(req.params.rid) },
-                { $set: { part: monk.id(req.body.part), requester: req.body.requester, count: parseInt(req.body.count) } }
-            );
-        }
-    ).then(
-        () => { return req.rsvp.findOne({ _id: monk.id(req.params.rid) }) }
-    ).then(
-        (doc) => {
-            res.status(200);
-            sendReservation(doc, res);
-        }
-    ).catch(
-        (err) => {
-            res.status(500);
-            res.send(err.toString());
-        }
-    );
-});
-
-router.delete("/reservations/:rid", (req, res) => {
-    req.rsvp.remove({ _id: monk.id(req.params.rid) }).then(
-        () => {
-            res.status(200);
-            res.end();
-        }
-    ).catch(
-        (err) => {
-            res.status(500);
-            res.send(err.toString());
-        }
-    );
 });
 
 module.exports = router;

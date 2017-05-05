@@ -4,6 +4,8 @@ const conn = monk('localhost:27017/partstracker');
 const inventory = conn.get('inventory');
 const reservations = conn.get('reservations');
 
+reservations.ensureIndex( {part: 1} );
+
 function DatabaseItem(database, id) {
     this.db = database;
     if(id === undefined) {
@@ -92,7 +94,11 @@ DatabaseItem.prototype.save = function () {
                 );
             }
         }
-    );
+    ).then( () => { return this; } );
+};
+
+DatabaseItem.prototype.delete = function () {
+    return this.db.remove({_id: this.id()});
 };
 
 module.exports = {

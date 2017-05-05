@@ -1,6 +1,6 @@
 var monk = require('monk');
-var ObjectID = require('mongodb').ObjectID;
 var dbAPI = require('api/db.js');
+var Reservation = require('api/Reservation.js');    // yes I know this is a circular ref
 
 function Item(id, count) {
     if(id instanceof ObjectID) {
@@ -12,10 +12,15 @@ function Item(id, count) {
         if(typeof id === 'string') {
             /* id is the name of a new Item type */
             this._name = id;
-            this._count = count;
         } else {
             /* Create a new empty item type */
             this._name = "";
+        }
+
+        c = parseInt(count);
+        if(c === c) { // count is not NaN
+            this._count = c;
+        } else {
             this._count = 0;
         }
     }
@@ -23,6 +28,13 @@ function Item(id, count) {
 Item.prototype = Object.create(dbAPI.DatabaseItem);
 Item.prototype.constructor = Item;
 
+Item.prototype.delete = function () {
+    return dbAPI.reservations.remove({part: this.id()}).then(
+        () => {
+            return dbAPI.inventory.remove({_id: this.id()});
+        }
+    );
+};
 
 Item.prototype.name = function(v) { return this.prop('name', v); };
 Item.prototype.count = function(v) { return this.prop('count', v); };
@@ -58,7 +70,7 @@ Item.prototype.available = function () {
     );
 };
 
-Item.prototype.json = function () {
+Item.prototype.summary = function () {
     return Promise.all([
         this.name(),
         this.count(),
@@ -73,7 +85,15 @@ Item.prototype.json = function () {
                 available: retn[1] - retn[2]
             };
         }
-    ).then(JSON.stringify);
+    );
+};
+
+Item.prototype.reservations = function () {
+    return dbAPI.reservations.find({part: this.id()}, {}).then(
+        (docs) => {
+            return docs.map((doc) => { return new Reservation(doc._id); });
+        }
+    );
 };
 
 module.exports = Item;

@@ -1,5 +1,4 @@
 var monk = require('monk');
-var ObjectID = require('mongodb').ObjectID;
 var dbAPI = require('api/db.js');
 var Item = require('api/Item.js');
 
@@ -45,7 +44,7 @@ Reservation.prototype.part = function(v) {
     }
 };
 
-Reservation.prototype.json = function () {
+Reservation.prototype.summary = function () {
     return Promise.all([
         this.prop('part'),
         this.count(),
@@ -59,7 +58,7 @@ Reservation.prototype.json = function () {
                 requester: retn[2]
             };
         }
-    ).then(JSON.stringify);
+    );
 };
 
 module.exports = Reservation;
