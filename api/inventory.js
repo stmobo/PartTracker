@@ -42,38 +42,6 @@ function checkRequestParameter(req, res, key) {
     return true;
 }
 
-function getReservedPartsCount(req, part) {
-    return req.rsvp.aggregate([
-        { $match: { part: part } },
-        { $group: { _id: null, reserved: { $sum: "$count" } } }
-    ]).then(
-        (doc) => {
-            //console.log("getReservedPartsCount: type: " + typeof doc + " : " + JSON.stringify(doc));
-            if(doc[0] === undefined) {
-                return 0;
-            }
-
-            ret = parseInt(doc[0].reserved);
-            if(ret !== ret) {
-                return 0;
-            } else {
-                return ret;
-            }
-        }
-    );
-}
-
-function getAvailablePartsCount(req, part) {
-    return Promise.all([
-        req.inv.findOne({ _id: part }).then((doc) => { return doc.count; }),
-        getReservedPartsCount(req, part)
-    ]).then(
-        (retn) => {
-            return retn[0] - retn[1];
-        }
-    );
-}
-
 /* Method handlers: */
 
 /* Return a listing of all inventory items. */
