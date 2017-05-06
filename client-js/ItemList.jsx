@@ -18,12 +18,9 @@ class ItemListElement extends React.Component {
             count: 0,
             available: 0,
             reserved: 0,
-            reservations: [],
             showRSVPList: false,
         };
 
-        this.handleRSVPAdded = this.handleRSVPAdded.bind(this);
-        this.handleRSVPDeleted = this.handleRSVPDeleted.bind(this);
         this.fetchItemData = this.fetchItemData.bind(this);
         this.handleClick = this.handleClick.bind(this);
 
@@ -39,31 +36,8 @@ class ItemListElement extends React.Component {
                     available: item.available,
                     reserved: item.reserved
                 });
-
-                return fetch('/api/inventory/'+this.props.id+'/reservations');
             }
-        ).then(jsonOnSuccess).then(
-            (rsvps) => { this.setState({ reservations: rsvps }); }
         ).catch(errorHandler);
-    }
-
-    handleRSVPDeleted(rid) {
-        /* Send the DELETE request to the API: */
-        fetch('/api/reservations/'+rid,
-            {method: 'DELETE'}).then(this.fetchItemData).catch(errorHandler);
-    }
-
-    handleRSVPAdded(requester, count) {
-        var newRSVP = {part: this.props.id, count: parseInt(count), requester: requester};
-
-        console.log(JSON.stringify(newRSVP));
-
-        /* POST the response to the API: */
-        fetch('/api/reservations', {
-            method: 'POST',
-            body: JSON.stringify(newRSVP),
-            headers: {"Content-Type": "application/json"}
-        }).then(this.fetchItemData).catch(errorHandler);
     }
 
     handleClick(ev) {
@@ -86,7 +60,7 @@ class ItemListElement extends React.Component {
 
         var rsvpList = null;
         if(this.state.showRSVPList) {
-            rsvpList = <ItemRsvpList canAddNewRSVP={this.state.available > 0} rsvps={this.state.reservations} onRSVPAdded={this.handleRSVPAdded} onRSVPDeleted={this.handleRSVPDeleted}/>;
+            rsvpList = <ItemRsvpList canAddNewRSVP={this.state.available > 0} partID={this.props.id} onListUpdated={this.fetchItemData}/>;
         }
 
         return (

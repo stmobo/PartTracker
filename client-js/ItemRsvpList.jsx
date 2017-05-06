@@ -6,8 +6,7 @@ import {errorHandler, jsonOnSuccess} from './common.jsx';
  * Renders a single Reservation item in an ItemRsvpList.
  *
  * Props required:
- *  - id [string]: API ID for a Reservation object
- *  - count, requester: Properties of the Reservation object to render
+ *  - model [Reservation object]: the Reservation object to render
  *  - onRSVPDeleted [callback]: called when the Delete button is clicked
  *      should have signature onRSVPDeleted(rsvp_id).
  */
@@ -20,13 +19,13 @@ class RsvpListElement extends React.Component {
 
     handleRSVPDelete(ev) {
         ev.stopPropagation();
-        this.props.onRSVPDeleted(this.props.id);
+        this.props.onRSVPDeleted(this.props.model.id);
     }
 
     render() {
         return (
             <li className="inv-rsvp-item">
-                {this.props.count} reserved by <strong>{this.props.requester}</strong>
+                {this.props.model.count} reserved by <strong>{this.props.model.requester}</strong>
                 <span onClick={this.handleRSVPDelete} className="glyphicon glyphicon-remove rsvp-remove-button"></span>
             </li>
         );
@@ -37,49 +36,83 @@ class RsvpListElement extends React.Component {
  * Renders a list of Reservation items, as well as a form for creating new Reservations.
  *
  * Props required:
+ *  - partID [string]: Part ID to list Reservations for.
  *  - canAddNewRSVP [boolean]: True if a new reservation object can be made, false otherwise
- *  - rsvps [array]: Array of Reservation objects to render
- *  - onRSVPAdded [callback]: called when the New Reservation form is submitted
- *      should have signature onRSVPAdded(requester, count)
- *  - onRSVPDeleted [callback]: called when a Reservation list item has been deleted
- *      should have signature onRSVPDeleted(rsvp_id)
+ *  - onListUpdated [callback]: called whenever the Reservation list for this item is updated
  */
 export default class ItemRsvpList extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { formShown: false, requester: '', count: 0 };
+        this.state = { reservations: [], formShown: false, requester: '', count: 0 };
 
-        this.handleRSVPToggle = this.handleRSVPToggle.bind(this);
-        this.handleRSVPChange = this.handleRSVPChange.bind(this);
+        this.handleFormToggle = this.handleFormToggle.bind(this);
+        this.handleFormChange = this.handleFormChange.bind(this);
+        this.handleFormReset = this.handleFormReset.bind(this);
+
         this.handleRSVPSubmit = this.handleRSVPSubmit.bind(this);
-        this.handleRSVPReset = this.handleRSVPReset.bind(this);
+        this.handleRSVPDeleted = this.handleRSVPDeleted.bind(this);
+
+        this.fetchList = this.fetchList.bind(this);
+
+        this.fetchList();
     }
 
-    handleRSVPToggle(ev) {
+    fetchList() {
+        fetch('/api/inventory/'+this.props.partID+'/reservations').then(
+            jsonOnSuccess
+        ).then(
+            (rsvps) => { this.setState({ reservations: rsvps }); }
+        ).catch(errorHandler);
+    }
+
+    handleRSVPSubmit(ev) {
+        ev.preventDefault();
+
+        var newRSVP = {part: this.props.partID, count: parseInt(this.state.count), requester: this.state.requester};
+
+        /* POST the response to the API: */
+        fetch('/api/reservations', {
+                method: 'POST',
+                body: JSON.stringify(newRSVP),
+                headers: {"Content-Type": "application/json"}
+            })
+        .then(this.fetchList)
+        .then(this.props.onListUpdated)
+        .catch(errorHandler);
+    }
+
+    handleRSVPDeleted(rid) {
+        /* Send the DELETE request to the API: */
+        fetch('/api/reservations/'+rid,{method: 'DELETE'})
+        .then(this.fetchList)
+        .then(this.props.onListUpdated)
+        .catch(errorHandler);
+    }
+
+
+
+    handleFormToggle(ev) {
         this.setState({ formShown: !this.state.formShown });
         ev.stopPropagation();
     }
 
-    handleRSVPChange(ev) {
+    handleFormChange(ev) {
         this.setState({
             [ev.target.name]: ev.target.value
         });
     }
 
-    handleRSVPSubmit(ev) {
-        ev.preventDefault();
-        this.props.onRSVPAdded(this.state.requester, this.state.count);
-    }
-
-    handleRSVPReset(ev) {
+    handleFormReset(ev) {
         ev.preventDefault();
         this.setState({count: 0, requester:''});
     }
 
+
+
     render() {
-        const rsvpElems = this.props.rsvps.map(
+        const rsvpElems = this.state.reservations.map(
             (rsvp) => {
-                return <RsvpListElement key={rsvp.id} id={rsvp.id} onRSVPDeleted={this.props.onRSVPDeleted} count={rsvp.count} requester={rsvp.requester} />
+                return <RsvpListElement key={rsvp.id} onRSVPDeleted={this.handleRSVPDeleted} model={rsvp} />
             }
         );
         var form = null;
@@ -87,11 +120,11 @@ export default class ItemRsvpList extends React.Component {
         if(this.state.formShown && this.props.canAddNewRSVP) {
             form = (
                 <div>
-                    <button className="btn btn-default btn-sm" onClick={this.handleRSVPToggle}>Hide</button>
-                    <form className="new-rsvp-form" onClick={(ev) => {ev.stopPropagation();}} onSubmit={this.handleRSVPSubmit} onReset={this.handleRSVPReset}>
+                    <button className="btn btn-default btn-sm" onClick={this.handleFormToggle}>Hide</button>
+                    <form className="new-rsvp-form" onClick={(ev) => {ev.stopPropagation();}} onSubmit={this.handleRSVPSubmit} onReset={this.handleFormReset}>
                         <div>
-                            <label>Requester: <input type="text" name="requester" value={this.state.requester} onChange={this.handleRSVPChange} /></label>
-                            <label>Count:<input type="number" name="count" value={this.state.count} onChange={this.handleRSVPChange} /></label>
+                            <label>Requester: <input type="text" name="requester" value={this.state.requester} onChange={this.handleFormChange} /></label>
+                            <label>Count:<input type="number" name="count" value={this.state.count} onChange={this.handleFormChange} /></label>
                         </div>
                         <div>
                             <button type="submit" className="btn btn-success btn-sm">Add reservation</button>
@@ -108,7 +141,7 @@ export default class ItemRsvpList extends React.Component {
             form = (
                 <button
                 className={btnClasses}
-                onClick={ this.props.canAddNewRSVP ? this.handleRSVPToggle : (ev) => {ev.stopPropagation()} }>
+                onClick={ this.props.canAddNewRSVP ? this.handleFormToggle : (ev) => {ev.stopPropagation()} }>
                     Add new reservation
                  </button>
             );
