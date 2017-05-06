@@ -1,4 +1,3 @@
-var _ = require('underscore');
 import React from 'react';
 import ReactDOM from 'react-dom';
 
