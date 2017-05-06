@@ -10,50 +10,7 @@
         <link rel="stylesheet" href="/css/inventory.css">
     </head>
     <body>
-
-        <!-- Template for list view: -->
-        <script type="text/template" id="inv-row-template">
-            <div class="inv-data-row">
-                <div class="col-md-7"><%= name %></div>
-                <div class="col-md-2"><%= status %></div>
-                <div class="col-md-1"><%= available %></div>
-                <div class="col-md-1"><%= reserved %></div>
-                <div class="col-md-1"><%= count %></div>
-            </div>
-        </script>
-
-        <!-- Template for RSVP add controllers -->
-        <script type="text/template", id="inv-rsvp-add-template">
-            <button class="btn btn-default btn-sm add-new-rsvp">Add new reservation...</button>
-            <form class="new-rsvp-form">
-                <div>
-                    <label>Requester: <input type="text" id="requester" value=""></label>
-                    <label>Count:<input type="number" id="count" value="0"></label>
-                </div>
-                <div>
-                    <button type="submit" id="rsvp-submit" class="btn btn-success btn-sm">Add reservation</button>
-                    <button type="reset" id="rsvp-reset" class="btn btn-danger btn-sm">Cancel</button>
-                </div>
-            </form>
-        </script>
-
-        <!-- Template for item reservation view: -->
-        <script type="text/template" id="inv-rsvp-template">
-            <li class="inv-rsvp-item">
-                <%= count %> reserved by <strong><%= requester %></strong>
-            </li>
-        </script>
-
-        <div class="container-fluid" id="inv-table">
-            <div class="inv-list-header row">
-                <div class="col-md-7"><strong>Item Name</strong></div>
-                <div class="col-md-2"><strong>Status</strong></div>
-                <div class="col-md-1"><strong>Available</strong></div>
-                <div class="col-md-1"><strong>Reserved</strong></div>
-                <div class="col-md-1"><strong>Total</strong></div>
-            </div>
-        </div>
-
+        <div id="root"></div>
         <script src="js/bundle.js" charset="utf-8"></script>
     </body>
 </html>
