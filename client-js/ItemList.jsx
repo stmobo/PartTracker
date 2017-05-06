@@ -3,6 +3,13 @@ import ReactDOM from 'react-dom';
 import ItemRsvpList from './ItemRsvpList.jsx';
 import {errorHandler, jsonOnSuccess} from './common.jsx';
 
+/*
+ * Props required:
+ *  - id [string]: API ID for an Item.
+ *
+ * This class handles rendering one Item in a list, and synchronizes its
+ * internal state with the API.
+ */
 class ItemListElement extends React.Component {
     constructor(props) {
         super(props);
@@ -97,6 +104,10 @@ class ItemListElement extends React.Component {
     }
 }
 
+/*
+ * Fetches and renders the Inventory from the API.
+ * Requires no props.
+ */
 export default class ItemList extends React.Component {
     constructor(props) {
         super(props);

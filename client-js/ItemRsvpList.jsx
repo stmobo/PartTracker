@@ -2,6 +2,15 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {errorHandler, jsonOnSuccess} from './common.jsx';
 
+/*
+ * Renders a single Reservation item in an ItemRsvpList.
+ *
+ * Props required:
+ *  - id [string]: API ID for a Reservation object
+ *  - count, requester: Properties of the Reservation object to render
+ *  - onRSVPDeleted [callback]: called when the Delete button is clicked
+ *      should have signature onRSVPDeleted(rsvp_id).
+ */
 class RsvpListElement extends React.Component {
     constructor(props) {
         super(props);
@@ -24,6 +33,17 @@ class RsvpListElement extends React.Component {
     }
 }
 
+/*
+ * Renders a list of Reservation items, as well as a form for creating new Reservations.
+ *
+ * Props required:
+ *  - canAddNewRSVP [boolean]: True if a new reservation object can be made, false otherwise
+ *  - rsvps [array]: Array of Reservation objects to render
+ *  - onRSVPAdded [callback]: called when the New Reservation form is submitted
+ *      should have signature onRSVPAdded(requester, count)
+ *  - onRSVPDeleted [callback]: called when a Reservation list item has been deleted
+ *      should have signature onRSVPDeleted(rsvp_id)
+ */
 export default class ItemRsvpList extends React.Component {
     constructor(props) {
         super(props);
