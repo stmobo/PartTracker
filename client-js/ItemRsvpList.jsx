@@ -104,7 +104,7 @@ export default class ItemRsvpList extends React.Component {
 
     handleFormReset(ev) {
         ev.preventDefault();
-        this.setState({count: 0, requester:''});
+        this.setState({count: 0, requester:'', formShown:false});
     }
 
 
@@ -120,16 +120,13 @@ export default class ItemRsvpList extends React.Component {
         if(this.state.formShown && this.props.canAddNewRSVP) {
             form = (
                 <div>
-                    <button className="btn btn-default btn-sm" onClick={this.handleFormToggle}>Hide</button>
                     <form className="new-rsvp-form" onClick={(ev) => {ev.stopPropagation();}} onSubmit={this.handleRSVPSubmit} onReset={this.handleFormReset}>
+                        <button className="btn btn-danger btn-sm" type="reset">Cancel</button>
                         <div>
                             <label>Requester: <input type="text" name="requester" value={this.state.requester} onChange={this.handleFormChange} /></label>
                             <label>Count:<input type="number" name="count" value={this.state.count} onChange={this.handleFormChange} /></label>
                         </div>
-                        <div>
-                            <button type="submit" className="btn btn-success btn-sm">Add reservation</button>
-                            <button type="reset" className="btn btn-danger btn-sm">Cancel</button>
-                        </div>
+                        <button type="submit" className="btn btn-success btn-sm">Add reservation</button>
                     </form>
                 </div>
             );
