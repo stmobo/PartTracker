@@ -26,7 +26,7 @@ router.get('/inventory', function(req, res) {
 
             return Promise.all(promises);
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(res));
+    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
 });
 
 /*
@@ -50,7 +50,7 @@ router.post('/inventory', function(req, res) {
                 return item.save();
             }
         }
-    ).then(common.sendJSON(res, 201)).catch(common.apiErrorHandler(res));
+    ).then(common.sendJSON(res, 201)).catch(common.apiErrorHandler(req, res));
 });
 
 /* Get information on one inventory item. */
@@ -65,13 +65,13 @@ router.get('/inventory/:id', function(req, res) {
                 return Promise.reject("Item does not exist.");
             }
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(res));
+    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
 });
 
 router.delete('/inventory/:id', function(req, res) {
     item = new Item(monk.id(req.params.id));
 
-    item.delete().then(common.emptySuccess(res)).catch(common.apiErrorHandler(res));
+    item.delete().then(common.emptySuccess(res)).catch(common.apiErrorHandler(req, res));
 });
 
 /* Update an inventory item. */
@@ -93,7 +93,7 @@ router.put('/inventory/:id', function(req, res) {
 
             return this.save();
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(res));
+    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
 });
 
 /* Get info on part reservations. */
@@ -110,7 +110,7 @@ router.get('/inventory/:id/reservations', (req, res) => {
                 }
             ));
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(res));
+    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
 });
 
 /* Redirect all part-specific reservation requests to the reservation route */

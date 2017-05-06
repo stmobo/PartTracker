@@ -25,7 +25,7 @@ router.get('/reservations', (req, res) => {
 
             return Promise.all(promises);
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(res));
+    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
 });
 
 /* Add new reservation.
@@ -55,7 +55,7 @@ router.post('/reservations', (req, res) => {
 
             return rsvp.save();
         }
-    ).then(common.sendJSON(res, 201)).catch(common.apiErrorHandler(res));
+    ).then(common.sendJSON(res, 201)).catch(common.apiErrorHandler(req, res));
 });
 
 router.get("/reservations/:rid", (req, res) => {
@@ -67,7 +67,7 @@ router.get("/reservations/:rid", (req, res) => {
                 return Promise.reject("Reservation not found in database.");
             return rsvp.summary();
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(res));
+    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
 });
 
 router.put("/reservations/:rid", (req, res) => {
@@ -100,13 +100,13 @@ router.put("/reservations/:rid", (req, res) => {
 
             return rsvp.save();
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(res));
+    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
 });
 
 router.delete("/reservations/:rid", (req, res) => {
     rsvp = new Reservation(monk.id(req.params.rid));
 
-    rsvp.delete().then(common.emptySuccess(res)).catch(common.apiErrorHandler(res));
+    rsvp.delete().then(common.emptySuccess(res)).catch(common.apiErrorHandler(req, res));
 });
 
 module.exports = router;

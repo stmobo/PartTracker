@@ -20,16 +20,18 @@ module.exports = {
     },
 
     /* Catch handler for API handler functions using promises. */
-    apiErrorHandler: function (r) {
-        return (function (res, err) {
+    apiErrorHandler: function (req, res) {
+        return (function (req, res, err) {
             if(err instanceof Error) {
                 res.status(500);
                 res.send(err.stack);
+                console.error("Error on request to "+req.originalUrl+":\n"+err.stack);
             } else {
                 res.status(400);
                 res.send(err.toString());
+                console.error("Error on request to "+req.originalUrl+":\n"+err.toString());
             }
-        }).bind(this, r);
+        }).bind(this, req, res);
     },
 
     /* Sends an object as JSON along with a given response code.
