@@ -27,6 +27,6 @@
     opacity: 1.0;
 }
 
-.inv-list-item input[type=number] {
+.inv-list-editing input[type=number] {
     width: 75%;
 }

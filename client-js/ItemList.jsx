@@ -195,7 +195,7 @@ class ItemListElement extends React.Component {
             /* Editing row view */
             return (
                 <div>
-                    <form className="inv-list-item row" onSubmit={this.handleEditFormSubmit} onReset={this.handleEditFormReset}>
+                    <form className="inv-list-item inv-list-editing row" onSubmit={this.handleEditFormSubmit} onReset={this.handleEditFormReset}>
                         <div className="col-md-7">
                             <input type="text" name="name" value={this.state.name} onChange={this.handleEditFormChange} />
                             <button type="submit" className="btn btn-success btn-xs">Save</button>
