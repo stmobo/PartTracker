@@ -89,10 +89,16 @@ class ItemListElement extends React.Component {
             available: 0,
             reserved: 0,
             showRSVPList: false,
+            editing: false,
         };
 
         this.fetchItemData = this.fetchItemData.bind(this);
         this.handleClick = this.handleClick.bind(this);
+
+        this.handleEditFormSubmit = this.handleEditFormSubmit.bind(this);
+        this.handleEditFormReset = this.handleEditFormReset.bind(this);
+        this.handleEditFormChange = this.handleEditFormChange.bind(this);
+        this.handleEditStart = this.handleEditStart.bind(this);
 
         this.fetchItemData();
     }
@@ -110,10 +116,51 @@ class ItemListElement extends React.Component {
         ).catch(errorHandler);
     }
 
-    handleClick(ev) {
-        this.setState({
-            showRSVPList: !this.state.showRSVPList
-        });
+    handleEditFormSubmit(ev) {
+        ev.preventDefault();
+
+        fetch('/api/inventory/'+this.props.id, {
+            method: 'PUT',
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                name: this.state.name,
+                count: parseInt(this.state.count),
+            })
+        }).then(
+            () => { this.setState({ editing: false }) }
+        ).catch(errorHandler);
+    }
+
+    handleEditFormReset(ev) {
+        ev.preventDefault();
+
+        this.setState({editing: false});
+        this.fetchItemData();
+    }
+
+    handleEditFormChange(ev) {
+        if(ev.target.name === "available") {
+            this.setState({
+                available: parseInt(ev.target.value),
+                count: parseInt(ev.target.value) + this.state.reserved,
+            });
+        } else if(ev.target.name === "count") {
+            this.setState({
+                count: parseInt(ev.target.value),
+                available: parseInt(ev.target.value) - this.state.reserved,
+            });
+        } else {
+            this.setState({
+                [ev.target.name]: ev.target.value
+            });
+        }
+    }
+
+    handleClick(ev) { this.setState({ showRSVPList: !this.state.showRSVPList }); }
+    handleEditStart(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        this.setState({ editing: true })
     }
 
     render() {
@@ -133,18 +180,46 @@ class ItemListElement extends React.Component {
             rsvpList = <ItemRsvpList availableCount={this.state.available} partID={this.props.id} onListUpdated={this.fetchItemData}/>;
         }
 
-        return (
-            <div onClick={this.handleClick}>
-                <div className="inv-list-item row">
-                    <div className="col-md-7">{this.state.name}</div>
-                    <div className="col-md-2">{status}</div>
-                    <div className={"col-md-1 "+tr_ctxt_class}>{this.state.available}</div>
-                    <div className="col-md-1">{this.state.reserved}</div>
-                    <div className="col-md-1">{this.state.count}</div>
+        if(this.state.editing) {
+            /* Editing row view */
+            return (
+                <div>
+                    <form className="inv-list-item row" onSubmit={this.handleEditFormSubmit} onReset={this.handleEditFormReset}>
+                        <div className="col-md-7">
+                            <input type="text" name="name" value={this.state.name} onChange={this.handleEditFormChange} />
+                            <button type="submit" className="btn btn-success btn-xs">Save</button>
+                            <button type="reset" className="btn btn-danger btn-xs">Cancel</button>
+                        </div>
+                        <div className="col-md-2">{status}</div>
+                        <div className={"col-md-1 "+tr_ctxt_class}>
+                            <input type="number" name="available" value={this.state.available} min="0" onChange={this.handleEditFormChange} />
+                        </div>
+                        <div className="col-md-1">{this.state.reserved}</div>
+                        <div className="col-md-1">
+                            <input type="number" name="count" value={this.state.count} min={this.state.reserved} onChange={this.handleEditFormChange} />
+                        </div>
+                    </form>
+                    {rsvpList}
                 </div>
-                {rsvpList}
-            </div>
-        );
+            );
+        } else {
+            /* Standard row view */
+            return (
+                <div onClick={this.handleClick}>
+                    <div className="inv-list-item row">
+                        <div className="inv-item-name col-md-7">
+                            {this.state.name}
+                            <span onClick={this.handleEditStart} className="glyphicon glyphicon-pencil offset-button"></span>
+                        </div>
+                        <div className="col-md-2">{status}</div>
+                        <div className={"col-md-1 "+tr_ctxt_class}>{this.state.available}</div>
+                        <div className="col-md-1">{this.state.reserved}</div>
+                        <div className="col-md-1">{this.state.count}</div>
+                    </div>
+                    {rsvpList}
+                </div>
+            );
+        }
     }
 }
 

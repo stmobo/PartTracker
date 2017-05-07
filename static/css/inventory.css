@@ -17,11 +17,16 @@
     display: block;
 }
 
-.rsvp-remove-button {
+.offset-button {
     opacity: 0;
     padding-left: 0.5em;
 }
 
-.inv-rsvp-item:hover > .rsvp-remove-button {
+.inv-rsvp-item:hover > .offset-button,
+.inv-item-name:hover > .offset-button {
     opacity: 1.0;
+}
+
+.inv-list-item input[type=number] {
+    width: 75%;
 }

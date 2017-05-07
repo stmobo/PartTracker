@@ -26,7 +26,7 @@ class RsvpListElement extends React.Component {
         return (
             <li className="inv-rsvp-item">
                 {this.props.model.count} reserved by <strong>{this.props.model.requester}</strong>
-                <span onClick={this.handleRSVPDelete} className="glyphicon glyphicon-remove rsvp-remove-button"></span>
+                <span onClick={this.handleRSVPDelete} className="glyphicon glyphicon-remove offset-button"></span>
             </li>
         );
     }
