@@ -37,11 +37,9 @@ router.get('/inventory', function(req, res) {
   - 'count': initial inventory count
  */
 router.post('/inventory', function(req, res) {
-    if(!checkRequestParameter(req, res, 'name') || !checkRequestParameter(req, res, 'count')) {
-        return;
-    }
-
-    dbAPI.inventory.count( { name: req.body.name } ).then(
+    common.checkRequestParameters(req, 'name', 'count').then(
+        () => { return dbAPI.inventory.count( { name: req.body.name } ); }
+    ).then(
         (count) => {
             if(count > 0) {
                 return Promise.reject("Item already exists.");
@@ -76,11 +74,8 @@ router.delete('/inventory/:id', function(req, res) {
 
 /* Update an inventory item. */
 router.put('/inventory/:id', function(req, res) {
-    if(!checkRequestParameter(req, res, 'name')) { return; }
-    if(!checkRequestParameter(req, res, 'count')) { return; }
-
     var item = new Item(monk.id(req.params.id));
-
+    
     common.checkRequestParameters(req, 'name', 'count').then(
         () => { return item.reserved(); }
     ).then(
