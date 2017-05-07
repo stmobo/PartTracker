@@ -11,8 +11,10 @@
     background-color: #ff7272;
 }
 
-.status-available {
-    /*background-color: #82ff8a;*/
+/* .status-available uses defaults */
+
+.new-item-form * {
+    display: block;
 }
 
 .rsvp-remove-button {

@@ -119,7 +119,7 @@ export default class ItemRsvpList extends React.Component {
 
         if(this.state.formShown && this.props.canAddNewRSVP) {
             form = (
-                <form className="new-rsvp-form" onClick={(ev) => {ev.stopPropagation();}} onSubmit={this.handleRSVPSubmit} onReset={this.handleFormReset}>
+                <form className="new-rsvp-form" autoComplete="off" onClick={(ev) => {ev.stopPropagation();}} onSubmit={this.handleRSVPSubmit} onReset={this.handleFormReset}>
                     <button className="btn btn-danger btn-sm" type="reset">Cancel</button>
                     <div>
                         <label>Requester: <input type="text" name="requester" value={this.state.requester} onChange={this.handleFormChange} /></label>

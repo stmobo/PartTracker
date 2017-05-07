@@ -55,7 +55,7 @@ class NewItemForm extends React.Component {
     render() {
         if(this.state.showForm) {
             return (
-                <form className="new-item-form" onSubmit={this.handleFormSubmit} onReset={this.handleFormReset}>
+                <form className="new-item-form" autoComplete="off" onSubmit={this.handleFormSubmit} onReset={this.handleFormReset}>
                     <button className="btn btn-danger btn-sm" type="reset">Cancel</button>
                     <label>Name: <input type="text" name="name" value={this.state.name} onChange={this.handleFormChange} /></label>
                     <label>Count:<input type="number" name="count" value={this.state.count} onChange={this.handleFormChange} /></label>
@@ -190,7 +190,7 @@ export default class ItemList extends React.Component {
                     <div className="col-md-1"><strong>Total</strong></div>
                 </div>
                 {elems}
-                <div className="row">
+                <div className="inv-list-item row">
                     <div className="col-md-12">
                         <NewItemForm onNewItem={this.retrItemList} />
                     </div>
