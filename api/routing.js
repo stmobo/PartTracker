@@ -25,11 +25,11 @@ module.exports = {
             if(err instanceof Error) {
                 res.status(500);
                 res.send(err.stack);
-                console.error("Error on request to "+req.originalUrl+":\n"+err.stack);
+                console.error("Error on "+req.method+" request to "+req.originalUrl+":\n"+err.stack);
             } else {
                 res.status(400);
                 res.send(err.toString());
-                console.error("Error on request to "+req.originalUrl+":\n"+err.toString());
+                console.error("Error on "+req.method+" request to "+req.originalUrl+":\n"+err.toString());
             }
         }).bind(this, req, res);
     },

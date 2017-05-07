@@ -75,7 +75,7 @@ router.delete('/inventory/:id', function(req, res) {
 /* Update an inventory item. */
 router.put('/inventory/:id', function(req, res) {
     var item = new Item(monk.id(req.params.id));
-    
+
     common.checkRequestParameters(req, 'name', 'count').then(
         () => { return item.reserved(); }
     ).then(
@@ -83,10 +83,10 @@ router.put('/inventory/:id', function(req, res) {
             if(rsvp_count > req.body.count)
                 return Promise.reject("Cannot satisfy reservations with lowered inventory count.");
 
-            this.name(req.body.name);
-            this.count(parseInt(req.body.count));
+            item.name(req.body.name);
+            item.count(parseInt(req.body.count));
 
-            return this.save();
+            return item.save();
         }
     ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
 });
