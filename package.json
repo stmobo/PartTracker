@@ -6,8 +6,9 @@
   "scripts": {
     "build": "browserify client-js/main.jsx -t babelify -o static/js/bundle.js --debug",
     "start": "node index.js",
+    "start-db": "mongod --dbpath ./data/db --port 27017",
     "postinstall": "mkdir -p data/db",
-    "test": "concurrently -c \"green,cyan\" --kill-others \"mongod --dbpath ./data/db --port 27017\" \"npm run-script start\""
+    "test": "concurrently -c \"green,cyan\" --kill-others \"npm run-script start-db\" \"npm run-script start\""
   },
   "author": "Sebastian Mobo <stmobo@gmail.com>",
   "license": "MIT",
