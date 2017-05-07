@@ -76,6 +76,7 @@ class NewItemForm extends React.Component {
 /*
  * Props required:
  *  - id [string]: API ID for an Item.
+ *  - onItemDeleted [callback]: called when the item has been deleted.
  *
  * This class handles rendering one Item in a list, and synchronizes its
  * internal state with the API.
@@ -94,11 +95,13 @@ class ItemListElement extends React.Component {
 
         this.fetchItemData = this.fetchItemData.bind(this);
         this.handleClick = this.handleClick.bind(this);
+        this.handleDelete = this.handleDelete.bind(this);
 
         this.handleEditFormSubmit = this.handleEditFormSubmit.bind(this);
         this.handleEditFormReset = this.handleEditFormReset.bind(this);
         this.handleEditFormChange = this.handleEditFormChange.bind(this);
         this.handleEditStart = this.handleEditStart.bind(this);
+
 
         this.fetchItemData();
     }
@@ -156,6 +159,14 @@ class ItemListElement extends React.Component {
         }
     }
 
+    handleDelete(ev) {
+        ev.preventDefault();
+
+        fetch('/api/inventory/'+this.props.id,{method: 'DELETE'})
+        .then(this.props.onItemDeleted)
+        .catch(errorHandler);
+    }
+
     handleClick(ev) { this.setState({ showRSVPList: !this.state.showRSVPList }); }
     handleEditStart(ev) {
         ev.preventDefault();
@@ -210,6 +221,7 @@ class ItemListElement extends React.Component {
                         <div className="inv-item-name col-md-7">
                             {this.state.name}
                             <span onClick={this.handleEditStart} className="glyphicon glyphicon-pencil offset-button"></span>
+                            <span onClick={this.handleDelete} className="glyphicon glyphicon-remove offset-button"></span>
                         </div>
                         <div className="col-md-2">{status}</div>
                         <div className={"col-md-1 "+tr_ctxt_class}>{this.state.available}</div>
@@ -251,7 +263,7 @@ export default class ItemList extends React.Component {
     render() {
         var elems = this.state.items.map(
             (itemID) => {
-                return <ItemListElement id={itemID} key={itemID} />
+                return <ItemListElement id={itemID} key={itemID} onItemDeleted={this.retrItemList} />
             }
         )
 
