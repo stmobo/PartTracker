@@ -4,6 +4,76 @@ import ItemRsvpList from './ItemRsvpList.jsx';
 import {errorHandler, jsonOnSuccess} from './common.jsx';
 
 /*
+ * Renders a form for adding new item types to the inventory.
+ *
+ * Required props:
+ *  onNewItem [callback]: called when a new item type has been added (on form submit)
+ */
+class NewItemForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            name: '',
+            count: 0,
+            showForm: false
+        }
+
+        this.handleFormOpen = this.handleFormOpen.bind(this);
+        this.handleFormChange = this.handleFormChange.bind(this);
+        this.handleFormReset = this.handleFormReset.bind(this);
+        this.handleFormSubmit = this.handleFormSubmit.bind(this);
+    }
+
+    handleFormOpen(ev) {
+        ev.preventDefault();
+        this.setState({showForm: true});
+    }
+
+    handleFormChange(ev) {
+        this.setState({
+            [ev.target.name]: ev.target.value
+        });
+    }
+
+    handleFormReset(ev) {
+        ev.preventDefault();
+        this.setState({ name: '', count:0, showForm: false });
+    }
+
+    handleFormSubmit(ev) {
+        ev.preventDefault();
+        fetch('/api/inventory', {
+            method: 'POST',
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                name: this.state.name,
+                count: parseInt(this.state.count),
+            }),
+        }).then(this.props.onNewItem).catch(errorHandler);
+    }
+
+    render() {
+        if(this.state.showForm) {
+            return (
+                <form className="new-item-form" onSubmit={this.handleFormSubmit} onReset={this.handleFormReset}>
+                    <button className="btn btn-danger btn-sm" type="reset">Cancel</button>
+                    <label>Name: <input type="text" name="name" value={this.state.name} onChange={this.handleFormChange} /></label>
+                    <label>Count:<input type="number" name="count" value={this.state.count} onChange={this.handleFormChange} /></label>
+                    <button type="submit" className="btn btn-success btn-sm">Add item</button>
+                </form>
+            );
+        } else {
+            return (
+                <button className="btn btn-default btn-sm" onClick={this.handleFormOpen}>
+                    Add new item type
+                </button>
+            );
+        }
+    }
+
+}
+
+/*
  * Props required:
  *  - id [string]: API ID for an Item.
  *
@@ -120,6 +190,11 @@ export default class ItemList extends React.Component {
                     <div className="col-md-1"><strong>Total</strong></div>
                 </div>
                 {elems}
+                <div className="row">
+                    <div className="col-md-12">
+                        <NewItemForm onNewItem={this.retrItemList} />
+                    </div>
+                </div>
             </div>
         );
     }
