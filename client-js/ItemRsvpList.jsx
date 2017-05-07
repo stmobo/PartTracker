@@ -37,7 +37,7 @@ class RsvpListElement extends React.Component {
  *
  * Props required:
  *  - partID [string]: Part ID to list Reservations for.
- *  - canAddNewRSVP [boolean]: True if a new reservation object can be made, false otherwise
+ *  - availableCount [number]: number of items that can be reserved. If 0 the button to access the form will be disabled.
  *  - onListUpdated [callback]: called whenever the Reservation list for this item is updated
  */
 export default class ItemRsvpList extends React.Component {
@@ -116,27 +116,28 @@ export default class ItemRsvpList extends React.Component {
             }
         );
         var form = null;
+        var canAddNewRSVP = (this.props.availableCount > 0);
 
-        if(this.state.formShown && this.props.canAddNewRSVP) {
+        if(this.state.formShown && canAddNewRSVP) {
             form = (
                 <form className="new-rsvp-form" autoComplete="off" onClick={(ev) => {ev.stopPropagation();}} onSubmit={this.handleRSVPSubmit} onReset={this.handleFormReset}>
                     <button className="btn btn-danger btn-sm" type="reset">Cancel</button>
                     <div>
                         <label>Requester: <input type="text" name="requester" value={this.state.requester} onChange={this.handleFormChange} /></label>
-                        <label>Count:<input type="number" name="count" value={this.state.count} onChange={this.handleFormChange} /></label>
+                        <label>Count:<input type="number" name="count" value={this.state.count} onChange={this.handleFormChange} min="0" max={this.props.availableCount} /></label>
                     </div>
                     <button type="submit" className="btn btn-success btn-sm">Add reservation</button>
                 </form>
             );
         } else {
             var btnClasses = "btn btn-default btn-sm ";
-            if(!this.props.canAddNewRSVP)
+            if(!canAddNewRSVP)
                 btnClasses += "disabled";
 
             form = (
                 <button
                 className={btnClasses}
-                onClick={ this.props.canAddNewRSVP ? this.handleFormToggle : (ev) => {ev.stopPropagation()} }>
+                onClick={ canAddNewRSVP ? this.handleFormToggle : (ev) => {ev.stopPropagation()} }>
                     Add new reservation
                  </button>
             );

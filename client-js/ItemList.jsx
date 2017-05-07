@@ -130,7 +130,7 @@ class ItemListElement extends React.Component {
 
         var rsvpList = null;
         if(this.state.showRSVPList) {
-            rsvpList = <ItemRsvpList canAddNewRSVP={this.state.available > 0} partID={this.props.id} onListUpdated={this.fetchItemData}/>;
+            rsvpList = <ItemRsvpList availableCount={this.state.available} partID={this.props.id} onListUpdated={this.fetchItemData}/>;
         }
 
         return (
