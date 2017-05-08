@@ -30,3 +30,7 @@
 .inv-list-editing input[type=number] {
     width: 75%;
 }
+
+.list-timestamp {
+    padding-left: 0.5em;
+}

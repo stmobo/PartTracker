@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {errorHandler, jsonOnSuccess} from './common.jsx';
+import {errorHandler, jsonOnSuccess, renderUpdateTime} from './common.jsx';
 
 /*
  * Renders a single Reservation item in an ItemRsvpList.
@@ -23,9 +23,11 @@ class RsvpListElement extends React.Component {
     }
 
     render() {
+        const updateTime = new Date(this.props.model.updated);
         return (
             <li className="inv-rsvp-item">
                 {this.props.model.count} reserved by <strong>{this.props.model.requester}</strong>
+                {renderUpdateTime(updateTime)}
                 <span onClick={this.handleRSVPDelete} className="glyphicon glyphicon-remove offset-button"></span>
             </li>
         );

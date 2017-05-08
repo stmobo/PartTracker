@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ItemRsvpList from './ItemRsvpList.jsx';
-import {errorHandler, jsonOnSuccess} from './common.jsx';
+import {errorHandler, jsonOnSuccess, renderUpdateTime} from './common.jsx';
 
 /*
  * Renders a form for adding new item types to the inventory.
@@ -91,6 +91,8 @@ class ItemListElement extends React.Component {
             reserved: 0,
             showRSVPList: false,
             editing: false,
+            updated: new Date(0),
+            created: new Date(0),
         };
 
         this.fetchItemData = this.fetchItemData.bind(this);
@@ -113,7 +115,9 @@ class ItemListElement extends React.Component {
                     name: item.name,
                     count: item.count,
                     available: item.available,
-                    reserved: item.reserved
+                    reserved: item.reserved,
+                    created: new Date(item.created),
+                    updated: new Date(item.updated)
                 });
             }
         ).catch(errorHandler);
@@ -220,6 +224,7 @@ class ItemListElement extends React.Component {
                     <div className="inv-list-item row">
                         <div className="inv-item-name col-md-7">
                             {this.state.name}
+                            {renderUpdateTime(this.state.updated)}
                             <span onClick={this.handleEditStart} className="glyphicon glyphicon-pencil offset-button"></span>
                             <span onClick={this.handleDelete} className="glyphicon glyphicon-remove offset-button"></span>
                         </div>

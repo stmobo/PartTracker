@@ -1,3 +1,6 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+
 export function errorHandler(err) {
     if(err instanceof Response) {
         console.error("Request to "+err.url+" returned error "+err.status.toString()+' '+err.statusText);
@@ -15,3 +18,25 @@ export function jsonOnSuccess(res) {
 
     return res.json();
 }
+
+export function renderUpdateTime(updated) {
+    var elapsed = Date.now() - updated;
+    var timeStr = updated.toLocaleTimeString(localeString, {timeZone: timezone});
+
+    if(elapsed >= (24*3600*1000)) { // ms in a day
+        /* Render date portion only, with update time on hover */
+        (<small className="list-timestamp">
+            <abbr title={timeStr}>
+               (last updated { updated.toLocaleDateString(localeString, {timeZone: timezone}) })
+           </abbr>
+       </small>);
+    } else {
+        /* Render update time only */
+        return (<small className="list-timestamp">
+            (last updated today, {timeStr})
+        </small>);
+    }
+}
+
+export var localeString = 'en-US';
+export var timezone = 'America/Chicago';
