@@ -3,26 +3,15 @@ var ObjectID = require('mongodb').ObjectID;
 var dbAPI = require('api/db.js');
 var Item = require('api/Item.js');
 
-var Reservation = function(id, part, count, requester) {
+var Reservation = function(id) {
     if((id instanceof ObjectID) || (typeof id === 'string')) {
         /* Load an item from the DB */
         dbAPI.DatabaseItem.call(this, dbAPI.reservations, id);
     } else {
         dbAPI.DatabaseItem.call(this, dbAPI.reservations);
     }
-
-    if(part instanceof Item) {
-        this._part = part.id();
-    } else if((part instanceof ObjectID) || (typeof part === 'string')) {
-        this._part = monk.id(part);
-    } else {
-        this._part = undefined;
-    }
-
-    this._requester = requester;
-    this._count = count;
-
 };
+
 Reservation.prototype = Object.create(dbAPI.DatabaseItem.prototype);
 Reservation.prototype.constructor = Reservation;
 
@@ -41,7 +30,13 @@ Reservation.prototype.part = function(v) {
             }
         );
     } else {
-        return this.prop('part', v);
+        if(v instanceof Item) {
+            return this.prop('part', v.id());
+        } else if((v instanceof ObjectID) || (typeof v === 'string')) {
+            return this.prop('part', monk.id(v));
+        } else {
+            throw new Error("Invalid PartID passed to setter!");
+        }
     }
 };
 

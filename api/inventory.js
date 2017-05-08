@@ -44,7 +44,11 @@ router.post('/inventory', function(req, res) {
             if(count > 0) {
                 return Promise.reject("Item already exists.");
             } else {
-                item = new Item(req.body.name, req.body.count);
+                item = new Item();
+
+                item.name(req.body.name);
+                item.count(req.body.count);
+
                 return item.save();
             }
         }

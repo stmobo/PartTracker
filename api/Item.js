@@ -3,29 +3,10 @@ var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;
 var dbAPI = require('api/db.js');
 
-var Item = function (id, count) {
-    if(id instanceof ObjectID) {
-        /* Load an item from the DB */
-        dbAPI.DatabaseItem.call(this, dbAPI.inventory, id);
-    } else {
-        dbAPI.DatabaseItem.call(this, dbAPI.inventory);
-
-        if(typeof id === 'string') {
-            /* id is the name of a new Item type */
-            this._name = id;
-        } else {
-            /* Create a new empty item type */
-            this._name = "";
-        }
-
-        c = parseInt(count);
-        if(c === c) { // count is not NaN
-            this._count = c;
-        } else {
-            this._count = 0;
-        }
-    }
+var Item = function (id) {
+    dbAPI.DatabaseItem.call(this, dbAPI.inventory, id);
 };
+
 Item.prototype = Object.create(dbAPI.DatabaseItem.prototype);
 Item.prototype.constructor = Item;
 
@@ -38,7 +19,17 @@ Item.prototype.delete = function () {
 };
 
 Item.prototype.name = function(v) { return this.prop('name', v); };
-Item.prototype.count = function(v) { return this.prop('count', v); };
+Item.prototype.count = function(v) {
+    if(typeof v === 'string' && !isNaN(parseInt(v))) {
+        return this.prop('count', parseInt(v));
+    } else if(typeof v === 'number') {
+        return this.prop('count', v);
+    } else if(v === undefined) {
+        return this.prop('count');
+    } else {
+        throw new Error("Invalid parameter for Item Count!");
+    }
+};
 
 Item.prototype.reserved = function () {
     return dbAPI.reservations.aggregate([

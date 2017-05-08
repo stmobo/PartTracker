@@ -46,12 +46,10 @@ router.post('/reservations', (req, res) => {
             if(requested_parts > avail_parts)
                 return Promise.reject("Not enough parts available to satisfy new reservation.");
 
-            var rsvp = new Reservation(
-                undefined,
-                req.body.part,
-                parseInt(req.body.count),
-                req.body.requester
-            );
+            var rsvp = new Reservation();
+            rsvp.requester(req.body.requester);
+            rsvp.count(requested_parts);
+            rsvp.part(req.body.part);
 
             return rsvp.save();
         }
