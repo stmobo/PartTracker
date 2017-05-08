@@ -63,18 +63,26 @@ Item.prototype.available = function () {
 };
 
 Item.prototype.summary = function () {
-    return Promise.all([
-        this.name(),
-        this.count(),
-        this.reserved()
-    ]).then(
+    return this.fetch().then(
+        () => {
+            return Promise.all([
+                this.name(),
+                this.count(),
+                this.reserved(),
+                this.created(),
+                this.updated(),
+            ]);
+        }
+    ).then(
         (retn) => {
             return {
                 id: this.id(),
                 name: retn[0],
                 count: retn[1],
                 reserved: retn[2],
-                available: retn[1] - retn[2]
+                available: retn[1] - retn[2],
+                created: retn[3],
+                updated: retn[4]
             };
         }
     );

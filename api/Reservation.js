@@ -22,7 +22,7 @@ Reservation.prototype.part = function(v) {
         /* Get part object. */
         return this.prop('part').then(
             (partID) => {
-                if(partID !== null) {
+                if(partID === null) {
                     return null;
                 }
 
@@ -41,17 +41,25 @@ Reservation.prototype.part = function(v) {
 };
 
 Reservation.prototype.summary = function () {
-    return Promise.all([
-        this.prop('part'),
-        this.count(),
-        this.requester(),
-    ]).then(
+    return this.fetch().then(
+        () => {
+            return Promise.all([
+                this.prop('part'),
+                this.count(),
+                this.requester(),
+                this.created(),
+                this.updated()
+            ]);
+        }
+    ).then(
         (retn) => {
             return {
                 id: this.id(),
                 part: retn[0],
                 count: retn[1],
-                requester: retn[2]
+                requester: retn[2],
+                created: retn[3],
+                updated: retn[4],
             };
         }
     );

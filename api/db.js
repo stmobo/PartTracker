@@ -22,6 +22,10 @@ DatabaseItem.prototype.id = function () {
 
 /* Get or set a property. */
 DatabaseItem.prototype.prop = function (k, v) {
+    if(k === 'updated' || k === 'created') {
+        v = undefined;
+    }
+
     if(v === undefined) {
         /* Get name */
         if(this['_'+k] === undefined) {
@@ -43,6 +47,9 @@ DatabaseItem.prototype.prop = function (k, v) {
         this['_'+k] = v;
     }
 };
+
+DatabaseItem.prototype.updated = function () { return this.prop('updated'); };
+DatabaseItem.prototype.created = function () { return this.prop('created'); };
 
 /* Check to see if this item exists in the database. */
 DatabaseItem.prototype.exists = function () {
@@ -78,13 +85,21 @@ DatabaseItem.prototype.save = function () {
         (n) => {
             spec = { _id: this.id() };
             for(var prop in this) {
-                if(this.hasOwnProperty(prop) && prop !== '_id' && prop.charAt(0) === '_') {
+                if(this.hasOwnProperty(prop) &&
+                    prop !== '_id' &&
+                    prop !== '_updated' &&
+                    prop !== '_created' &&
+                    prop.charAt(0) === '_') {
                     spec[prop.substr(1)] = this[prop];
                 }
             }
 
+            /* Set last updated time */
+            spec.updated = new Date();
+
             if(n == 0) {
                 /* Insert this as a new document: */
+                spec.created = new Date();
                 return this.db.insert(spec);
             } else {
                 /* Update the existing document: */
