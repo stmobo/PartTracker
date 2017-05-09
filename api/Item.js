@@ -11,10 +11,23 @@ Item.prototype = Object.create(dbAPI.DatabaseItem.prototype);
 Item.prototype.constructor = Item;
 
 Item.prototype.delete = function () {
-    return dbAPI.reservations.remove({part: this.id()}).then(
-        () => {
-            return dbAPI.inventory.remove({_id: this.id()});
+    /* Remove Assembly requirements referencing this item.
+     * This should also delete all references to Reservations that will be deleted shortly. */
+    return dbAPI.assemblies.update(
+        {
+            /* Match all assemblies that require this item */
+            "requirements.item": this.id(),
+        },
+        {
+            /* Unset the requirement. */
+            $unset: { "requirements.$": null }
         }
+    ).then(
+        /* Remove Reservations referencing this item */
+        () => { return dbAPI.reservations.remove({part: this.id()}); }
+    ).then(
+        /* Remove this item */
+        () => { return dbAPI.inventory.remove({_id: this.id()}); }
     );
 };
 

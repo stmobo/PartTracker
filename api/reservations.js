@@ -33,6 +33,7 @@ router.get('/reservations', (req, res) => {
     - "part": part ID to reserve.
     - "count": number of parts to reserve.
     - "requester": name of team / person to reserve the parts under.
+    - "asm" [optional]: Assembly ID to reserve the parts for.
  */
 router.post('/reservations', (req, res) => {
     common.checkRequestParameters(req, 'part', 'count', 'requester').then(
@@ -50,6 +51,9 @@ router.post('/reservations', (req, res) => {
             rsvp.requester(req.body.requester);
             rsvp.count(requested_parts);
             rsvp.part(req.body.part);
+
+            if('asm' in req.body)
+                rsvp.asm(req.body.asm);
 
             return rsvp.save();
         }
@@ -95,6 +99,9 @@ router.put("/reservations/:rid", (req, res) => {
             rsvp.part(monk.id(req.body.part));
             rsvp.count(requested_parts);
             rsvp.requester(req.body.requester);
+
+            if('asm' in req.body)
+                rsvp.asm(req.body.asm);
 
             return rsvp.save();
         }

@@ -3,6 +3,7 @@ var monk = require('monk');
 const conn = monk('localhost:27017/partstracker');
 const inventory = conn.get('inventory');
 const reservations = conn.get('reservations');
+const assemblies = conn.get('assemblies');
 
 reservations.ensureIndex( {part: 1} );
 
@@ -120,5 +121,6 @@ module.exports = {
     conn: conn,
     inventory: inventory,
     reservations: reservations,
+    assemblies: assemblies,
     DatabaseItem: DatabaseItem
 };

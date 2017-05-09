@@ -15,6 +15,26 @@ var Reservation = function(id) {
 Reservation.prototype = Object.create(dbAPI.DatabaseItem.prototype);
 Reservation.prototype.constructor = Reservation;
 
+Reservation.prototype.delete = function () {
+    return dbAPI.assemblies.update(
+        {
+            /* Match all assemblies that require this reservation */
+            "requirements.reservation": this.id(),
+        },
+        {
+            /* Set the appropriate reservation element to null */
+            $set: {
+                "requirements.$.reservation": null
+            }
+        }
+    ).then(
+        () => {
+            /* Now actually remove the reservation */
+            return dbAPI.reservations.remove({_id: this.id()})
+        }
+    );
+};
+
 Reservation.prototype.count = function(v) { return this.prop('count', v); };
 Reservation.prototype.requester = function(v) { return this.prop('requester', v); };
 Reservation.prototype.part = function(v) {
@@ -40,6 +60,18 @@ Reservation.prototype.part = function(v) {
     }
 };
 
+Reservation.prototype.asm = function(v) {
+    if(v === undefined) {
+        return this.prop('asm');
+    } else {
+        if((v instanceof ObjectID) || (typeof v === 'string')) {
+            return this.prop('asm', monk.id(v));
+        } else {
+            throw new Error("Invalid AssemblyID passed to setter!");
+        }
+    }
+}
+
 Reservation.prototype.summary = function () {
     return this.fetch().then(
         () => {
@@ -48,7 +80,8 @@ Reservation.prototype.summary = function () {
                 this.count(),
                 this.requester(),
                 this.created(),
-                this.updated()
+                this.updated(),
+                this.asm(),
             ]);
         }
     ).then(
@@ -60,6 +93,7 @@ Reservation.prototype.summary = function () {
                 requester: retn[2],
                 created: retn[3],
                 updated: retn[4],
+                assembly: retn[5],
             };
         }
     );
