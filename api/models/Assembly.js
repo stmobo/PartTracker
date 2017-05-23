@@ -1,8 +1,8 @@
 var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;
 var dbAPI = require('api/db.js');
-var Item = require('api/Item.js');
-var Reservation = require('api/Reservation.js');
+var Item = require('api/models/Item.js');
+var Reservation = require('api/models/Reservation.js');
 
 function AssemblyRequirement(itemID, count, reservation) {
     this.item = itemID;

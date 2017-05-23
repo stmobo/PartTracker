@@ -1,7 +1,7 @@
 var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;
 var dbAPI = require('api/db.js');
-var Item = require('api/Item.js');
+var Item = require('api/models/Item.js');
 
 var Reservation = function(id) {
     if((id instanceof ObjectID) || (typeof id === 'string')) {

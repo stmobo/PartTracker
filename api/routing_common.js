@@ -2,8 +2,8 @@
 var express = require('express');
 var monk = require('monk');
 
-var Item = require('api/Item.js');
-var Reservation = require('api/Reservation.js');
+var Item = require('api/models/Item.js');
+var Reservation = require('api/models/Reservation.js');
 
 module.exports = {
     /* Tests for the existence of given keys in req.body.

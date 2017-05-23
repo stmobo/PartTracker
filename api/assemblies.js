@@ -3,13 +3,13 @@ var monk = require('monk');
 var bodyParser = require('body-parser');
 
 var dbAPI = require('api/db.js');
-var common = require('api/routing.js');
+var common = require('api/routing_common.js');
 
-var Item = require('api/Item.js');
-var Reservation = require('api/Reservation.js');
+var Item = require('api/models/Item.js');
+var Reservation = require('api/models/Reservation.js');
 
-var Assembly = require('api/Assembly.js').Assembly;
-var Requirement = require('api/Assembly.js').Requirement;
+var Assembly = require('api/models/Assembly.js').Assembly;
+var Requirement = require('api/models/Assembly.js').Requirement;
 
 var router = express.Router();
 router.use(bodyParser.json());
