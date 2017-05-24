@@ -128,6 +128,23 @@ Assembly.prototype.delete = function () {
     );
 };
 
+Assembly.prototype.exists = function (rejectIfNonexistent) {
+    if(rejectIfNonexistent) {
+        return dbAPI.assemblies.count({_id: this.id()}).then(
+            (count) => {
+                if(count > 0)
+                    return this;
+                else
+                    return Promise.reject("Assembly does not exist.");
+            }
+        );
+    } else {
+        return dbAPI.assemblies.count({_id: this.id()}).then(
+            (count) => { return count > 0; }
+        );
+    }
+};
+
 /* The usual getters/setters: */
 Assembly.prototype.name = function (v) { return this.prop("name", v); };
 Assembly.prototype.assigned = function (v) { return this.prop("assigned", v); };
@@ -163,7 +180,7 @@ Assembly.prototype.requirements = function (v) {
     } else {
         /* Set requirements, but only ones that are valid. */
 
-        /* Map all invalid Requirements to null, leave valid REquirements
+        /* Map all invalid Requirements to null, leave valid Requirements
          * intact. */
         promises = v.map((raw_req) => {
             return dbAPI.inventory.count({_id: monk.id(raw_req.item)}).then(
@@ -227,11 +244,17 @@ Assembly.prototype.parent = function (v) {
            (l) => { return l.child; }
        );
    } else {
-       return dbAPI.assembly_links.remove({child: this.id()}).then(
-           () => {
-               return dbAPI.assembly_links.insert({parent: monk.id(v), child: this.id()});
-           }
-       )
+       promise = dbAPI.assembly_links.remove({child: this.id()});
+       /* Top-level assemblies have no (null) parents. */
+       if(v !== null) {
+           return promise.then(
+               () => {
+                   return dbAPI.assembly_links.insert({parent: monk.id(v), child: this.id()});
+               }
+           );
+       } else {
+           return promise;
+       }
    }
 };
 
@@ -240,7 +263,13 @@ Assembly.prototype.summary = function () {
         () => {
             return Promise.all([
                 this.name(),
-                this.requirements(),
+                /* Get summaries for requirements (instead of the actual raw requirement object...) */
+                this.requirements().then(
+                    (reqs) => {
+                        return reqs.map((req) => { return req.summary() });
+                    }
+                ),
+                this.assigned(),
                 this.parent(),
                 this.children(),
                 this.updated(),
@@ -253,10 +282,11 @@ Assembly.prototype.summary = function () {
                 id: this.id(),
                 name: retn[0],
                 requirements: retn[1],
-                parent: retn[2],
-                children: retn[3],
-                updated: retn[4],
-                created: retn[5],
+                assigned: retn[2],
+                parent: retn[3],
+                children: retn[4],
+                updated: retn[5],
+                created: retn[6],
             };
         }
     )
@@ -265,4 +295,5 @@ Assembly.prototype.summary = function () {
 module.exports = {
     Assembly: Assembly,
     Requirement: AssemblyRequirement,
+    Link: AssemblyLink,
 };

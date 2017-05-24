@@ -4,6 +4,7 @@ const conn = monk('localhost:27017/partstracker');
 const inventory = conn.get('inventory');
 const reservations = conn.get('reservations');
 const assemblies = conn.get('assemblies');
+const assembly_links = conn.get('assembly_links');
 
 reservations.ensureIndex( {part: 1} );
 
@@ -122,5 +123,6 @@ module.exports = {
     inventory: inventory,
     reservations: reservations,
     assemblies: assemblies,
+    assembly_links: assembly_links,
     DatabaseItem: DatabaseItem
 };
