@@ -26,6 +26,9 @@ User.prototype.delete = function () {
 
 User.prototype.username = function(v) { return this.prop('username', v); };
 User.prototype.realname = function(v) { return this.prop('realname', v); };
+User.prototype.admin = function(v) { return this.prop('admin', v); };
+User.prototype.disabled = function(v) { return this.prop('disabled', v); };
+
 User.prototype.passwordHash = function() { return this.prop('pw_hash'); };
 User.prototype.salt = function() { return this.prop('salt'); };
 
@@ -58,7 +61,7 @@ User.prototype.setPassword = function (v) {
         return Promise.reject(new TypeError('Parameter to setPassword() must be a string!'));
 
     return this.computePasswordHash(v).then(
-        (hashDigest) => this.prop('pw_hash', hashDigest);
+        (hashDigest) => { return this.prop('pw_hash', hashDigest); }
     );
 };
 
@@ -68,6 +71,8 @@ User.prototype.summary = function () {
             return Promise.all([
                 this.username(),
                 this.realname(),
+                this.admin(),
+                this.disabled(),
                 this.updated(),
                 this.created(),
             ]);
@@ -78,8 +83,10 @@ User.prototype.summary = function () {
                 id: this.id(),
                 username: retn[0],
                 realname: retn[1],
-                created: retn[2],
-                updated: retn[3],
+                administrator: retn[2],
+                disabled: retn[3],
+                created: retn[4],
+                updated: retn[5],
             };
         }
     );

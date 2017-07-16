@@ -17,8 +17,13 @@
     "body-parser": "^1.17.1",
     "bootstrap": "^3.3.7",
     "concurrently": "^3.4.0",
+    "connect-ensure-login": "^0.1.1",
     "express": "^4.15.2",
+    "express-session": "^1.15.3",
     "monk": "^4.0.0",
+    "passport": "^0.3.2",
+    "passport-http": "^0.3.0",
+    "passport-local": "^1.0.0",
     "react": "^15.5.4",
     "react-dom": "^15.5.4"
   },
