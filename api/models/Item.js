@@ -11,26 +11,14 @@ Item.prototype = Object.create(dbAPI.DatabaseItem.prototype);
 Item.prototype.constructor = Item;
 
 Item.prototype.delete = function () {
-    /* Remove Assembly requirements referencing this item.
-     * This should also delete all references to Reservations that will be deleted shortly. */
-    return dbAPI.assemblies.update(
-        {
-            /* Match all assemblies that require this item */
-            "requirements.item": this.id(),
-        },
-        {
-            /* Unset the requirement. */
-            $unset: { "requirements.$": null }
-        }
-    ).then(
-        /* Remove Reservations referencing this item */
-        () => { return dbAPI.reservations.remove({part: this.id()}); }
-    ).then(
-        /* Remove this item */
+    /* Remove Reservations referencing this item */
+    return dbAPI.reservations.remove({part: this.id()}).then(
+        /* Now remove this item */
         () => { return dbAPI.inventory.remove({_id: this.id()}); }
     );
 };
 
+/* Get / Set item name and total inventory count... */
 Item.prototype.name = function(v) { return this.prop('name', v); };
 Item.prototype.count = function(v) {
     if(typeof v === 'string' && !isNaN(parseInt(v))) {
@@ -44,6 +32,7 @@ Item.prototype.count = function(v) {
     }
 };
 
+/* Get number of reserved units for this item */
 Item.prototype.reserved = function () {
     return dbAPI.reservations.aggregate([
         { $match: { part: this.id() } },
@@ -64,6 +53,7 @@ Item.prototype.reserved = function () {
     );
 };
 
+/* Get number of available units for this item */
 Item.prototype.available = function () {
     return Promise.all([
         this.count(),

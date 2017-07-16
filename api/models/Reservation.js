@@ -16,23 +16,7 @@ Reservation.prototype = Object.create(dbAPI.DatabaseItem.prototype);
 Reservation.prototype.constructor = Reservation;
 
 Reservation.prototype.delete = function () {
-    return dbAPI.assemblies.update(
-        {
-            /* Match all assemblies that require this reservation */
-            "requirements.reservation": this.id(),
-        },
-        {
-            /* Set the appropriate reservation element to null */
-            $set: {
-                "requirements.$.reservation": null
-            }
-        }
-    ).then(
-        () => {
-            /* Now actually remove the reservation */
-            return dbAPI.reservations.remove({_id: this.id()})
-        }
-    );
+    return dbAPI.reservations.remove({_id: this.id()});
 };
 
 Reservation.prototype.count = function(v) { return this.prop('count', v); };
