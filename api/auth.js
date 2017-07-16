@@ -2,8 +2,8 @@ var express = require('express');
 var monk = require('monk');
 var bodyParser = require('body-parser');
 var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
-var BasicStrategy = require('passport-http').Strategy;
+var LocalStrategy = require('passport-local');
+var BasicStrategy = require('passport-http').BasicStrategy;
 
 var dbAPI = require('api/db.js');
 var common = require('api/routing_common.js');
@@ -15,7 +15,7 @@ const initialRealName = 'Initial User';
 const initialPassword = 'changemenow';
 
 /* Create an initial user if necessary */
-dbAPI.findOne({ username: initialUserName }).then(
+dbAPI.users.findOne({ username: initialUserName }).then(
     (doc) => {
         if(doc !== null)
             return;

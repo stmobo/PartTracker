@@ -33,7 +33,7 @@ User.prototype.passwordHash = function() { return this.prop('pw_hash'); };
 User.prototype.salt = function() { return this.prop('salt'); };
 
 /* Computes the hash of (v + user.salt) */
-User.prototype.computePasswordHash(v) {
+User.prototype.computePasswordHash = function(v) {
     return this.salt().then(
         (salt) => {
             var hash = crypto.createHash('sha256');
