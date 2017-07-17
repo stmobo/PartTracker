@@ -15,7 +15,7 @@ ARGSFILE="${APPDIR}/server.args"
 PIDFILE="/var/run/parttracker.pid"
 
 start-service() {
-    npm start --prefix ${APPDIR} -- `cat ${ARGSFILE}` 2>&1 | logger &
+    npm start --prefix ${APPDIR} -- `cat ${ARGSFILE}` &
 }
 
 stop-service() {

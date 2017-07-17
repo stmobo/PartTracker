@@ -2,6 +2,14 @@ require('app-module-path').addPath(__dirname);
 
 var args = require('minimist')(process.argv.slice(2));
 
+var winston = require('winston');
+require('winston-syslog').Syslog;
+
+winston.level = args.log_level;
+winston.add(winston.transports.Syslog);
+
+winston.handleExceptions([winston.transports.Console, winston.transports.Syslog]);
+
 var express = require('express');
 var passport = require('passport');
 var session = require('express-session');
@@ -48,7 +56,7 @@ var https_port = (args.https_port || 443);
 var npid = require('npid');
 
 try {
-    var pid = npid.create('/var/run/parttracker.pid');
+    var pid = npid.create(args.pid_file || '/var/run/parttracker.pid');
     pid.removeOnExit();
 } catch (err) {
     console.log(err);
@@ -57,7 +65,7 @@ try {
 
 if(args.no_https) {
     app.listen(http_port, () => {
-        console.log("Server listening on port "+http_port.toString()+".");
+        winston.log('info', "Server listening on port "+http_port.toString()+".");
     });
 } else {
     // Let's Encrypt+CertBot support and TLS options here!
@@ -69,16 +77,10 @@ if(args.no_https) {
         ca: fs.readFileSync(args.le_cert_path+"/chain.pem"),
         cert: fs.readFileSync(args.le_cert_path+"/fullchain.pem"),
         key: fs.readFileSync(args.le_cert_path+"/privkey.pem"),
-
-        /*
-        ca: fs.readFileSync('/etc/letsencrypt/live/'+certDomain+"/chain.pem"),
-        cert: fs.readFileSync('/etc/letsencrypt/live/'+certDomain+"/fullchain.pem"),
-        key: fs.readFileSync('/etc/letsencrypt/live/'+certDomain+"/privkey.pem"),
-        */
     }
 
     https.createServer(tls_options, app).listen(https_port, () => {
-        console.log("Main app server listening on port "+https_port.toString()+".");
+        winston.log('info', "Main app server listening on port "+https_port.toString()+".");
     });
 
     // plain HTTP server for http-01 challenge support; redirects all other requests to HTTPS
@@ -87,6 +89,6 @@ if(args.no_https) {
     challenge_app.use((req, res) => { res.redirect('https://'+req.hostname+req.url); });
 
     challenge_app.listen(http_port, () => {
-        console.log("ACME challenge verification server listening on port "+http_port.toString()+".");
+        winston.log('info', "ACME challenge verification server listening on port "+http_port.toString()+".");
     });
 }

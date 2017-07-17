@@ -9,6 +9,8 @@ var dbAPI = require('api/db.js');
 var common = require('api/routing_common.js');
 var User = require('api/models/User.js');
 
+var winston = require('winston');
+
 /* NOTE: maybe find a different way to do this? */
 const initialUserName = 'admin';
 const initialRealName = 'Initial User';
@@ -38,12 +40,14 @@ function usernamePasswordAuth(username, password, done) {
         (doc) => {
             if(doc === null) {
                 //console.log("Unknown user " + username + " attempted to authenticate.");
+                winston.log('warning', "Rejected authentication as " + username + ": user not found.");
                 return Promise.reject({message: 'User not found.'});
             }
 
 
             if(doc.disabled) {
                 //console.log("Disabled user " + username + " attempted to authenticate.");
+                winston.log('warning', "Rejected authentication as " + username + ": login for user disabled.");
                 return Promise.reject({message: 'Login for user disabled.'});
             }
 
@@ -61,6 +65,7 @@ function usernamePasswordAuth(username, password, done) {
                 return done(null, user);
             } else {
                 //console.log("User " + username + " attempted to authenticate with an invalid password.");
+                winston.log('warning', "Rejected authentication as " + username + ": invalid password.");
                 return Promise.reject({message: 'Incorrect password.'});
             }
         }
@@ -109,6 +114,8 @@ router.post('/login',
                 if(!user) { return res.status(401).json(info); }
                 req.login(user, (err) => {
                     if(err) { return next(err); }
+
+                    winston.log('debug', req.socket.remoteAddress + " began session as "+user.username+".");
                     return user.summary().then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
                 });
             }
@@ -150,6 +157,8 @@ function authMiddleware(req, res, next) {
 router.get('/logout',
     authMiddleware,
     (req, res) => {
+        winston.log('debug', req.socket.remoteAddress + " ended session as "+req.user.username+".");
+
         req.logout();
         res.status(204).end();
     }
