@@ -12,16 +12,14 @@
 
 APPDIR="/home/stmobo/PartTracker"
 ARGSFILE="${APPDIR}/server.args"
-PIDFILE="${APPDIR}/server.pid"
+PIDFILE="/var/run/parttracker.pid"
 
 start-service() {
     npm start --prefix ${APPDIR} -- `cat ${ARGSFILE}` 2>&1 | logger &
-    echo $! > ${PIDFILE}
 }
 
 stop-service() {
     kill -9 `cat ${PIDFILE}`
-    rm ${PIDFILE}
 }
 
 case "$1" in
