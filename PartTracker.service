@@ -11,14 +11,15 @@
 ### END INIT INFO
 
 APPDIR="/home/stmobo/PartTracker"
+ARGSFILE="${APPDIR}/server.args"
 PIDFILE="${APPDIR}/server.pid"
 
 start-service() {
-    npm start --prefix ${APPDIR} 2>&1 | logger &
+    npm start --prefix ${APPDIR} -- `cat ${ARGSFILE}` 2>&1 | logger &
     echo $! > ${PIDFILE}
 }
 
-kill-service() {
+stop-service() {
     kill -9 `cat ${PIDFILE}`
     rm ${PIDFILE}
 }
@@ -31,6 +32,9 @@ case "$1" in
         stop-service
         ;;
     restart)
+        start-service
+        stop-service
+        ;;
     force-reload)
         start-service
         stop-service
