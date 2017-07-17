@@ -123,25 +123,6 @@ router.post('/login',
     }
 );
 
-/* XXX: Debug only! THIS IS INSANELY INSECURE! */
-router.post('/admin_pw',
-    (req, res) => {
-        dbAPI.users.findOne({ username: initialUserName }).then(
-            (doc) => {
-                return new User(doc._id);
-            }
-        ).then(
-            (initUser) => {
-                return initUser.setPassword(req.body.password).then(() => { return initUser.save(); });
-            }
-        ).then(
-            (initUser) => { return initUser.summary(); }
-        ).then(
-            (summary) => { res.status(200).json(summary); }
-        );
-    }
-);
-
 function authMiddleware(req, res, next) {
     if(req.user) {
         /* User is already authenticated, let them through */
