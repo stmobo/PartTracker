@@ -14,10 +14,6 @@ var reservations_router = require('api/reservations.js');
 var auth = require('api/auth.js');
 var users_router = require('api/users.js');
 
-var letsencrypt = require('api/letsencrypt.js');
-var letsencrypt_xp = letsencrypt.le_express;
-var do_cert_check = letsencrypt.do_cert_check;
-
 var auth_router = auth.router;
 var ensureAuthenticated = auth.ensureAuthenticated;
 
@@ -41,6 +37,11 @@ app.use('/api', users_router);
 app.use('/api', inventory_router);
 app.use('/api', reservations_router);
 app.use(express.static('static'));
+
+var letsencrypt = require('api/letsencrypt.js')(app);
+var letsencrypt_xp = letsencrypt.le_express;
+var do_cert_check = letsencrypt.do_cert_check;
+
 
 letsencrypt_xp.app = (req, res) => {
     console.log("Connection from " + req.socket.remoteAddress + ":" + req.socket.remotePort);
