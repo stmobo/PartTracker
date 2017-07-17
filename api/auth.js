@@ -38,13 +38,13 @@ function usernamePasswordAuth(username, password, done) {
         (doc) => {
             if(doc === null) {
                 //console.log("Unknown user " + username + " attempted to authenticate.");
-                return done(null, false, {message: 'User not found.'});
+                return Promise.reject({message: 'User not found.'});
             }
 
 
             if(doc.disabled) {
                 //console.log("Disabled user " + username + " attempted to authenticate.");
-                return done(null, false, {message: 'Login for user disabled.'});
+                return Promise.reject({message: 'Login for user disabled.'});
             }
 
             return new User(doc._id);
@@ -61,11 +61,17 @@ function usernamePasswordAuth(username, password, done) {
                 return done(null, user);
             } else {
                 //console.log("User " + username + " attempted to authenticate with an invalid password.");
-                return done(null, false, {message: 'Incorrect password.'});
+                return Promise.reject({message: 'Incorrect password.'});
             }
         }
     ).catch(
-        (err) => { return done(err); }
+        (err) => {
+            if(err instanceof Error) {
+                return done(err);
+            } else {
+                done(null, false, err);
+            }
+        }
     );
 }
 
