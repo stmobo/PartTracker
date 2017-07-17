@@ -14,7 +14,9 @@ var reservations_router = require('api/reservations.js');
 var auth = require('api/auth.js');
 var users_router = require('api/users.js');
 
-var letsencrypt_xp = require('api/letsencrypt.js');
+var letsencrypt = require('api/letsencrypt.js');
+var letsencrypt_xp = letsencrypt.le_express;
+var do_cert_check = letsencrypt.do_cert_check;
 
 var auth_router = auth.router;
 var ensureAuthenticated = auth.ensureAuthenticated;
@@ -50,6 +52,8 @@ https.createServer(
 ).listen(443, () => {
     console.log("ACME tls-sni-01 / tls-sni-02 challenge handler and main app listening on port 443");
 });
+
+do_cert_check();
 
 /*
 app.listen(80, () => {
