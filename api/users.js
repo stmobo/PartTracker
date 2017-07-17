@@ -76,7 +76,7 @@ router.post('/users',
             }
         ).then(
             (user) => { return user.summary(); }
-        ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+        ).then(common.sendJSON(res, 201)).catch(common.apiErrorHandler(req, res));
     }
 );
 

@@ -32,13 +32,25 @@ router.get('/reservations', (req, res) => {
    Parameters:
     - "part": part ID to reserve.
     - "count": number of parts to reserve.
-    - "requester": name of team / person to reserve the parts under.
+    - "requester": ID of user to reserve the parts under.
     - "asm" [optional]: Assembly ID to reserve the parts for.
  */
 router.post('/reservations', (req, res) => {
     common.checkRequestParameters(req, 'part', 'count', 'requester').then(
         () => {
             var item = new Item(monk.id(req.body.part));
+            var requester = new User(monk.id(req.body.requester));
+
+            return Promise.all([item.exists(), requester.exists()]);
+        }
+    ).then(
+        (retns) => {
+            item_exists = retns[0];
+            requester_exists = retns[1];
+
+            if(!item_exists) return Promise.reject("Requested part does not exist!");
+            if(!requester_exists) return Promise.reject("Requesting user does not exist!");
+
             return item.available();
         }
     ).then(
@@ -77,16 +89,34 @@ router.put("/reservations/:rid", (req, res) => {
 
     common.checkRequestParameters(req, 'part', 'count', 'requester').then(
         () => {
-            return rsvp.part();
+            var item = new Item(monk.id(req.body.part));
+            var requester = new User(monk.id(req.body.requester));
+
+            return Promise.all([item.exists(), requester.exists(), item]);
         }
     ).then(
-        (part) => {
-            if(part.id().toString() !== req.body.part) {
-                return part.available();
+        (retns) => {
+            item_exists = retns[0];
+            requester_exists = retns[1];
+            item = retns[2];
+
+            if(!item_exists) return Promise.reject("Requested part does not exist!");
+            if(!requester_exists) return Promise.reject("Requesting user does not exist!");
+
+            var oldPart = rsvp.part().then((part) => { return part.fetch(); });
+            return Promise.all([item.fetch(), oldPart]);
+        }
+    ).then(
+        (parts) => {
+            var newPart = parts[0];
+            var oldPart = parts[1];
+
+            if(newPart.id().toString() !== oldPart.id().toString()) {
+                return newPart.available();
             } else {
                 return Promise.all([
-                    part.available(),   // total available parts
-                    rsvp.count()        // parts from this RSVP pre-update
+                    oldPart.available(),   // total available parts
+                    rsvp.count()           // parts from this RSVP pre-update
                 ]).then( (retn) => { return retn[0]+retn[1]; } );
             }
         }
