@@ -41,14 +41,14 @@ app.use('/api', reservations_router);
 app.use(express.static('static'));
 
 http.createServer(letsencrypt_xp.middleware(require('redirect-https')())).listen(
-    80, () => { console.log("ACME http-01 challenge handler listening on ", this.address()); }
+    80, () => { console.log("ACME http-01 challenge handler listening on port 80"); }
 );
 
 https.createServer(
     letsencrypt_xp.httpsOptions,
     letsencrypt_xp.middleware(app)
 ).listen(443, () => {
-    console.log("ACME tls-sni-01 / tls-sni-02 challenge handler and main app listening on ", this.address());
+    console.log("ACME tls-sni-01 / tls-sni-02 challenge handler and main app listening on port 443");
 });
 
 /*

@@ -49,4 +49,4 @@ var le_xp = LE_express.create({
     debug: false
 });
 
-module.exports = le_exp;
+module.exports = le_xp;
