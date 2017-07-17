@@ -47,7 +47,7 @@ http.createServer(letsencrypt_xp.middleware(require('redirect-https')())).listen
 );
 
 https.createServer(
-    letsencrypt_xp.httpsOptions,
+    letsencrypt_xp.tlsOptions,
     letsencrypt_xp.middleware(app)
 ).listen(443, () => {
     console.log("ACME tls-sni-01 / tls-sni-02 challenge handler and main app listening on port 443");
