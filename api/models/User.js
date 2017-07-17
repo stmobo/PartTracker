@@ -49,7 +49,7 @@ User.prototype.validatePassword = function (pw) {
         (retns) => {
             var inputHashDigest = retns[0];
             var userPWHash = Buffer.from(retns[1], 'base64');
-            
+
             return userPWHash.equals(inputHashDigest);
         }
     );
@@ -83,7 +83,7 @@ User.prototype.summary = function () {
                 id: this.id(),
                 username: retn[0],
                 realname: retn[1],
-                administrator: retn[2],
+                admin: retn[2],
                 disabled: retn[3],
                 created: retn[4],
                 updated: retn[5],
