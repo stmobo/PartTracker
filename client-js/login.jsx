@@ -44,7 +44,7 @@ class Login extends React.Component {
                 return res.json();
             }
         ).then(
-            (info) => { this.setState({ flashMessage: info.message }); }
+            (info) => { this.setState({ flashMessage: info[0].message }); }
         ).catch(errorHandler);
     }
 
@@ -52,10 +52,12 @@ class Login extends React.Component {
         return (
             <form className="login-form" autoComplete="off" onSubmit={this.handleFormSubmit} onReset={this.handleFormReset}>
                 <div>{this.state.flashMessage}</div>
-                <button className="btn btn-danger btn-sm" type="reset">Clear</button>
-                <label>Username: <input type="text" name="username" value={this.state.username} onChange={this.handleFormChange} /></label>
-                <label>Password: <input type="password" name="password" value={this.state.password} onChange={this.handleFormChange} /></label>
-                <button type="submit" className="btn btn-success btn-sm">Log In</button>
+                <div><label>Username: <input type="text" name="username" value={this.state.username} onChange={this.handleFormChange} /></label></div>
+                <div><label>Password: <input type="password" name="password" value={this.state.password} onChange={this.handleFormChange} /></label></div>
+                <div>
+                    <button className="btn btn-danger btn-sm" type="reset">Clear</button>
+                    <button type="submit" className="btn btn-success btn-sm">Log In</button>
+                </div>
             </form>
         );
     }
