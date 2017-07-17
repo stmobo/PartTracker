@@ -55,7 +55,8 @@ https.createServer(tls_options, app).listen(443, () => {
 
 // plain HTTP server for http-01 challenge support.
 var challenge_app = express();
-challenge_app.use(express.static('acme-static'));
+challenge_app.use('/.well-known/acme-challenge', express.static('acme-static/.well-known/acme-challenge'));
+challenge_app.use((req, res) => { res.redirect('https://'+req.hostname+req.url); });
 
 challenge_app.listen(80, () => {
     console.log("ACME challenge verification server listening on port 80.");
