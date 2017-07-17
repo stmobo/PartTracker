@@ -52,7 +52,7 @@ var le_xp = LE_express.create({
 function do_cert_check() {
     le_xp.check({ domains: [ certDomain ] }).then(
         (results) => {
-            if(results) { console.log("Found existing certs from Let's Encrypt."); return; // we already have certs }
+            if(results) { console.log("Found existing certs from Let's Encrypt."); return; } // do we already have certs?
 
             // we need to register certs
             console.log("Getting new certificates from Let's Encrypt...");
@@ -69,9 +69,9 @@ function do_cert_check() {
                 (err) => {
                     console.error("Error while retrieving certs: " + err.stack.toString());
                 }
-            )
+            );
         }
-    )
+    );
 }
 
 module.exports = {
