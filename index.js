@@ -1,8 +1,7 @@
 require('app-module-path').addPath(__dirname);
 
-var fs = require('fs');
-var http = require('http');
-var https = require('https');
+var args = require('minimist')(process.argv.slice(2));
+
 var express = require('express');
 var passport = require('passport');
 var session = require('express-session');
@@ -17,10 +16,12 @@ var users_router = require('api/users.js');
 var auth_router = auth.router;
 var ensureAuthenticated = auth.ensureAuthenticated;
 
-app.use(require('helmet')());
+if(!args.no_https) {
+    app.use(require('helmet')());
+}
 
 /* Setup session middleware */
-app.use(session({ secret: 'a secret key' }));
+app.use(session({ secret: 'a secret key', secure: !args.no_https }));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -40,30 +41,41 @@ app.use('/api', inventory_router);
 app.use('/api', reservations_router);
 app.use(express.static('static'));
 
-// Let's Encrypt+CertBot support and TLS options here!
-const certDomain = "";
+var http_port = (args.http_port || 80);
+var https_port = (args.https_port || 443);
 
-const tls_options = {
-    ca: fs.readFileSync('/etc/letsencrypt/live/'+certDomain+"/chain.pem"),
-    cert: fs.readFileSync('/etc/letsencrypt/live/'+certDomain+"/fullchain.pem"),
-    key: fs.readFileSync('/etc/letsencrypt/live/'+certDomain+"/privkey.pem"),
+if(args.no_https) {
+    app.listen(http_port, () => {
+        console.log("Server listening on port "+http_port.toString()+".");
+    });
+} else {
+    // Let's Encrypt+CertBot support and TLS options here!
+    var fs = require('fs');
+    var http = require('http');
+    var https = require('https');
+
+    const tls_options = {
+        ca: fs.readFileSync(args.le_cert_path+"/chain.pem"),
+        cert: fs.readFileSync(args.le_cert_path+"/fullchain.pem"),
+        key: fs.readFileSync(args.le_cert_path+"/privkey.pem"),
+
+        /*
+        ca: fs.readFileSync('/etc/letsencrypt/live/'+certDomain+"/chain.pem"),
+        cert: fs.readFileSync('/etc/letsencrypt/live/'+certDomain+"/fullchain.pem"),
+        key: fs.readFileSync('/etc/letsencrypt/live/'+certDomain+"/privkey.pem"),
+        */
+    }
+
+    https.createServer(tls_options, app).listen(https_port, () => {
+        console.log("Main app server listening on port "+https_port.toString()+".");
+    });
+
+    // plain HTTP server for http-01 challenge support; redirects all other requests to HTTPS
+    var challenge_app = express();
+    challenge_app.use('/.well-known/acme-challenge', express.static('acme-static/.well-known/acme-challenge'));
+    challenge_app.use((req, res) => { res.redirect('https://'+req.hostname+req.url); });
+
+    challenge_app.listen(http_port, () => {
+        console.log("ACME challenge verification server listening on port "+http_port.toString()+".");
+    });
 }
-
-https.createServer(tls_options, app).listen(443, () => {
-    console.log("Main app server listening on port 443!");
-});
-
-// plain HTTP server for http-01 challenge support.
-var challenge_app = express();
-challenge_app.use('/.well-known/acme-challenge', express.static('acme-static/.well-known/acme-challenge'));
-challenge_app.use((req, res) => { res.redirect('https://'+req.hostname+req.url); });
-
-challenge_app.listen(80, () => {
-    console.log("ACME challenge verification server listening on port 80.");
-});
-
-/*
-app.listen(80, () => {
-    console.log("Server listening on port 80.");
-});
-*/
