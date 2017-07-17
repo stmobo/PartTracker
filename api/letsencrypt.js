@@ -43,7 +43,7 @@ var le_xp = LE_express.create({
     },
     challengeType: 'tls-sni-01',
     agreeToTerms: agreeToTOS,
-    debug: false
+    debug: true
 });
 
 function do_cert_check() {
