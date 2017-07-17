@@ -19,6 +19,8 @@ router.get('/user',
 router.post('/user/password',
     (req, res) => {
         req.user.setPassword(req.body.password).then(
+            () => { return req.user.save(); }
+        ).then(
             () => { req.logout(); }
         ).then(common.emptySuccess(res)).catch(common.apiErrorHandler(req, res));
     }
