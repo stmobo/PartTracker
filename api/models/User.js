@@ -48,8 +48,8 @@ User.prototype.validatePassword = function (pw) {
     return Promise.all([this.computePasswordHash(pw), this.passwordHash()]).then(
         (retns) => {
             var inputHashDigest = retns[0];
-            var userPWHash = Buffer.from(retns[1]);
-
+            var userPWHash = Buffer.from(retns[1], 'base64');
+            
             return userPWHash.equals(inputHashDigest);
         }
     );
@@ -61,7 +61,7 @@ User.prototype.setPassword = function (v) {
         return Promise.reject(new TypeError('Parameter to setPassword() must be a string!'));
 
     return this.computePasswordHash(v).then(
-        (hashDigest) => { return this.prop('pw_hash', hashDigest); }
+        (hashDigest) => { return this.prop('pw_hash', hashDigest.toString('base64')); }
     );
 };
 

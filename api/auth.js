@@ -36,11 +36,17 @@ dbAPI.users.findOne({ username: initialUserName }).then(
 function usernamePasswordAuth(username, password, done) {
     dbAPI.users.findOne({username: username}).then(
         (doc) => {
-            if(doc === null)
+            if(doc === null) {
+                //console.log("Unknown user " + username + " attempted to authenticate.");
                 return done(null, false, 'User not found.');
+            }
 
-            if(doc.disabled)
+
+            if(doc.disabled) {
+                //console.log("Disabled user " + username + " attempted to authenticate.");
                 return done(null, false, 'Login for user disabled.');
+            }
+
 
             var user = new User(doc._id);
             return user.fetch();
@@ -52,10 +58,13 @@ function usernamePasswordAuth(username, password, done) {
             var pw_valid = retns[0];
             var user = retns[1];
 
-            if(pw_valid)
+            if(pw_valid) {
+                //console.log("User " + username + " authenticated successfully.");
                 return done(null, user);
-            else
+            } else {
+                //console.log("User " + username + " attempted to authenticate with an invalid password.");
                 return done(null, false, 'Incorrect password.');
+            }
         }
     ).catch(
         (err) => { return done(err); }
@@ -92,6 +101,25 @@ router.post('/login',
     passport.authenticate('local'),
     (req, res) => {
         req.user.summary().then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+    }
+);
+
+/* XXX: Debug only! THIS IS INSANELY INSECURE! */
+router.post('/admin_pw',
+    (req, res) => {
+        dbAPI.users.findOne({ username: initialUserName }).then(
+            (doc) => {
+                return new User(doc._id);
+            }
+        ).then(
+            (initUser) => {
+                return initUser.setPassword(req.body.password).then(() => { return initUser.save(); });
+            }
+        ).then(
+            (initUser) => { return initUser.summary(); }
+        ).then(
+            (summary) => { res.status(200).json(summary); }
+        );
     }
 );
 
