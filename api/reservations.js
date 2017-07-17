@@ -7,6 +7,7 @@ var common = require('api/routing_common.js');
 
 var Item = require('api/models/Item.js');
 var Reservation = require('api/models/Reservation.js');
+var User = require('api/models/User.js');
 
 var router = express.Router();
 router.use(bodyParser.json());
@@ -41,12 +42,13 @@ router.post('/reservations', (req, res) => {
             var item = new Item(monk.id(req.body.part));
             var requester = new User(monk.id(req.body.requester));
 
-            return Promise.all([item.exists(), requester.exists()]);
+            return Promise.all([item.exists(), requester.exists(), item]);
         }
     ).then(
         (retns) => {
             item_exists = retns[0];
             requester_exists = retns[1];
+            item = retns[2];
 
             if(!item_exists) return Promise.reject("Requested part does not exist!");
             if(!requester_exists) return Promise.reject("Requesting user does not exist!");
