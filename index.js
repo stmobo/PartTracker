@@ -20,7 +20,7 @@ var ensureAuthenticated = auth.ensureAuthenticated;
 app.use(require('helmet')());
 
 /* Setup session middleware */
-app.use(session({ secret: 'a secret key', cookie: { secure: false } }));
+app.use(session({ secret: 'a secret key' }));
 app.use(passport.initialize());
 app.use(passport.session());
 
