@@ -44,6 +44,17 @@ app.use(express.static('static'));
 var http_port = (args.http_port || 80);
 var https_port = (args.https_port || 443);
 
+/* Create PID file */
+var npid = require('npid');
+
+try {
+    var pid = npid.create('/var/run/parttracker.pid');
+    pid.removeOnExit();
+} catch (err) {
+    console.log(err);
+    process.exit(1);
+}
+
 if(args.no_https) {
     app.listen(http_port, () => {
         console.log("Server listening on port "+http_port.toString()+".");
