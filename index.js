@@ -14,6 +14,8 @@ var users_router = require('api/users.js');
 var auth_router = auth.router;
 var ensureAuthenticated = auth.ensureAuthenticated;
 
+app.use(require('helmet')());
+
 /* Setup session middleware */
 app.use(session({ secret: 'a secret key', cookie: { secure: false } }));
 app.use(passport.initialize());
@@ -35,6 +37,29 @@ app.use('/api', inventory_router);
 app.use('/api', reservations_router);
 app.use(express.static('static'));
 
+// Let's Encrypt+CertBot support and TLS options here!
+const certDomain = "";
+
+const tls_options = {
+    ca: fs.readFileSync('/etc/letsencrypt/live/'+certDomain+"/chain.pem"),
+    cert: fs.readFileSync('/etc/letsencrypt/live/'+certDomain+"/fullchain.pem"),
+    key: fs.readFileSync('/etc/letsencrypt/live/'+certDomain+"/privkey.pem"),
+}
+
+https.createServer(tls_options, app).listen(443, () => {
+    console.log("Main app server listening on port 443!");
+});
+
+// plain HTTP server for http-01 challenge support.
+var challenge_app = express();
+challenge_app.use(express.static('acme-static'));
+
+challenge_app.listen(80, () => {
+    console.log("ACME challenge verification server listening on port 80.");
+});
+
+/*
 app.listen(80, () => {
     console.log("Server listening on port 80.");
 });
+*/
