@@ -20,20 +20,17 @@ var leSNIChallenge = require('le-challenge-sni').create({
     debug: false
 });
 
-function approveDomains(opts, certs, agree_cb) {
-    if(certs) {
-        opts.domains = certs.altnames;
-    } else {
-        opts.email = certEmail;
-        opts.agreeTos = true;
-    }
+function agreeToTOS(opts, agree_cb) {
+    opts.email = certEmail;
 
     console.log("Getting certs for: " + opts.domains.toString());
+    console.log("TOS URL at " + opts.tosUrl.toString());
     if(opts.domains.length > 1 || opts.domains[0] !== certDomain) {
+        console.log("Cert domains don't match expected values, aborting!");
         return;
     }
 
-    cb(null, {options: opts, certs: certs});
+    agree_cb(null, opts.tosUrl);
 }
 
 var le_xp = LE_express.create({
@@ -45,7 +42,7 @@ var le_xp = LE_express.create({
         'tls-sni-02': leSNIChallenge,
     },
     challengeType: 'tls-sni-01',
-    approveDomains: approveDomains,
+    agreeToTerms: agreeToTOS,
     debug: false
 });
 
