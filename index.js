@@ -6,7 +6,9 @@ var winston = require('winston');
 require('winston-syslog').Syslog;
 
 winston.level = args.log_level;
+winston.add(winston.transports.File, { filename: args.log_file || '/var/log/parttracker.log' });
 winston.add(winston.transports.Syslog);
+winston.remove(winston.transports.Console);
 
 winston.handleExceptions([winston.transports.Console, winston.transports.Syslog]);
 
