@@ -1,5 +1,6 @@
 require('app-module-path').addPath(__dirname);
 
+var fs = require('fs');
 var express = require('express');
 var passport = require('passport');
 var session = require('express-session');
