@@ -42,7 +42,10 @@ app.use('/api', inventory_router);
 app.use('/api', reservations_router);
 app.use(express.static('static'));
 
-letsencrypt_xp.app = app;
+letsencrypt_xp.app = (req, res) => {
+    console.log("Connection from " + req.socket.remoteAddress + ":" + req.socket.remotePort);
+    app(req, res);
+};
 
 letsencrypt_xp.listen(80, 443);
 
