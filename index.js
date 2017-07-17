@@ -4,12 +4,17 @@ var express = require('express');
 var passport = require('passport');
 var session = require('express-session');
 
+var http = require('http');
+var https = require('https');
+
 var app = express();
 
 var inventory_router = require('api/inventory.js');
 var reservations_router = require('api/reservations.js');
 var auth = require('api/auth.js');
 var users_router = require('api/users.js');
+
+var letsencrypt_xp = require('api/letsencrypt.js');
 
 var auth_router = auth.router;
 var ensureAuthenticated = auth.ensureAuthenticated;
@@ -35,6 +40,19 @@ app.use('/api', inventory_router);
 app.use('/api', reservations_router);
 app.use(express.static('static'));
 
+http.createServer(letsencrypt_xp.middleware(require('redirect-https')())).listen(
+    80, () => { console.log("ACME http-01 challenge handler listening on ", this.address()); }
+);
+
+https.createServer(
+    letsencrypt_xp.httpsOptions,
+    letsencrypt_xp.middleware(app)
+).listen(443, () => {
+    console.log("ACME tls-sni-01 / tls-sni-02 challenge handler and main app listening on ", this.address());
+});
+
+/*
 app.listen(80, () => {
     console.log("Server listening on port 80.");
 });
+*/
