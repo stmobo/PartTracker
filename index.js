@@ -1,6 +1,8 @@
 require('app-module-path').addPath(__dirname);
 
 var fs = require('fs');
+var http = require('http');
+var https = require('https');
 var express = require('express');
 var passport = require('passport');
 var session = require('express-session');
