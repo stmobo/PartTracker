@@ -43,6 +43,8 @@ var le_xp = LE_express.create({
     },
     challengeType: 'tls-sni-01',
     agreeToTerms: agreeToTOS,
+    approveDomains: [certDomain],
+    email: certEmail,
     debug: true
 });
 
