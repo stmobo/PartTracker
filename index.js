@@ -36,5 +36,5 @@ app.use('/api', reservations_router);
 app.use(express.static('static'));
 
 app.listen(80, () => {
-    console.log("Server listening on port 3000.");
+    console.log("Server listening on port 80.");
 });
