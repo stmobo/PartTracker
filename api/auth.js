@@ -38,21 +38,19 @@ function usernamePasswordAuth(username, password, done) {
         (doc) => {
             if(doc === null) {
                 //console.log("Unknown user " + username + " attempted to authenticate.");
-                return done(null, false, 'User not found.');
+                return done(null, false, {message: 'User not found.'});
             }
 
 
             if(doc.disabled) {
                 //console.log("Disabled user " + username + " attempted to authenticate.");
-                return done(null, false, 'Login for user disabled.');
+                return done(null, false, {message: 'Login for user disabled.'});
             }
 
-
-            var user = new User(doc._id);
-            return user.fetch();
+            return new User(doc._id);
         }
     ).then(
-        (user) => { return Promise.all([user.validatePassword(password), user]); }
+        (user) => { return Promise.all([user.validatePassword(password), user.fetch()]); }
     ).then(
         (retns) => {
             var pw_valid = retns[0];
@@ -63,7 +61,7 @@ function usernamePasswordAuth(username, password, done) {
                 return done(null, user);
             } else {
                 //console.log("User " + username + " attempted to authenticate with an invalid password.");
-                return done(null, false, 'Incorrect password.');
+                return done(null, false, {message: 'Incorrect password.'});
             }
         }
     ).catch(
@@ -98,9 +96,17 @@ router.use(bodyParser.json());
 router.use(bodyParser.urlencoded());
 
 router.post('/login',
-    passport.authenticate('local'),
-    (req, res) => {
-        req.user.summary().then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+    (req, res, next) => {
+        passport.authenticate(['local', 'basic'],
+            (err, user, info) => {
+                if(err) { return next(err); }
+                if(!user) { return res.status(401).json(info); }
+                req.login(user, (err) => {
+                    if(err) { return next(err); }
+                    return user.summary().then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+                });
+            }
+        )(req, res, next);
     }
 );
 
@@ -126,9 +132,11 @@ router.post('/admin_pw',
 function authMiddleware(req, res, next) {
     if(req.user) {
         /* User is already authenticated, let them through */
+        //console.log(req.user.username + " requested " + req.originalUrl + " via " + req.method);
         next();
     } else {
         /* Attempt HTTP-Basic authentication w/o sessions */
+        //console.log("Attempting basic authentication for " + req.originalUrl + " via " + req.method);
         passport.authenticate('basic', { session: false })(req, res, next);
     }
 }

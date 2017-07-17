@@ -15,12 +15,17 @@ var auth_router = auth.router;
 var ensureAuthenticated = auth.ensureAuthenticated;
 
 /* Setup session middleware */
-app.use(session({ secret: 'a secret key' }));
+app.use(session({ secret: 'a secret key', cookie: { secure: false } }));
 app.use(passport.initialize());
 app.use(passport.session());
 
-/* Auth requests aren't behind the authentication barrier themselves */
-app.use('/api', auth_router);
+app.use('/api', auth_router);       /* Auth requests aren't behind the authentication barrier themselves */
+app.use('/public', express.static('public'));  /* For serving the login page, etc. */
+
+app.get('/', (req, res) => {
+    if(req.user) { res.redirect('/inventory.html'); }
+    else { res.redirect('/public/login.html'); }
+});
 
 /* API requests below this need to be authenticated */
 app.use(ensureAuthenticated);

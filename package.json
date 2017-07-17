@@ -1,9 +1,10 @@
 {
   "name": "partstracker",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Parts and system assembly tracking web application",
   "main": "index.js",
   "scripts": {
+    "build-login": "browserify client-js/login.jsx -t babelify -o public/js/login.js --debug",
     "build": "browserify client-js/main.jsx -t babelify -o static/js/bundle.js --debug",
     "start": "node index.js",
     "start-db": "mongod --dbpath ./data/db --port 27017",

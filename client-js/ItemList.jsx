@@ -44,6 +44,7 @@ class NewItemForm extends React.Component {
         ev.preventDefault();
         fetch('/api/inventory', {
             method: 'POST',
+            credentials: 'include',
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 name: this.state.name,
@@ -109,7 +110,7 @@ class ItemListElement extends React.Component {
     }
 
     fetchItemData() {
-        fetch('/api/inventory/'+this.props.id).then(jsonOnSuccess).then(
+        fetch('/api/inventory/'+this.props.id, {credentials: 'include'}).then(jsonOnSuccess).then(
             (item) => {
                 this.setState({
                     name: item.name,
@@ -128,6 +129,7 @@ class ItemListElement extends React.Component {
 
         fetch('/api/inventory/'+this.props.id, {
             method: 'PUT',
+            credentials: 'include',
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 name: this.state.name,
@@ -166,7 +168,7 @@ class ItemListElement extends React.Component {
     handleDelete(ev) {
         ev.preventDefault();
 
-        fetch('/api/inventory/'+this.props.id,{method: 'DELETE'})
+        fetch('/api/inventory/'+this.props.id,{method: 'DELETE', credentials: 'include'})
         .then(this.props.onItemDeleted)
         .catch(errorHandler);
     }
@@ -257,7 +259,7 @@ export default class ItemList extends React.Component {
     }
 
     retrItemList() {
-        fetch('/api/inventory').then(jsonOnSuccess).then(
+        fetch('/api/inventory', {credentials: 'include'}).then(jsonOnSuccess).then(
             (items) => {
                 var ids = items.map((it) => { return it.id; });
                 this.setState({items: ids});
