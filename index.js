@@ -5,6 +5,7 @@ var args = require('minimist')(process.argv.slice(2));
 var winston = require('winston');
 require('winston-syslog').Syslog;
 
+winston.setLevels(winston.config.syslog.levels);
 winston.level = args.log_level;
 winston.add(winston.transports.File, { filename: args.log_file || '/var/log/parttracker.log' });
 winston.add(winston.transports.Syslog);

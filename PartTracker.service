@@ -20,6 +20,7 @@ start-service() {
 
 stop-service() {
     kill -9 `cat ${PIDFILE}`
+    rm ${PIDFILE}
 }
 
 case "$1" in
