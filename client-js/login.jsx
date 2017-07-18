@@ -40,11 +40,20 @@ class Login extends React.Component {
             redirect: 'follow'
         }).then(
             (res) => {
-                if(res.ok) { window.location.href = '/inventory.html'; }
-                return res.json();
+                return Promise.all([res.ok, res.text()]);
             }
         ).then(
-            (info) => { this.setState({ flashMessage: info[0].message }); }
+            (retns) => {
+                if(retns[0]) {
+                    // login successful
+                    sessionStorage.setItem('userobject', retns[1]);
+                    window.location.href = '/inventory.html';
+                } else {
+                    // login failed
+                    var info = JSON.parse(retns[1]);
+                    this.setState({ flashMessage: info[0].message });
+                }
+            }
         ).catch(errorHandler);
     }
 

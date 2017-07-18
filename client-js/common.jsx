@@ -38,5 +38,15 @@ export function renderUpdateTime(updated) {
     }
 }
 
+export function getUserInfo() {
+    var userInfoJSON = sessionStorage.getItem('userobject');
+    if(userInfoJSON === null) {
+        // fetch user info from API
+        return fetch('/api/user', {credentials: 'include'}).then(jsonOnSuccess).catch(errorHandler);
+    } else {
+        return Promise.resolve(JSON.parse(userInfoJSON));
+    }
+}
+
 export var localeString = 'en-US';
 export var timezone = 'America/Chicago';
