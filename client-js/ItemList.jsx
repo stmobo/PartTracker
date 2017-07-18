@@ -76,7 +76,7 @@ class NewItemForm extends React.Component {
 
 /*
  * Props required:
- *  - id [string]: API ID for an Item.
+ *  - model [object]: A prefetched Item object from the API.
  *  - onItemDeleted [callback]: called when the item has been deleted.
  *
  * This class handles rendering one Item in a list, and synchronizes its
@@ -86,14 +86,14 @@ class ItemListElement extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            name: '',
-            count: 0,
-            available: 0,
-            reserved: 0,
+            name: props.model.name,
+            count: props.model.count,
+            available: props.model.available,
+            reserved: props.model.reserved,
             showRSVPList: false,
             editing: false,
-            updated: new Date(0),
-            created: new Date(0),
+            updated: new Date(props.model.updated),
+            created: new Date(props.model.created),
         };
 
         this.fetchItemData = this.fetchItemData.bind(this);
@@ -106,11 +106,11 @@ class ItemListElement extends React.Component {
         this.handleEditStart = this.handleEditStart.bind(this);
 
 
-        this.fetchItemData();
+        //this.fetchItemData();
     }
 
     fetchItemData() {
-        fetch('/api/inventory/'+this.props.id, {credentials: 'include'}).then(jsonOnSuccess).then(
+        fetch('/api/inventory/'+this.props.model.id, {credentials: 'include'}).then(jsonOnSuccess).then(
             (item) => {
                 this.setState({
                     name: item.name,
@@ -127,7 +127,7 @@ class ItemListElement extends React.Component {
     handleEditFormSubmit(ev) {
         ev.preventDefault();
 
-        fetch('/api/inventory/'+this.props.id, {
+        fetch('/api/inventory/'+this.props.model.id, {
             method: 'PUT',
             credentials: 'include',
             headers: {"Content-Type": "application/json"},
@@ -168,7 +168,7 @@ class ItemListElement extends React.Component {
     handleDelete(ev) {
         ev.preventDefault();
 
-        fetch('/api/inventory/'+this.props.id,{method: 'DELETE', credentials: 'include'})
+        fetch('/api/inventory/'+this.props.model.id,{method: 'DELETE', credentials: 'include'})
         .then(this.props.onItemDeleted)
         .catch(errorHandler);
     }
@@ -194,7 +194,7 @@ class ItemListElement extends React.Component {
 
         var rsvpList = null;
         if(this.state.showRSVPList) {
-            rsvpList = <ItemRsvpList availableCount={this.state.available} partID={this.props.id} onListUpdated={this.fetchItemData}/>;
+            rsvpList = <ItemRsvpList availableCount={this.state.available} partID={this.props.model.id} onListUpdated={this.fetchItemData}/>;
         }
 
         if(this.state.editing) {
@@ -261,16 +261,16 @@ export default class ItemList extends React.Component {
     retrItemList() {
         fetch('/api/inventory', {credentials: 'include'}).then(jsonOnSuccess).then(
             (items) => {
-                var ids = items.map((it) => { return it.id; });
-                this.setState({items: ids});
+                //var ids = items.map((it) => { return it.id; });
+                this.setState({items: items});
             }
         ).catch(errorHandler);
     }
 
     render() {
         var elems = this.state.items.map(
-            (itemID) => {
-                return <ItemListElement id={itemID} key={itemID} onItemDeleted={this.retrItemList} />
+            (itemObject) => {
+                return <ItemListElement model={itemObject} key={itemObject.id} onItemDeleted={this.retrItemList} />
             }
         )
 
