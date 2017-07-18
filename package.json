@@ -14,7 +14,7 @@
     "build": "concurrently \"npm run-script build-login\" \"npm run-script build-inventory\" \"npm run-script build-users\"",
     "start": "node index.js",
     "start-db": "mongod --dbpath ./data/db --port 27017",
-    "postinstall": "mkdir -p data/db acme-static public/js static/js",
+    "postinstall": "mkdir -p data/db acme-static/.well-known/acme-challenge public/js static/js",
     "test": "concurrently -c \"green,cyan\" --kill-others \"npm run-script start-db\" \"npm run-script start\""
   },
   "author": "Sebastian Mobo <stmobo@gmail.com>",
