@@ -1,9 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {errorHandler, jsonOnSuccess, renderUpdateTime} from './common.jsx';
+import {errorHandler, jsonOnSuccess, renderUpdateTime, getUserInfo} from './common.jsx';
 
 /* Renders a single user in a list.
  * Required props:
+ *  - canEdit [boolean]: set to true to enable editing (should usually === isAdmin)
  *  - model [User Object]: user model retrieved from API.
  *  - onDelete(id): callback to delete User with given ID.
  */
@@ -94,7 +95,9 @@ class UserListElement extends React.Component {
     handleEditStart(ev) {
         ev.preventDefault();
         ev.stopPropagation();
-        this.setState({ editing: true });
+        if(this.props.canEdit) {
+            this.setState({ editing: true });
+        }
     }
 
     handleDelete(ev) {
@@ -133,13 +136,15 @@ class UserListElement extends React.Component {
 
     handleNewPWStartEdit(ev) {
         ev.preventDefault();
-        this.setState({editingPW: true});
+        if(this.props.canEdit) {
+            this.setState({editingPW: true});
+        }
     }
 
 
     render() {
         var newPWForm = null;
-        if(this.state.editingPW) {
+        if(this.state.editingPW && this.props.canEdit) {
             newPWForm = (
                 <form>
                     <input type="password" name="password" value={this.state.newPassword} onChange={this.handlePasswordFieldChange} />
@@ -147,10 +152,20 @@ class UserListElement extends React.Component {
                     <button onClick={this.handleNewPWReset} className="btn btn-danger btn-xs">Cancel</button>
                 </form>
             );
-        } else {
+        } else if(this.props.canEdit) {
             newPWForm = (
-                <abbr title="Change Password" className="glyphicon glyphicon-lock offset-button" onClick={this.handleNewPWStartEdit}></abbr>
+                <abbr title="Change Password" className="glyphicon glyphicon-lock editing-buttons" onClick={this.handleNewPWStartEdit}></abbr>
             )
+        } // else just leave newPWForm as null
+
+        var editingButtons = null;
+        if(!this.state.editing && this.props.canEdit) {
+            editingButtons = (
+                <span className="editing-buttons">
+                    <abbr title="Edit" onClick={this.handleEditStart} className="glyphicon glyphicon-pencil offset-button"></abbr>
+                    <abbr title="Delete" onClick={this.handleDelete} className="glyphicon glyphicon-remove offset-button"></abbr>
+                </span>
+            );
         }
 
         if(this.state.editing) {
@@ -182,8 +197,7 @@ class UserListElement extends React.Component {
                         {this.state.username}
                         {renderUpdateTime(this.state.updated)}
                         {newPWForm}
-                        <abbr title="Edit" onClick={this.handleEditStart} className="glyphicon glyphicon-pencil offset-button"></abbr>
-                        <abbr title="Delete" onClick={this.handleDelete} className="glyphicon glyphicon-remove offset-button"></abbr>
+                        {editingButtons}
                     </div>
                     <div className="col-md-5 list-realname">{this.state.realname}</div>
                     <div className="col-md-1 list-admin">{this.state.admin ? "Yes" : "No"}</div>
@@ -323,34 +337,47 @@ class UserList extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            users: []
+            users: [],
+            isAdmin: false
         };
 
-        this.retrUserList = this.retrUserList.bind(this);
+        this.retrState = this.retrState.bind(this);
         this.deleteUser = this.deleteUser.bind(this);
 
-        this.retrUserList();
+        this.retrState();
     }
 
-    retrUserList() {
+    /* Gets all user info and also currently logged in user info if necessary */
+    retrState() {
         fetch('/api/users', {credentials: 'include'}).then(jsonOnSuccess).then(
             (users) => {
                 this.setState({users: users});
+                return getUserInfo();
+            }
+        ).then(
+            (userInfo) => {
+                this.setState({ isAdmin: userInfo.admin });
             }
         ).catch(errorHandler);
     }
 
     deleteUser(uid) {
         fetch('/api/users/'+uid, {method: 'DELETE', credentials: 'include'})
-        .then(this.retrUserList).catch(errorHandler);
+        .then(this.retrState).catch(errorHandler);
     }
 
     render() {
         var elems = this.state.users.map(
             (userObject) => {
-                return <UserListElement model={userObject} key={userObject.id} onDelete={this.deleteUser} />
+                return <UserListElement canEdit={this.state.isAdmin} model={userObject} key={userObject.id} onDelete={this.deleteUser} />
             }
         )
+
+        /* Only render the new user form if we're an admin */
+        var newUserForm = null;
+        if(this.state.isAdmin) {
+            newUserForm = (<CreateNewUserForm refreshUsersView={this.retrUserList} />);
+        }
 
         return (
             <div className="container-fluid" id="user-table">
@@ -361,7 +388,7 @@ class UserList extends React.Component {
                     <div className="col-md-1"><strong>Is Disabled</strong></div>
                 </div>
                 {elems}
-                <CreateNewUserForm refreshUsersView={this.retrUserList} />
+                {newUserForm}
             </div>
         );
     }

@@ -12,15 +12,18 @@ label {
 }
 
 .offset-button {
-    opacity: 0;
     padding-left: 0.5em;
 }
 
-.offset-button:hover {
+.editing-buttons {
+    opacity: 0;
+}
+
+.editing-buttons:hover {
     opacity: 1.0;
 }
 
-.list-username:hover > .offset-button {
+.list-username:hover > .editing-buttons {
     opacity: 0.5;
 }
 

@@ -26,19 +26,7 @@ router.post('/user/password',
     }
 )
 
-/* The /users endpoints are restricted to administrators only. */
-router.use('/users',
-    (req, res, next) => {
-        req.user.admin().then(
-            (isAdmin) => {
-                if(isAdmin) { next(); }
-                else { res.status(401).send("This endpoint is restricted to administrators."); }
-            }
-        );
-    }
-);
-
-/* Get listing of all users. */
+/* Get listing of all users. This isn't restricted to administrators, though it does require authentication. */
 router.get('/users',
     (req, res) => {
         dbAPI.users.find({}, {}).then(
@@ -53,7 +41,21 @@ router.get('/users',
                 return Promise.all(promises);
             }
         ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
-    });
+    }
+);
+
+/* The /users endpoints are restricted to administrators only. */
+router.use('/users',
+    (req, res, next) => {
+        req.user.admin().then(
+            (isAdmin) => {
+                if(isAdmin) { next(); }
+                else { res.status(401).send("This endpoint is restricted to administrators."); }
+            }
+        );
+    }
+);
+
 
 /* Add a new user.
  * Required parameters (all self-explanatory):
