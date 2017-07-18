@@ -144,7 +144,7 @@ router.get('/logout',
         winston.log('debug', req.socket.remoteAddress + " ended session as "+req.user.username+".");
 
         req.logout();
-        res.status(204).end();
+        res.status(204).redirect('/');
     }
 );
 
