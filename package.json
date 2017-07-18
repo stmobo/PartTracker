@@ -2,6 +2,10 @@
   "name": "partstracker",
   "version": "0.2.0",
   "description": "Parts and system assembly tracking web application",
+  "repository": {
+      "type" : "git",
+      "url" : "https://github.com/stmobo/PartTracker.git"
+  },
   "main": "index.js",
   "scripts": {
     "build-login": "browserify client-js/login.jsx -t babelify -o public/js/login.js --debug",
