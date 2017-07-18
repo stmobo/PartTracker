@@ -7,6 +7,9 @@
     border-top-style: inset;
 }
 
+label {
+    margin-right: 0.5em;
+}
 
 .offset-button {
     opacity: 0;

@@ -194,6 +194,126 @@ class UserListElement extends React.Component {
     }
 }
 
+/*
+ * Handles creating new users.
+ * Required props:
+ *  - refreshUsersView(): Callback for refreshing the users view.
+ */
+class CreateNewUserForm extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            username: '',
+            realname: '',
+            password: '',
+            admin: false,
+            disabled: false,
+            showForm: false,
+        }
+
+        this.handleEditFormSubmit = this.handleEditFormSubmit.bind(this);
+        this.handleEditFormReset = this.handleEditFormReset.bind(this);
+        this.handleEditFormChange = this.handleEditFormChange.bind(this);
+        this.handleShowEditForm = this.handleShowEditForm.bind(this);
+    }
+
+    handleEditFormReset(ev) {
+        ev.preventDefault();
+
+        this.setState({
+            username: '',
+            realname: '',
+            password: '',
+            admin: false,
+            disabled: false,
+            showForm: false,
+        });
+    }
+
+    handleEditFormSubmit(ev) {
+        ev.preventDefault();
+
+        fetch('/api/users', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                username:   this.state.username,
+                realname:   this.state.realname,
+                admin:      this.state.admin,
+                disabled:   this.state.disabled,
+                password:   this.state.password,
+                showForm: false,
+            })
+        }).then(
+            () => {
+                this.setState({
+                    username: '',
+                    realname: '',
+                    password: '',
+                    admin: false,
+                    disabled: false,
+                    showForm: false,
+                });
+
+                this.props.refreshUsersView();
+            }
+        ).catch(errorHandler);
+    }
+
+    handleEditFormChange(ev) {
+        if(ev.target.name === "admin" || ev.target.name === "disabled") {
+            this.setState({
+                [ev.target.name]: ev.target.checked
+            });
+        } else {
+            this.setState({
+                [ev.target.name]: ev.target.value
+            });
+        }
+    }
+
+    handleShowEditForm(ev) {
+        ev.preventDefault();
+        this.setState({
+            showForm: true
+        });
+    }
+
+    render() {
+        if(this.state.showForm) {
+            return (
+                <form className="user-list-item user-list-editing" onSubmit={this.handleEditFormSubmit} onReset={this.handleEditFormReset}>
+                    <div>
+                        <label>Username: <input type="text" name="username" value={this.state.username} onChange={this.handleEditFormChange} /></label>
+                    </div>
+                    <div>
+                        <label>Real Name: <input type="text" name="realname" value={this.state.realname} onChange={this.handleEditFormChange} /></label>
+                    </div>
+                    <div>
+                        <label>Password: <input type="password" name="password" value={this.state.password} onChange={this.handleEditFormChange} /></label>
+                    </div>
+                    <div>
+                        <label>Is Admin: <input type="checkbox" name="admin" checked={this.state.admin} onChange={this.handleEditFormChange} /></label>
+                        <label>Is Disabled: <input type="checkbox" name="disabled" checked={this.state.disabled} onChange={this.handleEditFormChange} /></label>
+                    </div>
+                    <div>
+                        <button type="submit" className="btn btn-success btn-xs">Add User</button>
+                        <button type="reset" className="btn btn-danger btn-xs">Reset</button>
+                    </div>
+                </form>
+            );
+        } else {
+            return (
+                <button className="btn btn-default btn-sm" onClick={this.handleShowEditForm}>
+                    Add new user
+                </button>
+            );
+        }
+
+    }
+}
 
 /*
  * Fetches and renders the User list from the API.
@@ -222,7 +342,7 @@ class UserList extends React.Component {
 
     deleteUser(uid) {
         fetch('/api/users/'+uid, {method: 'DELETE', credentials: 'include'})
-        .then(retrUserList).catch(errorHandler);
+        .then(this.retrUserList).catch(errorHandler);
     }
 
     render() {
@@ -241,6 +361,7 @@ class UserList extends React.Component {
                     <div className="col-md-1"><strong>Is Disabled</strong></div>
                 </div>
                 {elems}
+                <CreateNewUserForm refreshUsersView={this.retrUserList} />
             </div>
         );
     }
