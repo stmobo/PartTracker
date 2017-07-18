@@ -93,7 +93,7 @@ passport.deserializeUser(
     (id, done) => {
         var userObj = new User(id);
 
-        userObj.fetch().then(
+        userObj.then(
             (user) => { return done(null, user); }
         ).catch(
             (err) => { return done(err); }
