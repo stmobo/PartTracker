@@ -6,7 +6,8 @@
   "scripts": {
     "build-login": "browserify client-js/login.jsx -t babelify -o public/js/login.js --debug",
     "build-inventory": "browserify client-js/inventory.jsx -t babelify -o static/js/inventory.js --debug",
-    "build": "concurrently \"npm run-script build-login\" \"npm run-script build-inventory\"",
+    "build-users": "browserify client-js/users.jsx -t babelify -o static/js/users.js --debug",
+    "build": "concurrently \"npm run-script build-login\" \"npm run-script build-inventory\" \"npm run-script build-users\"",
     "start": "node index.js",
     "start-db": "mongod --dbpath ./data/db --port 27017",
     "postinstall": "mkdir -p data/db acme-static public/js static/js",
