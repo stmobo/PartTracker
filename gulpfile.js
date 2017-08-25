@@ -1,22 +1,22 @@
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 var gulp = require('gulp');
-var minify = require('gulp-minify');
+var uglify = require('gulp-uglify');
+var streamify = require('gulp-streamify');
+var noop = require('gulp-noop');
+var pump = require('pump');
 
-function react_browserify(infile, outfile) {
+function react_browserify(infile, outfile, debug) {
   outfile = (outfile === undefined) ? infile : outfile;
+  debug = (debug === undefined) ? false : debug;
 
-  return function() {
-    return browserify('client-js/'+infile+'.jsx', {transform: 'babelify', debug:true})
-      .bundle()
-      .pipe(source(outfile+'.js'))
-      .pipe(minify({
-        ext: {
-          src: '-debug.js',
-          min: '.js'
-        }
-      }))
-      .pipe(gulp.dest('static/js'));
+  return function(cb) {
+    pump([
+        browserify('client-js/'+infile+'.jsx', {transform: 'babelify', debug:true}).bundle(),
+        source(outfile+'.js'),
+        debug ? noop() : streamify(uglify()),
+        gulp.dest('static/js')
+    ], cb);
   }
 }
 

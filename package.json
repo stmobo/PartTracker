@@ -3,8 +3,8 @@
   "version": "0.2.0",
   "description": "Parts and system assembly tracking web application",
   "repository": {
-      "type" : "git",
-      "url" : "https://github.com/stmobo/PartTracker.git"
+    "type": "git",
+    "url": "https://github.com/stmobo/PartTracker.git"
   },
   "main": "index.js",
   "scripts": {
@@ -48,7 +48,10 @@
     "babelify": "^7.3.0",
     "browserify": "^14.3.0",
     "gulp": "^3.9.1",
-    "gulp-minify": "^1.0.0",
+    "gulp-noop": "^1.0.0",
+    "gulp-streamify": "^1.0.2",
+    "gulp-uglify": "^3.0.0",
+    "pump": "^1.0.2",
     "vinyl-source-stream": "^1.1.0"
   },
   "babel": {
