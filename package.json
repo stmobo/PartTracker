@@ -1,12 +1,21 @@
 {
   "name": "partstracker",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Parts and system assembly tracking web application",
+  "repository": {
+      "type" : "git",
+      "url" : "https://github.com/stmobo/PartTracker.git"
+  },
   "main": "index.js",
   "scripts": {
-    "build": "browserify client-js/main.jsx -t babelify -o static/js/bundle.js --debug",
+    "build-login": "browserify client-js/login.jsx -t babelify -o public/js/login.js --debug",
+    "build-inventory": "browserify client-js/inventory.jsx -t babelify -o static/js/inventory.js --debug",
+    "build-users": "browserify client-js/users.jsx -t babelify -o static/js/users.js --debug",
+    "build-common": "browserify client-js/CommonNav.jsx -t babelify -o static/js/navbar.js --debug",
+    "build": "concurrently \"npm run-script build-login\" \"npm run-script build-inventory\" \"npm run-script build-users\" \"npm run-script build-common\"",
     "start": "node index.js",
     "start-db": "mongod --dbpath ./data/db --port 27017",
+    "postinstall": "mkdir -p data/db acme-static/.well-known/acme-challenge public/js static/js",
     "test": "concurrently -c \"green,cyan\" --kill-others \"npm run-script start-db\" \"npm run-script start\""
   },
   "author": "Sebastian Mobo <stmobo@gmail.com>",
@@ -15,15 +24,23 @@
     "app-module-path": "^2.2.0",
     "body-parser": "^1.17.1",
     "bootstrap": "^3.3.7",
-    "concurrently": "^3.5.0",
-    "express": "^4.15.2",
     "jquery": "^3.2.1",
+    "concurrently": "^3.4.0",
+    "connect-ensure-login": "^0.1.1",
+    "express": "^4.15.2",
+    "express-session": "^1.15.3",
+    "helmet": "^3.6.1",
+    "minimist": "^1.2.0",
     "monk": "^4.0.0",
+    "npid": "^0.4.0",
     "passport": "^0.3.2",
+    "passport-http": "^0.3.0",
     "passport-local": "^1.0.0",
-    "react": "^15.6.1",
-    "react-dom": "^15.6.1",
-    "underscore": "^1.8.3"
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4",
+    "underscore": "^1.8.3",
+    "winston": "^2.3.1",
+    "winston-syslog": "^1.2.6"
   },
   "devDependencies": {
     "babel-preset-es2015": "^6.24.1",

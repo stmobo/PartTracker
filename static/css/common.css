@@ -1,0 +1,8 @@
+/* Prevent navbar from overlaying main body content */
+body {
+    padding-top: 70px;
+}
+
+.navbar-right {
+    padding-right: 20px;
+}

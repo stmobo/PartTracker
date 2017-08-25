@@ -5,6 +5,8 @@ var monk = require('monk');
 var Item = require('api/models/Item.js');
 var Reservation = require('api/models/Reservation.js');
 
+var winston = require('winston');
+
 module.exports = {
     /* Tests for the existence of given keys in req.body.
      * Returns a rejection promise if a key is not found,
@@ -25,11 +27,11 @@ module.exports = {
             if(err instanceof Error) {
                 res.status(500);
                 res.send(err.stack);
-                console.error("Error on "+req.method+" request to "+req.originalUrl+":\n"+err.stack);
+                winston.log('error', "Error on "+req.method+" request to "+req.originalUrl+" from "+req.socket.remoteAddress+":\n"+err.stack);
             } else {
                 res.status(400);
                 res.send(err.toString());
-                console.error("Error on "+req.method+" request to "+req.originalUrl+":\n"+err.toString());
+                winston.log('error', "Error on "+req.method+" request to "+req.originalUrl+" from "+req.socket.remoteAddress+":\n"+err.toString());
             }
         }).bind(this, req, res);
     },

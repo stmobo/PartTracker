@@ -1,0 +1,51 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: parttracker
+# Required-Start: mongodb $network $remote_fs
+# Required-Stop: mongodb $network $remote_fs
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Parts Tracker web service
+# Description: Starts the PartTracker service on system startup.
+### END INIT INFO
+
+APPDIR="/home/stmobo/PartTracker"
+ARGSFILE="${APPDIR}/server.args"
+PIDFILE="/var/run/parttracker.pid"
+
+start-service() {
+    npm start --prefix ${APPDIR} -- `cat ${ARGSFILE}` > /dev/null 2>&1 &
+}
+
+stop-service() {
+    kill -9 `cat ${PIDFILE}`
+    rm ${PIDFILE}
+}
+
+case "$1" in
+    start)
+        start-service
+        ;;
+    stop)
+        stop-service
+        ;;
+    restart)
+        start-service
+        stop-service
+        ;;
+    force-reload)
+        start-service
+        stop-service
+        ;;
+    status)
+        if [[ -f "${PIDFILE}" ]]; then
+            echo "Running as PID $(cat ${PIDFILE})"
+        else
+            echo "Not running"
+        fi
+        ;;
+    *)
+        echo "Usage: /etc/init.d/parttracker {start|stop|restart|force-reload|status}"
+        ;;
+esac

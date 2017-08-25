@@ -26,7 +26,7 @@ class RsvpListElement extends React.Component {
         const updateTime = new Date(this.props.model.updated);
         return (
             <li className="inv-rsvp-item">
-                {this.props.model.count} reserved by <strong>{this.props.model.requester}</strong>
+                {this.props.model.count} reserved by <strong>{this.props.model.requester.realname}</strong> (<strong>{this.props.model.requester.username}</strong>)
                 {renderUpdateTime(updateTime)}
                 <span onClick={this.handleRSVPDelete} className="glyphicon glyphicon-remove offset-button"></span>
             </li>
@@ -60,9 +60,9 @@ export default class ItemRsvpList extends React.Component {
     }
 
     fetchList() {
-        fetch('/api/inventory/'+this.props.partID+'/reservations').then(
-            jsonOnSuccess
-        ).then(
+        fetch('/api/inventory/'+this.props.partID+'/reservations',
+            {credentials: 'include'}
+        ).then(jsonOnSuccess).then(
             (rsvps) => { this.setState({ reservations: rsvps }); }
         ).catch(errorHandler);
     }
@@ -70,11 +70,12 @@ export default class ItemRsvpList extends React.Component {
     handleRSVPSubmit(ev) {
         ev.preventDefault();
 
-        var newRSVP = {part: this.props.partID, count: parseInt(this.state.count), requester: this.state.requester};
+        var newRSVP = {part: this.props.partID, count: parseInt(this.state.count)};
 
         /* POST the response to the API: */
         fetch('/api/reservations', {
                 method: 'POST',
+                credentials: 'include',
                 body: JSON.stringify(newRSVP),
                 headers: {"Content-Type": "application/json"}
             })
@@ -85,7 +86,7 @@ export default class ItemRsvpList extends React.Component {
 
     handleRSVPDeleted(rid) {
         /* Send the DELETE request to the API: */
-        fetch('/api/reservations/'+rid,{method: 'DELETE'})
+        fetch('/api/reservations/'+rid,{ method: 'DELETE', credentials: 'include'})
         .then(this.fetchList)
         .then(this.props.onListUpdated)
         .catch(errorHandler);
@@ -120,14 +121,13 @@ export default class ItemRsvpList extends React.Component {
         var form = null;
         var canAddNewRSVP = (this.props.availableCount > 0);
 
+        /* <label>Requester: <input type="text" name="requester" value={this.state.requester} onChange={this.handleFormChange} /></label> */
+
         if(this.state.formShown && canAddNewRSVP) {
             form = (
                 <form className="new-rsvp-form" autoComplete="off" onClick={(ev) => {ev.stopPropagation();}} onSubmit={this.handleRSVPSubmit} onReset={this.handleFormReset}>
                     <button className="btn btn-danger btn-sm" type="reset">Cancel</button>
-                    <div>
-                        <label>Requester: <input type="text" name="requester" value={this.state.requester} onChange={this.handleFormChange} /></label>
-                        <label>Count:<input type="number" name="count" value={this.state.count} onChange={this.handleFormChange} min="0" max={this.props.availableCount} /></label>
-                    </div>
+                    <label>Count:<input type="number" name="count" value={this.state.count} onChange={this.handleFormChange} min="0" max={this.props.availableCount} /></label>
                     <button type="submit" className="btn btn-success btn-sm">Add reservation</button>
                 </form>
             );

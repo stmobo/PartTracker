@@ -7,6 +7,7 @@ var common = require('api/routing_common.js');
 
 var Item = require('api/models/Item.js');
 var Reservation = require('api/models/Reservation.js');
+var User = require('api/models/User.js');
 
 var router = express.Router();
 router.use(bodyParser.json());
@@ -31,23 +32,52 @@ router.get('/reservations', (req, res) => {
    Parameters:
     - "part": part ID to reserve.
     - "count": number of parts to reserve.
-    - "requester": name of team / person to reserve the parts under.
+    - "requester": ID of user to reserve the parts under.
     - "asm" [optional]: Assembly ID to reserve the parts for.
  */
 router.post('/reservations', (req, res) => {
-    common.checkRequestParameters(req, 'part', 'count', 'requester').then(
-        () => {
-            var item = new Item(monk.id(req.body.part));
-            return item.available();
+    common.checkRequestParameters(req, 'part', 'count').then(
+        () => { return req.user.admin(); }
+    ).then(
+        (isAdmin) => {
+            if(isAdmin && req.body.requester) {
+                return new User(monk.id(req.body.requester));
+            } else if(isAdmin && req.body.username) {
+                return dbAPI.users.findOne({username: req.body.username}, {}).then(
+                    (doc) => { return new User(doc._id); }
+                );
+            } else {
+                return req.user;
+            }
         }
     ).then(
-        (avail_parts) => {
+        (requester) => {
+            var item = new Item(monk.id(req.body.part));
+            return Promise.all([item.exists(), requester.exists(), item, requester]);
+        }
+    ).then(
+        (retns) => {
+            item_exists = retns[0];
+            requester_exists = retns[1];
+            item = retns[2];
+            requester = retns[3];
+
+            if(!item_exists) return Promise.reject("Requested part does not exist!");
+            if(!requester_exists) return Promise.reject("Requesting user does not exist!");
+
+            return Promise.all([item.available(), requester]);
+        }
+    ).then(
+        (retns) => {
+            avail_parts = retns[0];
+            requester = retns[1];
+
             requested_parts = parseInt(req.body.count);
             if(requested_parts > avail_parts)
                 return Promise.reject("Not enough parts available to satisfy new reservation.");
 
             var rsvp = new Reservation();
-            rsvp.requester(req.body.requester);
+            rsvp.requester(requester);
             rsvp.count(requested_parts);
             rsvp.part(req.body.part);
 
@@ -71,30 +101,68 @@ router.get("/reservations/:rid", (req, res) => {
 router.put("/reservations/:rid", (req, res) => {
     rsvp = new Reservation(monk.id(req.params.rid));
 
-    common.checkRequestParameters(req, 'part', 'count', 'requester').then(
-        () => {
-            return rsvp.part();
-        }
+    common.checkRequestParameters(req, 'part', 'count').then(
+        () => { return req.user.admin(); }
     ).then(
-        (part) => {
-            if(part.id().toString() !== req.body.part) {
-                return part.available();
+        (isAdmin) => {
+            if(isAdmin && req.body.requester) {
+                return new User(monk.id(req.body.requester));
+            } else if(isAdmin && req.body.username) {
+                return dbAPI.users.findOne({username: req.body.username}, {}).then(
+                    (doc) => { return new User(doc._id); }
+                );
             } else {
-                return Promise.all([
-                    part.available(),   // total available parts
-                    rsvp.count()        // parts from this RSVP pre-update
-                ]).then( (retn) => { return retn[0]+retn[1]; } );
+                return req.user;
             }
         }
     ).then(
-        (avail_parts) => {
+        (requester) => {
+            var item = new Item(monk.id(req.body.part));
+            return Promise.all([item.exists(), requester.exists(), item, requester]);
+        }
+    ).then(
+        (retns) => {
+            item_exists = retns[0];
+            requester_exists = retns[1];
+            item = retns[2];
+            requester = retns[3];
+
+            if(!item_exists) return Promise.reject("Requested part does not exist!");
+            if(!requester_exists) return Promise.reject("Requesting user does not exist!");
+
+            var oldPart = rsvp.part().then((part) => { return part.fetch(); });
+            return Promise.all([item.fetch(), oldPart, requester]);
+        }
+    ).then(
+        (parts) => {
+            var newPart = parts[0];
+            var oldPart = parts[1];
+            var requester = parts[2];
+
+            var avail_parts = null;
+            if(newPart.id().toString() !== oldPart.id().toString()) {
+                avail_parts = newPart.available();
+            } else {
+                avail_parts = Promise.all([
+                    oldPart.available(),   // total available parts
+                    rsvp.count()           // parts from this RSVP pre-update
+                ]).then( (retn) => { return retn[0]+retn[1]; } );
+            }
+
+            return Promise.all([avail_parts, requester]);
+        }
+    ).then(
+        (retns) => {
+            var avail_parts = retns[0];
+            var requester = retns[1];
+
             requested_parts = parseInt(req.body.count);
             if(requested_parts > avail_parts)
                 return Promise.reject("Not enough parts available to satisfy new reservation.");
 
             rsvp.part(monk.id(req.body.part));
             rsvp.count(requested_parts);
-            rsvp.requester(req.body.requester);
+            rsvp.requester(requester);
 
             return rsvp.save();
         }
