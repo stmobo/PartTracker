@@ -7,7 +7,6 @@
     "build": "browserify client-js/main.jsx -t babelify -o static/js/bundle.js --debug",
     "start": "node index.js",
     "start-db": "mongod --dbpath ./data/db --port 27017",
-    "postinstall": "mkdir -p data/db",
     "test": "concurrently -c \"green,cyan\" --kill-others \"npm run-script start-db\" \"npm run-script start\""
   },
   "author": "Sebastian Mobo <stmobo@gmail.com>",
@@ -16,11 +15,14 @@
     "app-module-path": "^2.2.0",
     "body-parser": "^1.17.1",
     "bootstrap": "^3.3.7",
-    "concurrently": "^3.4.0",
+    "concurrently": "^3.5.0",
     "express": "^4.15.2",
+    "jquery": "^3.2.1",
     "monk": "^4.0.0",
-    "react": "^15.5.4",
-    "react-dom": "^15.5.4",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
+    "react": "^15.6.1",
+    "react-dom": "^15.6.1",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
