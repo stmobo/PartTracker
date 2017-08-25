@@ -44,18 +44,6 @@ Reservation.prototype.part = function(v) {
     }
 };
 
-Reservation.prototype.asm = function(v) {
-    if(v === undefined) {
-        return this.prop('asm');
-    } else {
-        if((v instanceof ObjectID) || (typeof v === 'string')) {
-            return this.prop('asm', monk.id(v));
-        } else {
-            throw new Error("Invalid AssemblyID passed to setter!");
-        }
-    }
-}
-
 Reservation.prototype.summary = function () {
     return this.fetch().then(
         () => {
@@ -65,7 +53,6 @@ Reservation.prototype.summary = function () {
                 this.requester(),
                 this.created(),
                 this.updated(),
-                this.asm(),
             ]);
         }
     ).then(
@@ -77,7 +64,6 @@ Reservation.prototype.summary = function () {
                 requester: retn[2],
                 created: retn[3],
                 updated: retn[4],
-                assembly: retn[5],
             };
         }
     );

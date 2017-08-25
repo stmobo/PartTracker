@@ -11,7 +11,6 @@ var Reservation = require('api/models/Reservation.js');
 var router = express.Router();
 router.use(bodyParser.json());
 
-
 /* Get info on all part reservations. */
 router.get('/reservations', (req, res) => {
     dbAPI.reservations.find({}, {}).then(
@@ -51,9 +50,6 @@ router.post('/reservations', (req, res) => {
             rsvp.requester(req.body.requester);
             rsvp.count(requested_parts);
             rsvp.part(req.body.part);
-
-            if('asm' in req.body)
-                rsvp.asm(req.body.asm);
 
             return rsvp.save();
         }
@@ -99,9 +95,6 @@ router.put("/reservations/:rid", (req, res) => {
             rsvp.part(monk.id(req.body.part));
             rsvp.count(requested_parts);
             rsvp.requester(req.body.requester);
-
-            if('asm' in req.body)
-                rsvp.asm(req.body.asm);
 
             return rsvp.save();
         }
