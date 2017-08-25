@@ -2,6 +2,7 @@ var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;
 var dbAPI = require('api/db.js');
 var Item = require('api/models/Item.js');
+var User = require('api/models/User.js');
 
 var Reservation = function(id) {
     if((id instanceof ObjectID) || (typeof id === 'string')) {
@@ -20,7 +21,26 @@ Reservation.prototype.delete = function () {
 };
 
 Reservation.prototype.count = function(v) { return this.prop('count', v); };
-Reservation.prototype.requester = function(v) { return this.prop('requester', v); };
+
+Reservation.prototype.requester = function(v) {
+    if(v === undefined) {
+        return this.prop('requester').then(
+            (userID) => {
+                if(userID === null) return null;
+                return new User(userID);
+            }
+        );
+    } else {
+        if(v instanceof User) {
+            return this.prop('requester', v.id());
+        } else if((v instanceof ObjectID) || (typeof v === 'string')) {
+            return this.prop('requester', monk.id(v));
+        } else {
+            throw new Error("Invalid UserID passed to setter!");
+        }
+    }
+};
+
 Reservation.prototype.part = function(v) {
     if(v === undefined) {
         /* Get part object. */
@@ -50,7 +70,7 @@ Reservation.prototype.summary = function () {
             return Promise.all([
                 this.prop('part'),
                 this.count(),
-                this.requester(),
+                this.requester().then( (user) => user.summary() ),
                 this.created(),
                 this.updated(),
             ]);

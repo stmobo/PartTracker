@@ -1,6 +1,7 @@
 var monk = require('monk');
 
 const conn = monk('localhost:27017/partstracker');
+const users = conn.get('users');
 const inventory = conn.get('inventory');
 const reservations = conn.get('reservations');
 const assemblies = conn.get('assemblies');
@@ -120,6 +121,7 @@ DatabaseItem.prototype.delete = function () {
 
 module.exports = {
     conn: conn,
+    users: users,
     inventory: inventory,
     reservations: reservations,
     assemblies: assemblies,
