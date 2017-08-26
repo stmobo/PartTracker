@@ -6,10 +6,10 @@ var winston = require('winston');
 require('winston-syslog').Syslog;
 
 winston.setLevels(winston.config.syslog.levels);
-winston.level = args.log_level;
+winston.level = args.log_level ||'info';
 winston.add(winston.transports.File, { filename: args.log_file || '/var/log/parttracker.log' });
 winston.add(winston.transports.Syslog);
-winston.remove(winston.transports.Console);
+//winston.remove(winston.transports.Console);
 
 winston.handleExceptions([winston.transports.Console, winston.transports.Syslog]);
 
@@ -38,6 +38,12 @@ app.use(passport.session());
 
 app.use('/api', auth_router);       /* Auth requests aren't behind the authentication barrier themselves */
 app.use('/public', express.static('public'));  /* For serving the login page, etc. */
+app.use('/dist', express.static('public/dist')); /* For serving external dependencies (bootstrap / jquery / etc) */
+
+// Fallback to CDN if these aren't stored locally
+app.get('/dist/js/jquery.min.js', (req, res) => { res.redirect('https://code.jquery.com/jquery-3.2.1.min.js'); })
+app.get('/dist/css/bootstrap.min.css', (req, res) => { res.redirect('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'); })
+app.get('/dist/js/bootstrap.min.js', (req, res) => { res.redirect('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js'); })
 
 app.get('/', (req, res) => {
     if(req.user) { res.redirect('/inventory.html'); }
