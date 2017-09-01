@@ -8,11 +8,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "build-login": "browserify client-js/login.jsx -t babelify -o public/js/login.js --debug",
-    "build-inventory": "browserify client-js/inventory.jsx -t babelify -o static/js/inventory.js --debug",
-    "build-users": "browserify client-js/users.jsx -t babelify -o static/js/users.js --debug",
-    "build-common": "browserify client-js/CommonNav.jsx -t babelify -o static/js/navbar.js --debug",
-    "build": "concurrently \"npm run-script build-login\" \"npm run-script build-inventory\" \"npm run-script build-users\" \"npm run-script build-common\"",
+    "build": "gulp build",
     "start": "node index.js",
     "start-db": "mongod --dbpath ./data/db --port 27017",
     "postinstall": "mkdir -p data/db acme-static/.well-known/acme-challenge public/js static/js",
@@ -48,11 +44,12 @@
     "babelify": "^7.3.0",
     "browserify": "^14.3.0",
     "gulp": "^3.9.1",
-    "gulp-noop": "^1.0.0",
     "gulp-streamify": "^1.0.2",
     "gulp-uglify": "^3.0.0",
+    "gulp-util": "^3.0.8",
     "pump": "^1.0.2",
-    "vinyl-source-stream": "^1.1.0"
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.9.0"
   },
   "babel": {
     "presets": [
