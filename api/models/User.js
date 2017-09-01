@@ -85,8 +85,8 @@ User.prototype.summary = function () {
                 realname: retn[1],
                 admin: retn[2],
                 disabled: retn[3],
-                created: retn[4],
-                updated: retn[5],
+                updated: retn[4],
+                created: retn[5],
             };
         }
     );
