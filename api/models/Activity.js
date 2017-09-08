@@ -43,4 +43,21 @@ Activity.prototype.hoursForUser = async function(user, v) {
     }
 };
 
+Activity.prototype.summary = async function() {
+    await this.fetch();
+
+    return {
+        'id': this.id(),
+        'title': await this.title(),
+        'description': await this.description(),
+        'startTime': await this.startTime(),
+        'endTime': await this.endTime(),
+        'maxHours': await this.maxHours(),
+        'open': await this.open(),
+        'userHours': await this.userHours(),
+        'created': await this.created(),
+        'updated': await this.updated(),
+    };
+}
+
 module.exports = Activity;
