@@ -27,6 +27,7 @@ User.prototype.delete = function () {
 User.prototype.username = function(v) { return this.prop('username', v); };
 User.prototype.realname = function(v) { return this.prop('realname', v); };
 User.prototype.admin = function(v) { return this.prop('admin', v); };
+User.prototype.activityCreator = function(v) { return this.prop('activityCreator', v); };
 User.prototype.disabled = function(v) { return this.prop('disabled', v); };
 
 User.prototype.passwordHash = function() { return this.prop('pw_hash'); };
@@ -73,6 +74,7 @@ User.prototype.summary = function () {
                 this.realname(),
                 this.admin(),
                 this.disabled(),
+                this.activityCreator(),
                 this.updated(),
                 this.created(),
             ]);
@@ -85,8 +87,9 @@ User.prototype.summary = function () {
                 realname: retn[1],
                 admin: retn[2],
                 disabled: retn[3],
-                updated: retn[4],
-                created: retn[5],
+                activityCreator: retn[4],
+                updated: retn[5],
+                created: retn[6],
             };
         }
     );
