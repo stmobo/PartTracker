@@ -108,6 +108,12 @@ router.get('/users/:uid',
     }
 );
 
+router.get('/users/:uid/activities', common.asyncMiddleware(
+    async (req, res) => {
+        res.status(200).json(await req.targetUser.getActivityHours());
+    }
+))
+
 router.put('/users/:uid',
     (req, res) => {
         if(req.body.activityCreator) req.targetUser.username(req.body.username);
