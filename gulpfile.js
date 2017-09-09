@@ -1,5 +1,4 @@
 var browserify = require('browserify');
-var watchify = require('watchify');
 var source = require('vinyl-source-stream');
 var gulp = require('gulp');
 var uglify = require('gulp-uglify');
@@ -13,7 +12,6 @@ function react_browserify(infile, outfile, outdir, debug) {
   debug = (debug === undefined) ? false : debug;
 
   var b = browserify('client-js/'+infile+'.jsx', {transform: 'babelify', debug:true});
-  b = watchify(b);
 
   function bundlefn(cb) {
     pump([
@@ -24,7 +22,6 @@ function react_browserify(infile, outfile, outdir, debug) {
     ], cb);
   }
 
-  b.on('update', bundlefn);
   b.on('log', gutil.log);
 
   return bundlefn;
