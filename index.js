@@ -3,15 +3,18 @@ require('app-module-path').addPath(__dirname);
 var args = require('minimist')(process.argv.slice(2));
 
 var winston = require('winston');
-require('winston-syslog').Syslog;
 
 winston.setLevels(winston.config.syslog.levels);
 winston.level = args.log_level ||'info';
 winston.add(winston.transports.File, { filename: args.log_file || '/var/log/parttracker.log' });
-winston.add(winston.transports.Syslog);
-//winston.remove(winston.transports.Console);
 
-winston.handleExceptions([winston.transports.Console, winston.transports.Syslog]);
+if(!args.no_syslog) {
+    require('winston-syslog').Syslog;
+    winston.add(winston.transports.Syslog);
+    winston.handleExceptions([winston.transports.Console, winston.transports.Syslog]);
+}
+
+//winston.remove(winston.transports.Console);
 
 var express = require('express');
 var passport = require('passport');
