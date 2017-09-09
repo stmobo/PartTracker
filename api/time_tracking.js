@@ -49,11 +49,11 @@ router.post('/activities', common.asyncMiddleware(
         newActivity.title(req.body.title);
         newActivity.description(req.body.description);
 
+        await newActivity.userHours([]); // must be set before maxHours to prevent a bug
         await Promise.all([
             newActivity.startTime(new Date(req.body.startTime)),
             newActivity.endTime(new Date(req.body.endTime)),
             newActivity.maxHours(req.body.maxHours),
-            newActivity.userHours([]),
         ]);
 
         await newActivity.save();
