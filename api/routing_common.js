@@ -66,7 +66,7 @@ module.exports = {
     asyncMiddleware: function(fn) {
       return function(req, res, next) {
         Promise.resolve(fn(req, res, next))
-          .catch(common.apiErrorHandler(req, res));
+          .catch(module.exports.apiErrorHandler(req, res));
       };
     },
 }

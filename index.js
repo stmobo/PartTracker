@@ -24,6 +24,7 @@ var app = express();
 
 var inventory_router = require('api/inventory.js');
 var reservations_router = require('api/reservations.js');
+var time_router = require('api/time_tracking.js');
 var auth = require('api/auth.js');
 var users_router = require('api/users.js');
 
@@ -59,6 +60,7 @@ app.use(ensureAuthenticated);
 app.use('/api', users_router);
 app.use('/api', inventory_router);
 app.use('/api', reservations_router);
+app.use('/api', time_router);
 app.use(express.static('static'));
 
 var http_port = (args.http_port || 80);

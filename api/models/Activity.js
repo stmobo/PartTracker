@@ -23,8 +23,12 @@ Activity.prototype.description = function(v) { return this.prop('description', v
     }
  */
 Activity.prototype.userHours = async function(v) {
-    if(v === undefined)
-        return this.prop('userHours');
+    if(v === undefined) {
+        var userHours = await this.prop('userHours');
+        if(userHours === undefined) return [];
+        else return userHours;
+    }
+
 
     var cleanedList = v.map((doc) => {
         return {
@@ -34,7 +38,7 @@ Activity.prototype.userHours = async function(v) {
         }
     });
 
-    for(doc of cleanedBody) {
+    for(doc of cleanedList) {
         if(doc.hours < 0) return Promise.reject("Hours logged for "+doc.uid+" cannot be negative.");
         if(doc.hours > await this.maxHours()) return Promise.reject("Hours entry for user "+doc.uid+" exceeds maximum allowed hours for this activity.");
         if(doc.checkIn.getTime() < (await this.startTime()).getTime()) return Promise.reject("Check-in time for user "+doc.uid+" is before activity start time!");
