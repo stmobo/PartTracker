@@ -13,7 +13,6 @@ function react_browserify(infile, outfile, outdir, debug) {
   debug = (debug === undefined) ? false : debug;
 
   var b = browserify('client-js/'+infile+'.jsx', {transform: 'babelify', debug:true});
-  b = watchify(b);
 
   function bundlefn(cb) {
     pump([
@@ -33,6 +32,7 @@ function react_browserify(infile, outfile, outdir, debug) {
 gulp.task('build-login', react_browserify('login', 'login', 'public/js'));
 gulp.task('build-inventory', react_browserify('inventory'));
 gulp.task('build-users', react_browserify('users'));
+gulp.task('build-activities', react_browserify('activities'));
 gulp.task('build-nav', react_browserify('CommonNav', 'navbar'));
 
 gulp.task('build', ['build-login', 'build-inventory', 'build-users', 'build-nav']);
