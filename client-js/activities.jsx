@@ -28,6 +28,13 @@ class ActivityList extends React.Component {
 
         return (
             <div className="container-fluid">
+                <div className="activity-entry list-header row">
+                    <strong className="activity-entry-data col-md-5">Title</strong>
+                    <strong className="activity-entry-data col-md-2"># Users Checked In</strong>
+                    <strong className="activity-entry-data col-md-1">Hours</strong>
+                    <strong className="activity-entry-data col-md-2">Start Time</strong>
+                    <strong className="activity-entry-data col-md-2">End Time</strong>
+                </div>
                 {elems}
             </div>
         );
@@ -95,12 +102,14 @@ class ActivityEntryInfo extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = { expanded: true };
+        this.state = { expanded: false };
 
         this.toggleExpanded = this.toggleExpanded.bind(this);
 
         this.startTime = new Date(this.props.model.startTime);
         this.endTime = new Date(this.props.model.endTime);
+        this.created = new Date(this.props.model.created);
+        this.updated = new Date(this.props.model.updated);
     }
 
     toggleExpanded(ev) {
@@ -112,29 +121,34 @@ class ActivityEntryInfo extends React.Component {
         var descBox = (
             <div className="activity-entry row">
                 <div className="activity-entry-data col-md-12">
-                    {this.props.model.description}
+                    <div>{this.props.model.description}</div>
+                    <div><small>Created: {this.created.toLocaleString()}</small></div>
+                    <div><small>Updated: {this.updated.toLocaleString()}</small></div>
                 </div>
             </div>
         );
 
         return (
             <div>
-                <div className="activity-entry row" onClick={this.toggleExpanded}>
-                    <div className="activity-entry-data col-md-7">
+                <div className="activity-entry list-row row" onClick={this.toggleExpanded}>
+                    <div className="activity-entry-data col-md-5">
+                        {this.props.editable && <span className="glyphicon glyphicon-remove text-left"></span>}
+                        {this.props.editable && <span className="glyphicon glyphicon-pencil text-left"></span>}
+                        {!this.state.expanded && <span className="glyphicon glyphicon-menu-down text-left"></span>}
+                        {this.state.expanded && <span className="glyphicon glyphicon-menu-up text-left"></span>}
                         {this.props.model.title}
-                        {this.props.editable && <span className="glyphicon glyphicon-remove offset-button"></span>}
-                        {this.props.editable && <span className="glyphicon glyphicon-pencil offset-button"></span>}
-                        {!this.state.expanded && <span className="glyphicon glyphicon-menu-down text-right"></span>}
-                        {this.state.expanded && <span className="glyphicon glyphicon-menu-up text-right"></span>}
+                    </div>
+                    <div className="activity-entry-data col-md-2">
+                        {this.props.model.userHours.length}
                     </div>
                     <div className="activity-entry-data col-md-1">
                         {this.props.model.maxHours}
                     </div>
                     <div className="activity-entry-data col-md-2">
-                        {this.startTime.toLocaleTimeString()}
+                        {this.startTime.toLocaleDateString()}, {this.startTime.toLocaleTimeString()}
                     </div>
                     <div className="activity-entry-data col-md-2">
-                        {this.endTime.toLocaleTimeString()}
+                        {this.endTime.toLocaleDateString()}, {this.endTime.toLocaleTimeString()}
                     </div>
                 </div>
                 {this.state.expanded && descBox}
