@@ -27,6 +27,7 @@ User.prototype.delete = function () {
 User.prototype.username = function(v) { return this.prop('username', v); };
 User.prototype.realname = function(v) { return this.prop('realname', v); };
 User.prototype.admin = function(v) { return this.prop('admin', v); };
+User.prototype.activityCreator = function(v) { return this.prop('activityCreator', v); };
 User.prototype.disabled = function(v) { return this.prop('disabled', v); };
 
 User.prototype.passwordHash = function() { return this.prop('pw_hash'); };
@@ -65,6 +66,26 @@ User.prototype.setPassword = function (v) {
     );
 };
 
+/* Gets information on the activities the user has done.
+ * Returns an array of objects with the following form:
+    {
+        activity: [Activity Object ID],
+        checkIn: [Timestamp for check-in],
+        hours: [number of hours User spent doing activity]
+    }
+ */
+User.prototype.getActivityHours = async function() {
+    var userActivities = await dbAPI.activities.find( { 'userHours.user': this.id() } );
+    return userActivities.map((activity) => {
+        var entry = activity.userHours.find(e => e.user.toString() === this.id().toString());
+        return {
+            'activity': activity._id,
+            'checkIn': entry.checkIn,
+            'hours': entry.hours
+        };
+    });
+}
+
 User.prototype.summary = function () {
     return this.fetch().then(
         () => {
@@ -73,6 +94,7 @@ User.prototype.summary = function () {
                 this.realname(),
                 this.admin(),
                 this.disabled(),
+                this.activityCreator(),
                 this.updated(),
                 this.created(),
             ]);
@@ -85,8 +107,9 @@ User.prototype.summary = function () {
                 realname: retn[1],
                 admin: retn[2],
                 disabled: retn[3],
-                updated: retn[4],
-                created: retn[5],
+                activityCreator: retn[4],
+                updated: retn[5],
+                created: retn[6],
             };
         }
     );

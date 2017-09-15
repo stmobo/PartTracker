@@ -10,6 +10,7 @@
   "scripts": {
     "build": "gulp build",
     "start": "node index.js",
+    "start-local": "node index.js --no_syslog --pid_file server.pid --log_file server.log --no_https --http_port 3000",
     "start-db": "mongod --dbpath ./data/db --port 27017",
     "postinstall": "mkdir -p data/db acme-static/.well-known/acme-challenge public/js static/js",
     "test": "concurrently -c \"green,cyan\" --kill-others \"npm run-script start-db\" \"npm run-script start\""
@@ -27,9 +28,9 @@
     "express-session": "^1.15.3",
     "helmet": "^3.6.1",
     "minimist": "^1.2.0",
-    "monk": "^4.0.0",
+    "monk": "^6.0.3",
     "npid": "^0.4.0",
-    "passport": "^0.3.2",
+    "passport": "^0.4.0",
     "passport-http": "^0.3.0",
     "passport-local": "^1.0.0",
     "react": "^15.5.4",

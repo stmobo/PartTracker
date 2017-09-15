@@ -3,15 +3,18 @@ require('app-module-path').addPath(__dirname);
 var args = require('minimist')(process.argv.slice(2));
 
 var winston = require('winston');
-require('winston-syslog').Syslog;
 
 winston.setLevels(winston.config.syslog.levels);
 winston.level = args.log_level ||'info';
 winston.add(winston.transports.File, { filename: args.log_file || '/var/log/parttracker.log' });
-winston.add(winston.transports.Syslog);
-//winston.remove(winston.transports.Console);
 
-winston.handleExceptions([winston.transports.Console, winston.transports.Syslog]);
+if(!args.no_syslog) {
+    require('winston-syslog').Syslog;
+    winston.add(winston.transports.Syslog);
+    winston.handleExceptions([winston.transports.Console, winston.transports.Syslog]);
+}
+
+//winston.remove(winston.transports.Console);
 
 var express = require('express');
 var passport = require('passport');
@@ -21,6 +24,7 @@ var app = express();
 
 var inventory_router = require('api/inventory.js');
 var reservations_router = require('api/reservations.js');
+var time_router = require('api/time_tracking.js');
 var auth = require('api/auth.js');
 var users_router = require('api/users.js');
 
@@ -56,6 +60,7 @@ app.use(ensureAuthenticated);
 app.use('/api', users_router);
 app.use('/api', inventory_router);
 app.use('/api', reservations_router);
+app.use('/api', time_router);
 app.use(express.static('static'));
 
 var http_port = (args.http_port || 80);
