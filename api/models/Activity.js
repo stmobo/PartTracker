@@ -71,6 +71,7 @@ Activity.prototype.maxHours = async function(v) {
     if(v === undefined)
         return this.prop('maxHours');
 
+    if(typeof v === 'string') v = parseFloat(v, 10);
     if(typeof v !== 'number') return Promise.reject("Maximum allowed hours must be a number.");
     if(v <= 0) return Promise.reject("Maximum allowed hours cannot be negative or zero.");
 
