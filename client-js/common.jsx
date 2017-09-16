@@ -38,11 +38,35 @@ export function renderUpdateTime(updated) {
     }
 }
 
+/* Converts a Javascript Date object to a string in the format of HTML datetime-local input values */
+export function dateToInputValue(dt) {
+    var nFmt = new Intl.NumberFormat(undefined, { minimumIntegerDigits: 2 });
+    var date = `${dt.getFullYear()}-${nFmt.format(dt.getMonth()+1)}-${nFmt.format(dt.getDate())}`;
+    var time = `T${nFmt.format(dt.getHours())}:${nFmt.format(dt.getMinutes())}`;
+
+    return date+time;
+}
+
 export function getUserInfo() {
     var userInfoJSON = sessionStorage.getItem('userobject');
     if(userInfoJSON === null) {
         // fetch user info from API
-        return fetch('/api/user', {credentials: 'include'}).then(jsonOnSuccess).catch(errorHandler);
+        return fetch('/api/user', {credentials: 'include'}).then(
+            (res) => {
+                if(!res.ok) return Promise.reject(res);
+
+                return Promise.all([
+                    res.text(),
+                    res.json()
+                ]);
+            }
+        ).then(
+            (retns) => {
+                // save the info in session storage
+                sessionStorage.setItem('userobject', retns[0]);
+                return retns[1];
+            }
+        ).catch(errorHandler);
     } else {
         return Promise.resolve(JSON.parse(userInfoJSON));
     }

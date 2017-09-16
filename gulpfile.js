@@ -10,7 +10,7 @@ var pump = require('pump');
 function react_browserify(infile, outfile, outdir, debug) {
   outfile = (outfile === undefined) ? infile : outfile;
   outdir = (outdir === undefined) ? 'static/js' : outdir;
-  debug = (debug === undefined) ? false : debug;
+  debug = (debug === undefined) ? !gutil.env.production : debug;
 
   var b = browserify('client-js/'+infile+'.jsx', {transform: 'babelify', debug:true});
 
