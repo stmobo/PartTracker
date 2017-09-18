@@ -47,28 +47,81 @@ export function dateToInputValue(dt) {
     return date+time;
 }
 
-export function getUserInfo() {
-    var userInfoJSON = sessionStorage.getItem('userobject');
-    if(userInfoJSON === null) {
-        // fetch user info from API
-        return fetch('/api/user', {credentials: 'include'}).then(
-            (res) => {
-                if(!res.ok) return Promise.reject(res);
+export function apiGetRequest(endpoint) {
+    return fetch('/api'+endpoint, { credentials: 'include' }).then(jsonOnSuccess);
+}
 
-                return Promise.all([
-                    res.text(),
-                    res.json()
-                ]);
-            }
-        ).then(
-            (retns) => {
-                // save the info in session storage
-                sessionStorage.setItem('userobject', retns[0]);
-                return retns[1];
-            }
+export function apiPostRequest(endpoint, payloadObject) {
+    return fetch('/api'+endpoint, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payloadObject),
+    }).then(jsonOnSuccess);
+}
+
+export function apiPutRequest(endpoint, payloadObject) {
+    return fetch('/api'+endpoint, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payloadObject),
+    }).then(jsonOnSuccess);
+}
+
+export function apiDeleteRequest(endpoint) {
+    return fetch('/api'+endpoint, {
+        method: 'DELETE',
+        credentials: 'include'
+    }).then((res) => { if(!res.ok) return Promise.reject(res); });
+}
+
+export function getUserInfo() {
+    return apiGetRequest('/user');
+}
+
+export function getUserInfoByID(userID) {
+    return apiGetRequest('/users').then((userList) => {
+        return userList.find((userDoc) => userDoc.id === userID);
+    });
+}
+
+/* Renders a dropdown list for selecting users.
+ * Required props:
+ * props.onChange(userID) - callback for getting the selected user ID.
+ * props.initial - Initial user ID to select.
+ */
+export class UserSelectDropdown extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { users: [], selected: props.initial };
+
+        this.onSelectChanged = this.onSelectChanged.bind(this);
+        this.populateUsers = this.populateUsers.bind(this);
+
+        this.populateUsers();
+    }
+
+    populateUsers() {
+        apiGetRequest('/users').then(
+            (usersList) => { this.setState({ users: usersList }); }
         ).catch(errorHandler);
-    } else {
-        return Promise.resolve(JSON.parse(userInfoJSON));
+    }
+
+    onSelectChanged(ev) {
+        ev.preventDefault();
+        this.setState({ selected: ev.target.value });
+        this.props.onChange(ev.target.value);
+    }
+
+    render() {
+        var elems = this.state.users.map((userObject) => {
+            return (
+                <option value={userObject.id} key={userObject.id}>{userObject.username}</option>
+            );
+        });
+
+        return (<select onChange={this.onSelectChanged} value={this.state.selected}>{elems}</select>);
     }
 }
 
