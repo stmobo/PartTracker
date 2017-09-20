@@ -19,6 +19,7 @@ class UserListElement extends React.Component {
             created: new Date(props.model.created),
             admin: props.model.admin,
             disabled: props.model.disabled,
+            activityCreator: props.model.activityCreator,
             editing: false,
 
             newPassword: '',
@@ -51,6 +52,7 @@ class UserListElement extends React.Component {
             created: new Date(user.created),
             updated: new Date(user.updated),
             admin: user.admin,
+            activityCreator: user.activityCreator,
             disabled: user.disabled
         });
     }
@@ -73,6 +75,7 @@ class UserListElement extends React.Component {
                 username:   this.state.username,
                 realname:   this.state.realname,
                 admin:      this.state.admin,
+                activityCreator: this.state.activityCreator,
                 disabled:   this.state.disabled
             })
         }).then(
@@ -81,7 +84,7 @@ class UserListElement extends React.Component {
     }
 
     handleEditFormChange(ev) {
-        if(ev.target.name === "admin" || ev.target.name === "disabled") {
+        if(ev.target.name === "admin" || ev.target.name === "disabled" || ev.target.name === "activityCreator") {
             this.setState({
                 [ev.target.name]: ev.target.checked
             });
@@ -178,11 +181,14 @@ class UserListElement extends React.Component {
                         <button type="submit" className="btn btn-success btn-xs">Save</button>
                         <button type="reset" className="btn btn-danger btn-xs">Cancel</button>
                     </div>
-                    <div className="col-md-5">
+                    <div className="col-md-4">
                         <input type="text" name="realname" value={this.state.realname} onChange={this.handleEditFormChange} />
                     </div>
                     <div className="col-md-1">
                         <input type="checkbox" name="admin" checked={this.state.admin} onChange={this.handleEditFormChange} />
+                    </div>
+                    <div className="col-md-1">
+                        <input type="checkbox" name="activityCreator" checked={this.state.activityCreator} onChange={this.handleEditFormChange} />
                     </div>
                     <div className="col-md-1">
                         <input type="checkbox" name="disabled" checked={this.state.disabled} onChange={this.handleEditFormChange} />
@@ -199,8 +205,9 @@ class UserListElement extends React.Component {
                         {newPWForm}
                         {editingButtons}
                     </div>
-                    <div className="col-md-5 list-realname">{this.state.realname}</div>
+                    <div className="col-md-4 list-realname">{this.state.realname}</div>
                     <div className="col-md-1 list-admin">{this.state.admin ? "Yes" : "No"}</div>
+                    <div className="col-md-1 list-activity-creator">{this.state.activityCreator ? "Yes" : "No"}</div>
                     <div className="col-md-1 list-disabled">{this.state.disabled ? "Yes" : "No"}</div>
                 </div>
             );
@@ -222,6 +229,7 @@ class CreateNewUserForm extends React.Component {
             realname: '',
             password: '',
             admin: false,
+            activityCreator: false,
             disabled: false,
             showForm: false,
         }
@@ -240,6 +248,7 @@ class CreateNewUserForm extends React.Component {
             realname: '',
             password: '',
             admin: false,
+            activityCreator: false,
             disabled: false,
             showForm: false,
         });
@@ -256,6 +265,7 @@ class CreateNewUserForm extends React.Component {
                 username:   this.state.username,
                 realname:   this.state.realname,
                 admin:      this.state.admin,
+                activityCreator: this.state.activityCreator,
                 disabled:   this.state.disabled,
                 password:   this.state.password,
                 showForm: false,
@@ -267,6 +277,7 @@ class CreateNewUserForm extends React.Component {
                     realname: '',
                     password: '',
                     admin: false,
+                    activityCreator: false,
                     disabled: false,
                     showForm: false,
                 });
@@ -277,7 +288,7 @@ class CreateNewUserForm extends React.Component {
     }
 
     handleEditFormChange(ev) {
-        if(ev.target.name === "admin" || ev.target.name === "disabled") {
+        if(ev.target.name === "admin" || ev.target.name === "disabled" || ev.target.name === "activityCreator") {
             this.setState({
                 [ev.target.name]: ev.target.checked
             });
@@ -310,6 +321,7 @@ class CreateNewUserForm extends React.Component {
                     </div>
                     <div>
                         <label>Is Admin: <input type="checkbox" name="admin" checked={this.state.admin} onChange={this.handleEditFormChange} /></label>
+                        <label>Edits Activities: <input type="checkbox" name="activityCreator" checked={this.state.activityCreator} onChange={this.handleEditFormChange} /></label>
                         <label>Is Disabled: <input type="checkbox" name="disabled" checked={this.state.disabled} onChange={this.handleEditFormChange} /></label>
                     </div>
                     <div>
@@ -383,8 +395,9 @@ class UserList extends React.Component {
             <div className="container-fluid" id="user-table">
                 <div className="user-list-header row">
                     <div className="col-md-5"><strong>User Name</strong></div>
-                    <div className="col-md-5"><strong>Real Name</strong></div>
+                    <div className="col-md-4"><strong>Real Name</strong></div>
                     <div className="col-md-1"><strong>Is Admin</strong></div>
+                    <div className="col-md-1"><strong>Edits Activities</strong></div>
                     <div className="col-md-1"><strong>Is Disabled</strong></div>
                 </div>
                 {elems}
