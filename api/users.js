@@ -116,11 +116,11 @@ router.get('/users/:uid/activities', common.asyncMiddleware(
 
 router.put('/users/:uid',
     (req, res) => {
-        if(req.body.activityCreator) req.targetUser.username(req.body.username);
+        if(req.body.username) req.targetUser.username(req.body.username);
         if(req.body.realname) req.targetUser.realname(req.body.realname);
-        if(req.body.activityCreator) req.targetUser.activityCreator(req.body.activityCreator);
-        if(req.body.admin) req.targetUser.admin(req.body.admin);
-        if(req.body.disabled) req.targetUser.disabled(req.body.disabled);
+        if(req.body.activityCreator !== undefined) req.targetUser.activityCreator(req.body.activityCreator);
+        if(req.body.admin !== undefined) req.targetUser.admin(req.body.admin);
+        if(req.body.disabled !== undefined) req.targetUser.disabled(req.body.disabled);
 
         req.targetUser.save().then(
             () => { return req.targetUser.summary(); }
