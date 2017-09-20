@@ -16,6 +16,24 @@ router.use(bodyParser.text({
     type: 'text/csv'
 }));
 
+function sendItemSummaries(res, out_type, summaries) {
+    if(out_type === 'json') {
+        res.status(200).json(summaries);
+    } else if(out_type === 'text/csv') {
+        csv.stringify(
+            summaries,
+            {
+                columns: ['id', 'name', 'count', 'reserved', 'available', 'created', 'updated'],
+                header: true,
+                formatters: {
+                    date: (d) => d.toISOString()
+                },
+            },
+            (err, data) => { res.status(200).type('text/csv').send(data); }
+        );
+    }
+}
+
 /* Method handlers: */
 router.get('/inventory', common.asyncMiddleware(
     async (req, res) => {
@@ -31,21 +49,7 @@ router.get('/inventory', common.asyncMiddleware(
             }
         ));
 
-        if(out_type === 'json') {
-            res.status(200).json(summaries);
-        } else if(out_type === 'text/csv') {
-            csv.stringify(
-                summaries,
-                {
-                    columns: ['id', 'name', 'count', 'reserved', 'available', 'created', 'updated'],
-                    header: true,
-                    formatters: {
-                        date: (d) => d.toISOString()
-                    },
-                },
-                (err, data) => { res.status(200).send(data); }
-            );
-        }
+        sendItemSummaries(res, out_type, summaries);
     }
 ));
 
@@ -57,7 +61,7 @@ router.put('/inventory', common.asyncMiddleware(
             throw new common.APIClientError(415, "Request payload must either be in CSV or JSON format.");
 
         if(in_type === 'text/csv') {
-            var data = await new Promise((resolve, reject) => {
+            var dataPromise = new Promise((resolve, reject) => {
                 csv.parse(
                     req.body,
                     { columns: true, auto_parse: true },
@@ -67,6 +71,8 @@ router.put('/inventory', common.asyncMiddleware(
                     }
                 );
             });
+
+            var data = await dataPromise;
         } else {
             var data = req.body;
         }
@@ -81,15 +87,19 @@ router.put('/inventory', common.asyncMiddleware(
         ));
 
         /* Create and save new items. */
-        await Promise.all(data.map(async (userDoc) => {
+        var summaries = await Promise.all(data.map(async (userDoc) => {
             var userItem = new Item();
             await Promise.all([
                 await userItem.name(userDoc.name),
                 await userItem.count(userDoc.count)
             ]);
 
-            return userItem.save();
+            await userItem.save();
+
+            return userItem.summary();
         }));
+
+        sendItemSummaries(res, in_type, summaries);
     }
 ));
 
