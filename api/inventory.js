@@ -10,24 +10,82 @@ var Reservation = require('api/models/Reservation.js');
 
 var router = express.Router();
 router.use(bodyParser.json());
+router.use(bodyParser.text({
+    type: 'text/csv'
+}));
 
 /* Method handlers: */
+router.get('/inventory', asyncMiddleware(
+    async (req, res) => {
+        var out_type = req.accepts(['json', 'text/csv']);
+        if(!out_type)
+            throw new common.APIClientError(406, "Request must Accept either CSV or JSON format data.");
 
-/* Return a listing of all inventory items. */
-router.get('/inventory', function(req, res) {
-    dbAPI.inventory.find({}, {}).then(
-        (docs) => {
-            promises = docs.map(
-                (doc) => {
-                    item = new Item(doc._id);
-                    return item.summary();
-                }
+        var docs = await dbAPI.inventory.find({}, {});
+        var summaries = await Promise.all(docs.map(
+            (doc) => {
+                var item = new Item(doc._id);
+                return item.summary();
+            }
+        ));
+
+        if(out_type === 'json') {
+            res.status(200).json(summaries);
+        } else if(out_type === 'text/csv') {
+            csv.stringify(
+                summaries,
+                {
+                    columns: ['id', 'name', 'count', 'reserved', 'available', 'created', 'updated']
+                },
+                (err, data) => { res.status(200).send(data); }
             );
-
-            return Promise.all(promises);
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
-});
+    }
+));
+
+/* Completely replaces the inventory collection. */
+router.put('/inventory', asyncMiddleware(
+    async (req, res) => {
+        var in_type = req.is(['json', 'text/csv']);
+        if(!in_type)
+            throw new common.APIClientError(415, "Request payload must either be in CSV or JSON format.");
+
+        if(in_type === 'text/csv') {
+            var data = await new Promise((resolve, reject) => {
+                csv.parse(
+                    req.body,
+                    { columns: true, auto_parse: true },
+                    (err, parsedData) => {
+                        if(err) return reject(err);
+                        return resolve(parsedData);
+                    }
+                );
+            });
+        } else {
+            var data = req.body;
+        }
+
+        /* Delete all old items. */
+        var oldDocs = await dbAPI.inventory.find({}, {});
+        await Promise.all(oldDocs.map(
+            (doc) => {
+                var item = new Item(doc._id);
+                return item.delete();
+            }
+        ));
+
+        /* Create and save new items. */
+        await Promise.all(data.map(async (userDoc) => {
+            var userItem = new Item();
+            await Promise.all([
+                await userItem.name(userDoc.name),
+                await userItem.count(userDoc.count)
+            ]);
+
+            return userItem.save();
+        }));
+    }
+));
 
 /*
  Add a new inventory item.
