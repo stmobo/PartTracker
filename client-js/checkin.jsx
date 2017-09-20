@@ -4,9 +4,49 @@ import {errorHandler, jsonOnSuccess, renderUpdateTime, getCurrentUserInfo, getUs
 /* Renders a list of checked-in users for an Activity.
  * Required props:
  * props.activity - Activity ID to render for.
+ * props.onRefresh() - callback for refreshing main Activity display component.
  */
-class UserHoursList extends React.Component {
+export default class UserHoursList extends React.Component {
+    constructor(props) {
+        super(props);
 
+        this.state = {
+            checkInList: []
+        };
+
+        this.fetchCheckInData = this.fetchCheckInData.bind(this);
+        this.handleDelete = this.handleDelete.bind(this);
+
+        this.fetchCheckInData();
+    }
+
+    fetchCheckInData() {
+        return apiGetRequest('/activities/'+this.props.activity+'/users').then(
+            (ciList) => {
+                this.setState({ checkInList: ciList });
+            }
+        ).catch(errorHandler);
+    }
+
+    handleDelete() {
+        this.fetchCheckInData().then(this.props.onRefresh);
+    }
+
+    render() {
+        var elems = this.state.checkInList.map(
+            (ci) => {
+                return (
+                    <UserCheckIn activity={this.props.activity} model={ci} onDelete={this.handleDelete} />
+                );
+            }
+        );
+
+        return (
+            <ul className="activity-userhours-list col-md-12">
+                {elems}
+            </ul>
+        );
+    }
 }
 
 /* Handles tracking / editing everything about a user's checkin info.

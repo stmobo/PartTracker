@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import UserHoursList from './checkin.jsx';
 import {errorHandler, jsonOnSuccess, renderUpdateTime, getUserInfo, dateToInputValue} from './common.jsx';
 
 class ActivityList extends React.Component {
@@ -187,6 +188,7 @@ class ActivityEntryInfo extends React.Component {
                     <div><small>Created: {this.created.toLocaleString()}</small></div>
                     <div><small>Updated: {this.updated.toLocaleString()}</small></div>
                 </div>
+                <UserHoursList activity={this.props.model.id} onRefresh={this.refreshActivityData} />
             </div>
         );
 
