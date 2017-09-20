@@ -11,7 +11,6 @@ winston.add(winston.transports.File, { filename: args.log_file || '/var/log/part
 if(!args.no_syslog) {
     require('winston-syslog').Syslog;
     winston.add(winston.transports.Syslog);
-    winston.handleExceptions([winston.transports.Console, winston.transports.Syslog]);
 }
 
 //winston.remove(winston.transports.Console);
