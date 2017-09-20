@@ -215,6 +215,12 @@ router.put('/activities/:aid/users/:uid', common.asyncMiddleware(
     async (req, res) => {
         if(!await req.user.activityCreator()) return Promise.reject("User is not allowed to modify Activities.");
 
+        if(req.body.user) {
+            var user = new User(monk.id(req.body.user));
+            if(!await user.exists()) return Promise.reject("User "+req.body.user+" does not exist.");
+        }
+
+        if(req.body.user) req.userHours[req.targetIndex].user = req.body.user;
         if(req.body.hours) req.userHours[req.targetIndex].hours = req.body.hours;
         if(req.body.checkIn) req.userHours[req.targetIndex].checkIn = new Date(req.body.checkIn);
 
