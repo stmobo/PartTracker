@@ -36,7 +36,7 @@ export default class UserHoursList extends React.Component {
         var elems = this.state.checkInList.map(
             (ci) => {
                 return (
-                    <UserCheckIn activity={this.props.activity} model={ci} onDelete={this.handleDelete} />
+                    <UserCheckIn activity={this.props.activity} key={ci.user} model={ci} onDelete={this.handleDelete} />
                 );
             }
         );
@@ -98,7 +98,8 @@ class UserCheckIn extends React.Component {
                 this.setState({
                     hours: parseFloat(newModel.hours, 10),
                     checkInDate: new Date(newModel.checkIn),
-                    userID: newModel.user
+                    userID: newModel.user,
+                    editing: false
                 });
             }
         ).then(this.refreshUserInfo).catch(errorHandler);
@@ -111,7 +112,7 @@ class UserCheckIn extends React.Component {
 
     render() {
         if(this.state.editing) {
-            return (<UserCheckInEditing onSubmit={this.handleSubmit} onCancel={this.handleEndEdit} date={this.state.checkInDate} user={this.state.user} hours={this.state.hours} />)
+            return (<UserCheckInEditing onSubmit={this.handleSubmit} onCancel={this.handleEndEdit} date={this.state.checkInDate} user={this.state.userID} hours={this.state.hours} />)
         } else {
             return (<UserCheckInInfo onEdit={this.handleBeginEdit} onDelete={this.handleDelete} date={this.state.checkInDate} user={this.state.user} hours={this.state.hours} canEdit={this.state.canEdit} />);
         }
@@ -198,11 +199,11 @@ class UserCheckInEditing extends React.Component {
     }
 
     handleFormReset(ev) {
-        this.state = {
+        this.setState({
             user: props.user,
             date: dateToInputValue(props.date),
             hours: props.hours
-        };
+        });
     }
 
     handleFormCancel(ev) {

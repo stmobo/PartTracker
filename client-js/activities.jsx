@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import UserHoursList from './checkin.jsx';
-import {errorHandler, jsonOnSuccess, renderUpdateTime, getUserInfo, dateToInputValue} from './common.jsx';
+import {errorHandler, jsonOnSuccess, renderUpdateTime, getUserInfo, dateToInputValue, apiGetRequest} from './common.jsx';
 
 class ActivityList extends React.Component {
     constructor(props) {
@@ -64,14 +64,32 @@ class ActivityEntry extends React.Component {
 
         this.state = {
             model: props.model,
+            editable: false,
+            canCheckIn: false,
             editing: false
         };
 
         this.refreshActivityData = this.refreshActivityData.bind(this);
+        this.refreshUserInfo = this.refreshUserInfo.bind(this);
         this.updateActivity = this.updateActivity.bind(this);
         this.deleteActivity = this.deleteActivity.bind(this);
         this.cancelEditing = this.cancelEditing.bind(this);
         this.startEditing = this.startEditing.bind(this);
+        this.checkIn = this.checkIn.bind(this);
+
+        this.refreshUserInfo();
+    }
+
+    async refreshUserInfo() {
+        var userInfo = await getUserInfo();
+        var canCheckIn = this.state.model.userHours.findIndex(
+            (elem) => (elem.user === userInfo.id)
+        ) === -1;
+
+        this.setState({
+            editable: userInfo.activityCreator,
+            canCheckIn: canCheckIn
+        });
     }
 
     async refreshActivityData() {
@@ -81,6 +99,7 @@ class ActivityEntry extends React.Component {
             ).then(jsonOnSuccess);
 
             this.setState({ model: activity });
+            await this.refreshUserInfo();
         } catch(err) {
             errorHandler(err);
         }
@@ -112,6 +131,15 @@ class ActivityEntry extends React.Component {
         }
     }
 
+    async checkIn() {
+        try {
+            await apiGetRequest('/activities/'+this.props.model.id+'/checkin');
+            await this.refreshActivityData();
+        } catch(err) {
+            errorHandler(err);
+        }
+    }
+
     cancelEditing() {
         this.setState({ editing: false });
     }
@@ -124,7 +152,7 @@ class ActivityEntry extends React.Component {
         if(this.state.editing) {
             return (<ActivityEditingForm model={this.state.model} onSubmit={this.updateActivity} onCancel={this.cancelEditing} />);
         } else {
-            return (<ActivityEntryInfo model={this.state.model} onEdit={this.startEditing} onDelete={this.deleteActivity} />);
+            return (<ActivityEntryInfo editable={this.state.editable} canCheckIn={this.state.canCheckIn} model={this.state.model} onRefresh={this.refreshActivityData} onEdit={this.startEditing} onDelete={this.deleteActivity} onCheckIn={this.checkIn} />);
         }
     }
 }
@@ -132,31 +160,28 @@ class ActivityEntry extends React.Component {
 /* Renders the list entry (header and description box) for a single Activity in an ActivityCollection.
  * Requires:
  * props.model - Activity object data to render
+ * props.editable - set to true if the user can edit Activities.
+ * props.canCheckIn - set to true if the user can check into this activity.
  * props.onDelete() - callback for deleting the object.
  * props.onEdit() - callback for starting editing.
+ * props.onCheckIn() - callback for checking the current user in and refreshing.
+ * props.onRefresh() - callback for refreshing activity info.
  */
 class ActivityEntryInfo extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = { expanded: false, editable: false };
+        this.state = { expanded: false };
 
         this.toggleExpanded = this.toggleExpanded.bind(this);
         this.handleEdit = this.handleEdit.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
-        this.checkEditability = this.checkEditability.bind(this);
+        this.handleCheckin = this.handleCheckin.bind(this);
 
         this.startTime = new Date(this.props.model.startTime);
         this.endTime = new Date(this.props.model.endTime);
         this.created = new Date(this.props.model.created);
         this.updated = new Date(this.props.model.updated);
-
-        this.checkEditability();
-    }
-
-    async checkEditability() {
-        var userInfo = await getUserInfo();
-        this.setState({ editable: userInfo.activityCreator });
     }
 
     toggleExpanded(ev) {
@@ -176,19 +201,26 @@ class ActivityEntryInfo extends React.Component {
         this.props.onDelete();
     }
 
+    handleCheckin(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        this.props.onCheckIn();
+    }
+
     render() {
         var descBox = (
             <div className="activity-entry row">
                 <div className="activity-entry-data col-md-12">
                     <div>{this.props.model.description}</div>
                     <div>
-                        {this.state.editable && <button onClick={this.handleDelete} className="btn btn-danger btn-xs">Delete</button>}
-                        {this.state.editable && <button onClick={this.handleEdit} className="btn btn-default btn-xs">Edit</button>}
+                        {this.props.editable && <button onClick={this.handleDelete} className="btn btn-danger btn-xs">Delete</button>}
+                        {this.props.editable && <button onClick={this.handleEdit} className="btn btn-default btn-xs">Edit</button>}
+                        {this.props.canCheckIn && <button onClick={this.handleCheckin} className="btn btn-default btn-xs">Check In</button>}
                     </div>
                     <div><small>Created: {this.created.toLocaleString()}</small></div>
                     <div><small>Updated: {this.updated.toLocaleString()}</small></div>
                 </div>
-                <UserHoursList activity={this.props.model.id} onRefresh={this.refreshActivityData} />
+                <UserHoursList activity={this.props.model.id} onRefresh={this.props.onRefresh} />
             </div>
         );
 
