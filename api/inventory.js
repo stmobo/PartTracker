@@ -1,5 +1,6 @@
 var express = require('express');
 var monk = require('monk');
+var csv = require('csv');
 var bodyParser = require('body-parser');
 
 var dbAPI = require('api/db.js');
@@ -8,6 +9,7 @@ var common = require('api/routing_common.js');
 var Item = require('api/models/Item.js');
 var Reservation = require('api/models/Reservation.js');
 
+
 var router = express.Router();
 router.use(bodyParser.json());
 router.use(bodyParser.text({
@@ -15,7 +17,7 @@ router.use(bodyParser.text({
 }));
 
 /* Method handlers: */
-router.get('/inventory', asyncMiddleware(
+router.get('/inventory', common.asyncMiddleware(
     async (req, res) => {
         var out_type = req.accepts(['json', 'text/csv']);
         if(!out_type)
@@ -35,7 +37,11 @@ router.get('/inventory', asyncMiddleware(
             csv.stringify(
                 summaries,
                 {
-                    columns: ['id', 'name', 'count', 'reserved', 'available', 'created', 'updated']
+                    columns: ['id', 'name', 'count', 'reserved', 'available', 'created', 'updated'],
+                    header: true,
+                    formatters: {
+                        date: (d) => d.toISOString()
+                    },
                 },
                 (err, data) => { res.status(200).send(data); }
             );
@@ -44,7 +50,7 @@ router.get('/inventory', asyncMiddleware(
 ));
 
 /* Completely replaces the inventory collection. */
-router.put('/inventory', asyncMiddleware(
+router.put('/inventory', common.asyncMiddleware(
     async (req, res) => {
         var in_type = req.is(['json', 'text/csv']);
         if(!in_type)
