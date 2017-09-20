@@ -7,7 +7,24 @@ var Reservation = require('api/models/Reservation.js');
 
 var winston = require('winston');
 
+var APIClientError = function(errorCode, message) {
+    Error.call(this, message);
+    this.resCode = errorCode;
+};
+
+APIClientError.prototype = Object.create(Error.prototype);
+APIClientError.prototype.constructor = APIClientError;
+
 module.exports = {
+    APIClientError: APIClientError,
+
+    asyncMiddleware: function(fn) {
+      return function(req, res, next) {
+        Promise.resolve(fn(req, res, next))
+          .catch(module.exports.apiErrorHandler(req, res));
+      };
+    },
+
     /* Tests for the existence of given keys in req.body.
      * Returns a rejection promise if a key is not found,
      *  otherwise returns a fulfilled promise.
@@ -24,7 +41,11 @@ module.exports = {
     /* Catch handler for API handler functions using promises. */
     apiErrorHandler: function (req, res) {
         return (function (req, res, err) {
-            if(err instanceof Error) {
+            if(err instanceof module.exports.APIClientError) {
+                res.status(err.resCode);
+                res.send(err.toString());
+                winston.log('error', "Error "+err.resCode.toString()+" on "+req.method+" request to "+req.originalUrl+" from "+req.socket.remoteAddress+":\n"+err.toString());
+            } else if(err instanceof Error) {
                 res.status(500);
                 res.send(err.stack);
                 winston.log('error', "Error on "+req.method+" request to "+req.originalUrl+" from "+req.socket.remoteAddress+":\n"+err.stack);
