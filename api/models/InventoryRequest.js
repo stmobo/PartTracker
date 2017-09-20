@@ -25,7 +25,7 @@ InventoryRequest.prototype.item = async function(v) {
 InventoryRequest.prototype.requester = async function(v) {
     if(v === undefined) return this.prop('requester');
     var targetUser = new User(monk.id(v));
-    
+
     if(await targetUser.exists()) {
         return this.prop('requester', monk.id(v));
     } else {
@@ -47,7 +47,7 @@ InventoryRequest.prototype.count = function(v) {
 
 InventoryRequest.prototype.status = async function(v) {
     if(v === undefined) return this.prop('status');
-    
+
     if(v === 'waiting' || v === 'in_progress' || v === 'delayed' || v === 'fulfilled') {
         return this.prop('status', v);
     } else {
@@ -57,7 +57,7 @@ InventoryRequest.prototype.status = async function(v) {
 
 InventoryRequest.prototype.eta = async function(v) {
     if(v === undefined) return this.prop('eta');
-    
+
     var targetDate = new Date(v);
     if(!isNaN(targetDate.getTime())) {
         return this.prop('eta', targetDate);
@@ -68,19 +68,26 @@ InventoryRequest.prototype.eta = async function(v) {
 
 InventoryRequest.prototype.summary = async function () {
     await this.fetch();
-    
-    var requestedItem = new Item(await this.item());
-    var requester = new User(await this.user());
-    
+
+    const [item, requester, count, status, eta, updated, created] = await Promise.all([
+        this.item(),
+        this.requester(),
+        this.count(),
+        this.status(),
+        this.eta(),
+        this.updated(),
+        this.created()
+    ]);
+
     return {
         id: this.id(),
-        item: await requestedItem.summary(),
-        requester: await requester.summary(),
-        count: await this.count(),
-        status: await this.status(),
-        eta: await this.eta(),
-        updated: await this.updated(),
-        created: await this.created()
+        item: item,
+        requester: requester,
+        count: count,
+        status: status,
+        eta: eta,
+        updated: updated,
+        created: created
     };
 };
 
