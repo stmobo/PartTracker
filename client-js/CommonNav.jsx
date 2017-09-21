@@ -58,6 +58,7 @@ class MainNavBar extends React.Component {
                 <div className="collapse navbar-collapse" id="main-navbar">
                     <ul className="nav navbar-nav">
                         <li><a href="/inventory.html">Inventory</a></li>
+                        <li><a href="/requests.html">Requests</a></li>
                         <li><a href="/users.html">Users</a></li>
                     </ul>
                     <ul className="nav navbar-nav navbar-right">
