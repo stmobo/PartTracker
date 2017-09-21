@@ -7,13 +7,23 @@ class ActivityList extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = { activities: [] };
+        this.state = { activities: [], editingNewActivity: false, canCreateActivities: false };
 
         this.fetchActivityCollection = this.fetchActivityCollection.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
+        this.handleCreate = this.handleCreate.bind(this);
+        this.startNewActivity = this.startNewActivity.bind(this);
+        this.cancelNewActivity = this.cancelNewActivity.bind(this);
 
         this.fetchActivityCollection();
+
+        getUserInfo().then(
+            (userInfo) => { this.setState({ canCreateActivities: userInfo.activityCreator }); }
+        ).catch(errorHandler);
     }
+
+    startNewActivity() { this.setState({ editingNewActivity: true }); }
+    cancelNewActivity() { this.setState({ editingNewActivity: false }); }
 
     async fetchActivityCollection() {
         try {
@@ -32,10 +42,43 @@ class ActivityList extends React.Component {
         this.setState({ activities: actList });
     }
 
+    async handleCreate(newModel) {
+        try {
+            var res = await fetch(
+                '/api/activities',
+                {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {'Content-Type': "application/json"},
+                    body: JSON.stringify(newModel)
+                }
+            );
+
+            if(!res.ok) throw res;
+            return this.fetchActivityCollection();
+        } catch(err) {
+            errorHandler(err);
+        }
+    }
+
     render() {
         var elems = this.state.activities.map(
             (activity) => { return <ActivityEntry model={activity} key={activity.id} deleteItem={this.handleDelete} />; }
         );
+
+        if(this.state.canCreateActivities) {
+            if(this.state.editingNewActivity) {
+                var newActivityForm = (<ActivityEditingForm onSubmit={this.handleCreate} onCancel={this.cancelNewActivity} />);
+            } else {
+                var newActivityForm = (
+                    <div className="activity-entry list-header row">
+                        <div className="activity-entry-data col-md-5">
+                            <button className="btn btn-primary btn-default list-create-new-button" onClick={this.startNewActivity}>Submit New Activity</button>
+                        </div>
+                    </div>
+                );
+            }
+        }
 
         return (
             <div className="container-fluid">
@@ -47,6 +90,7 @@ class ActivityList extends React.Component {
                     <strong className="activity-entry-data col-md-2">End Time</strong>
                 </div>
                 {elems}
+                {newActivityForm}
             </div>
         );
     }
@@ -262,7 +306,18 @@ class ActivityEditingForm extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = this.copyModel(props.model);
+        if(!props.model) {
+            this.state = {
+                'title': 'Title',
+                'description': 'Description',
+                'startTime': dateToInputValue(new Date()),
+                'endTime': dateToInputValue(new Date()),
+                'maxHours': 0,
+                'userHours': []
+            }
+        } else {
+            this.state = this.copyModel(props.model);
+        }
 
         this.handleFormChange = this.handleFormChange.bind(this);
         this.handleFormSubmit = this.handleFormSubmit.bind(this);

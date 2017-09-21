@@ -15,3 +15,7 @@ body {
 .list-row {
     border-top-style: inset;
 }
+
+.list-create-new-button {
+    margin-top: 5px;
+}
