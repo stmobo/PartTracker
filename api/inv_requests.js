@@ -61,20 +61,22 @@ router.get('/requests/:qid', common.asyncMiddleware(
 
 router.put('/requests/:qid', common.asyncMiddleware(
     async (req, res) => {
-        if(req.body.item === undefined) await req.invRQ.item(req.body.item);
-        if(req.body.requester === undefined) await req.invRQ.requester(req.body.requester);
-        if(req.body.count === undefined) await req.invRQ.count(req.body.count);
-        if(req.body.status === undefined) await req.invRQ.status(req.body.status);
-        if(req.body.eta === undefined) await req.invRQ.eta(req.body.eta);
+        if(req.body.item !== undefined) await req.invRQ.item(req.body.item);
+        if(req.body.requester !== undefined) await req.invRQ.requester(req.body.requester);
+        if(req.body.count !== undefined) await req.invRQ.count(req.body.count);
+        if(req.body.status !== undefined) await req.invRQ.status(req.body.status);
+        if(req.body.eta !== undefined) await req.invRQ.eta(req.body.eta);
 
         await req.invRQ.save();
-        req.status(200).json(await req.invRQ.summary());
+        res.status(200).json(await req.invRQ.summary());
     }
 ));
 
 router.delete('/requests/:qid', common.asyncMiddleware(
     async (req, res) => {
         await req.invRQ.delete();
-        req.status(204).end();
+        res.status(204).end();
     }
 ));
+
+module.exports = router;
