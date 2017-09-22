@@ -19,7 +19,7 @@ start-service() {
 }
 
 stop-service() {
-    kill -9 `cat ${PIDFILE}`
+    kill `cat ${PIDFILE}`
     rm ${PIDFILE}
 }
 
@@ -31,12 +31,13 @@ case "$1" in
         stop-service
         ;;
     restart)
-        start-service
         stop-service
+        start-service
         ;;
     force-reload)
-        start-service
         stop-service
+        sleep 1
+        start-service
         ;;
     status)
         if [[ -f "${PIDFILE}" ]]; then
