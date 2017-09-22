@@ -7,10 +7,15 @@ body {
     padding-right: 20px;
 }
 
-.list-button {
+.list-button .list-create-new-button {
     margin-left: 5px;
 }
 
-.list-create-new-button {
-    margin-top: 5px;
+.list-row, .list-header {
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+
+.list-row {
+    border-top-style: inset;
 }

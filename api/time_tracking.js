@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var dbAPI = require('api/db.js');
 var common = require('api/routing_common.js');
 
+var User = require('api/models/User.js');
 var Activity = require('api/models/Activity.js');
 
 var router = express.Router();
@@ -47,9 +48,13 @@ router.post('/activities', common.asyncMiddleware(
         var newActivity = new Activity();
         newActivity.title(req.body.title);
         newActivity.description(req.body.description);
-        newActivity.startTime(new Date(req.body.startTime));
-        newActivity.endTime(new Date(req.body.endTime));
-        newActivity.maxHours(req.body.maxHours);
+
+        await newActivity.userHours([]); // must be set before maxHours to prevent a bug
+        await Promise.all([
+            newActivity.startTime(new Date(req.body.startTime)),
+            newActivity.endTime(new Date(req.body.endTime)),
+            newActivity.maxHours(req.body.maxHours),
+        ]);
 
         await newActivity.save();
         res.status(201).json(await newActivity.summary());
@@ -85,10 +90,10 @@ router.put('/activities/:aid', common.asyncMiddleware(
 
         if(req.body.title) req.activity.title(req.body.title);
         if(req.body.description) req.activity.description(req.body.description);
-        if(req.body.maxHours) req.activity.maxHours(req.body.maxHours);
-        if(req.body.userHours) req.activity.userHours(req.body.userHours);
-        if(req.body.startTime) req.activity.startTime(new Date(req.body.startTime));
-        if(req.body.endTime) req.activity.endTime(new Date(req.body.endTime));
+        if(req.body.maxHours) await req.activity.maxHours(req.body.maxHours);
+        if(req.body.userHours) await req.activity.userHours(req.body.userHours);
+        if(req.body.startTime) await req.activity.startTime(new Date(req.body.startTime));
+        if(req.body.endTime) await req.activity.endTime(new Date(req.body.endTime));
 
         await req.activity.save();
         res.status(200).json(await req.activity.summary());
@@ -115,13 +120,14 @@ router.delete('/activities/:aid', common.asyncMiddleware(
 router.get('/activities/:aid/checkin', common.asyncMiddleware(
     async (req, res) => {
         var userHours = await req.activity.userHours();
-        var idx = userHours.findIndex(doc => monk.id(doc.user) === req.user.id());
+        var idx = userHours.findIndex(doc => monk.id(doc.user) === monk.id(req.user.id()));
 
         if(idx !== -1) return Promise.reject("User "+req.user.id()+" has already checked into this Activity.");
 
+        var maxHours = await req.activity.maxHours();
         var checkinObject = {
             user: req.user.id(),
-            maxHours: await req.activity.maxHours(),
+            hours: maxHours,
             checkIn: new Date(),
         };
         userHours.push(checkinObject);
@@ -187,11 +193,10 @@ router.delete('/activities/:aid/users', common.asyncMiddleware(
 /* Begin collection element-specific stuff */
 router.use('/activities/:aid/users/:uid', common.asyncMiddleware(
     async (req, res, next) => {
-        var uid = monk.id(req.params.uid);
-        var user = new User(uid);
+        var user = new User(monk.id(req.params.uid));
         if(!await user.exists()) return Promise.reject("User "+req.params.uid+" does not exist.");
 
-        var targetIndex = req.userHours.findIndex(doc => monk.id(doc.user) === uid);
+        var targetIndex = req.userHours.findIndex(doc => monk.id(doc.user).toString() === monk.id(req.params.uid).toString() );
         if(targetIndex === -1) return Promise.reject("No hours entry found for user "+req.params.uid+".");
 
         req.targetUser = user;
@@ -231,3 +236,5 @@ router.delete('/activities/:aid/users/:uid', common.asyncMiddleware(
         res.status(204).end();
     }
 ));
+
+module.exports = router;

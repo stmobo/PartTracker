@@ -66,6 +66,26 @@ User.prototype.setPassword = function (v) {
     );
 };
 
+/* Gets information on the activities the user has done.
+ * Returns an array of objects with the following form:
+    {
+        activity: [Activity Object ID],
+        checkIn: [Timestamp for check-in],
+        hours: [number of hours User spent doing activity]
+    }
+ */
+User.prototype.getActivityHours = async function() {
+    var userActivities = await dbAPI.activities.find( { 'userHours.user': this.id() } );
+    return userActivities.map((activity) => {
+        var entry = activity.userHours.find(e => e.user.toString() === this.id().toString());
+        return {
+            'activity': activity._id,
+            'checkIn': entry.checkIn,
+            'hours': entry.hours
+        };
+    });
+}
+
 User.prototype.summary = function () {
     return this.fetch().then(
         () => {
