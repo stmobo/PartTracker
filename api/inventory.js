@@ -29,15 +29,23 @@ function sendItemSummaries(res, out_type, summaries) {
                     date: (d) => d.toISOString()
                 },
             },
-            (err, data) => { res.status(200).type('text/csv').send(data); }
+            (err, data) => {
+                res.set('Content-Disposition', 'attachment; filename="inventory.csv"');
+                res.status(200).type('text/csv').send(data);
+            }
         );
     }
 }
 
 /* Method handlers: */
-router.get('/inventory', common.asyncMiddleware(
+router.get('/inventory(.csv)?', common.asyncMiddleware(
     async (req, res) => {
-        var out_type = req.accepts(['json', 'text/csv']);
+        if(req.path === '/inventory.csv') {
+            var out_type = req.accepts('text/csv');
+        } else {
+            var out_type = req.accepts(['json', 'text/csv']);
+        }
+
         if(!out_type)
             throw new common.APIClientError(406, "Request must Accept either CSV or JSON format data.");
 
