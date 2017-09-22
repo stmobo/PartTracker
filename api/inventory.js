@@ -64,6 +64,8 @@ router.get('/inventory(.csv)?', common.asyncMiddleware(
 /* Completely replaces the inventory collection. */
 router.put('/inventory', common.asyncMiddleware(
     async (req, res) => {
+        if(!(await req.user.admin())) throw new common.APIClientError(403, "Only administrators are allowed to import inventory data.");
+
         var in_type = req.is(['json', 'text/csv']);
         if(!in_type)
             throw new common.APIClientError(415, "Request payload must either be in CSV or JSON format.");
