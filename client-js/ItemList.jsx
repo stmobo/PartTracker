@@ -254,6 +254,9 @@ export default class ItemList extends React.Component {
         };
 
         this.retrItemList = this.retrItemList.bind(this);
+        this.handleInventoryImport = this.handleInventoryImport.bind(this);
+        this.handleImportClick = this.handleImportClick.bind(this);
+        this.handleExport = this.handleExport.bind(this);
 
         this.retrItemList();
     }
@@ -267,12 +270,49 @@ export default class ItemList extends React.Component {
         ).catch(errorHandler);
     }
 
+    handleInventoryImport(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        var selectedFile = this.fileInput.files[0];
+
+        fetch('/api/inventory', {
+            method: 'PUT',
+            credentials: 'include',
+            headers: { 'Content-Type': 'text/csv', 'Accept': 'text/csv' },
+            body: selectedFile
+        }).then(
+            (res) => {
+                if(!res.ok) return Promise.reject(res);
+                return this.retrItemList();
+            }
+        ).catch(errorHandler);
+    }
+
+    handleImportClick(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        this.fileInput.click();
+    }
+
+    handleExport(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        window.location = '/api/inventory.csv';
+    }
+
     render() {
         var elems = this.state.items.map(
             (itemObject) => {
                 return <ItemListElement model={itemObject} key={itemObject.id} onItemDeleted={this.retrItemList} />
             }
         )
+
+        const fileInputStyle = {
+            display: 'none'
+        };
 
         return (
             <div className="container-fluid" id="inv-table">
@@ -286,6 +326,11 @@ export default class ItemList extends React.Component {
                 {elems}
                 <div className="inv-list-item row">
                     <div className="col-md-12">
+                        <div>
+                            <button className="btn btn-default btn-sm list-create-new-button" onClick={this.handleImportClick}>Import from CSV</button>
+                            <button className="btn btn-default btn-sm list-create-new-button" onClick={this.handleExport}>Export to CSV</button>
+                            <input type="file" name="import-filename" accept=".csv" ref={(input) => { this.fileInput = input; }} style={fileInputStyle} onChange={this.handleInventoryImport} />
+                        </div>
                         <NewItemForm onNewItem={this.retrItemList} />
                     </div>
                 </div>
