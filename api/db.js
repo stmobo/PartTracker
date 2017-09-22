@@ -5,6 +5,7 @@ const users = conn.get('users');
 const inventory = conn.get('inventory');
 const reservations = conn.get('reservations');
 const activities = conn.get('activities');
+const requests = conn.get('requests');
 const assemblies = conn.get('assemblies');
 const assembly_links = conn.get('assembly_links');
 
@@ -126,6 +127,7 @@ module.exports = {
     inventory: inventory,
     reservations: reservations,
     activities: activities,
+    requests: requests,
     assemblies: assemblies,
     assembly_links: assembly_links,
     DatabaseItem: DatabaseItem

@@ -33,6 +33,7 @@ function react_browserify(infile, outfile, outdir, debug) {
 gulp.task('build-login', react_browserify('login', 'login', 'public/js'));
 gulp.task('build-inventory', react_browserify('inventory'));
 gulp.task('build-users', react_browserify('users'));
+gulp.task('build-requests', react_browserify('Requests', 'requests'));
 gulp.task('build-nav', react_browserify('CommonNav', 'navbar'));
 
-gulp.task('build', ['build-login', 'build-inventory', 'build-users', 'build-nav']);
+gulp.task('build', ['build-login', 'build-inventory', 'build-users', 'build-nav', 'build-requests']);

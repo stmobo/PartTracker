@@ -6,3 +6,11 @@ body {
 .navbar-right {
     padding-right: 20px;
 }
+
+.list-button {
+    margin-left: 5px;
+}
+
+.list-create-new-button {
+    margin-top: 5px;
+}
