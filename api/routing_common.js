@@ -8,12 +8,13 @@ var Reservation = require('api/models/Reservation.js');
 var winston = require('winston');
 
 var APIClientError = function(errorCode, message) {
-    Error.call(this, message);
+    this.name = 'APIClientError';
+    this.message = message;
     this.resCode = errorCode;
+    this.stack = (new Error()).stack;
 };
 
-APIClientError.prototype = Object.create(Error.prototype);
-APIClientError.prototype.constructor = APIClientError;
+APIClientError.prototype = new Error;
 
 module.exports = {
     APIClientError: APIClientError,
@@ -43,8 +44,8 @@ module.exports = {
         return (function (req, res, err) {
             if(err instanceof module.exports.APIClientError) {
                 res.status(err.resCode);
-                res.send(err.toString());
-                winston.log('error', "Error "+err.resCode.toString()+" on "+req.method+" request to "+req.originalUrl+" from "+req.socket.remoteAddress+":\n"+err.toString());
+                res.send(err.message);
+                winston.log('error', "Error "+err.resCode.toString()+" on "+req.method+" request to "+req.originalUrl+" from "+req.socket.remoteAddress+":\n"+err.message);
             } else if(err instanceof Error) {
                 res.status(500);
                 res.send(err.stack);
