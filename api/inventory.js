@@ -120,13 +120,13 @@ router.put('/inventory', common.asyncMiddleware(
   - 'name': name of item type
   - 'count': initial inventory count
  */
-router.post('/inventory', function(req, res) {
+router.post('/inventory', function(req, res, next) {
     common.checkRequestParameters(req, 'name', 'count').then(
         () => { return dbAPI.inventory.count( { name: req.body.name } ); }
     ).then(
         (count) => {
             if(count > 0) {
-                return Promise.reject("Item already exists.");
+                return Promise.reject(new common.APIClientError(400, "Item already exists."));
             } else {
                 item = new Item();
 
@@ -136,11 +136,11 @@ router.post('/inventory', function(req, res) {
                 return item.save();
             }
         }
-    ).then(common.sendJSON(res, 201)).catch(common.apiErrorHandler(req, res));
+    ).then(common.sendJSON(res, 201)).catch(next);
 });
 
 /* Get information on one inventory item. */
-router.get('/inventory/:id', function(req, res) {
+router.get('/inventory/:id', function(req, res, next) {
     var item = new Item(monk.id(req.params.id));
 
     item.exists().then(
@@ -148,20 +148,20 @@ router.get('/inventory/:id', function(req, res) {
             if(exists) {
                 return item.summary();
             } else {
-                return Promise.reject("Item does not exist.");
+                return Promise.reject(new common.APIClientError(404, "Item does not exist."));
             }
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+    ).then(common.jsonSuccess(res)).catch(next);
 });
 
-router.delete('/inventory/:id', function(req, res) {
+router.delete('/inventory/:id', function(req, res, next) {
     item = new Item(monk.id(req.params.id));
 
-    item.delete().then(common.emptySuccess(res)).catch(common.apiErrorHandler(req, res));
+    item.delete().then(common.emptySuccess(res)).catch(next);
 });
 
 /* Update an inventory item. */
-router.put('/inventory/:id', function(req, res) {
+router.put('/inventory/:id', function(req, res, next) {
     var item = new Item(monk.id(req.params.id));
 
     common.checkRequestParameters(req, 'name', 'count').then(
@@ -169,18 +169,18 @@ router.put('/inventory/:id', function(req, res) {
     ).then(
         (rsvp_count) => {
             if(rsvp_count > req.body.count)
-                return Promise.reject("Cannot satisfy reservations with lowered inventory count.");
+                return Promise.reject(new common.APIClientError(400, "Cannot satisfy reservations with lowered inventory count."));
 
             item.name(req.body.name);
             item.count(parseInt(req.body.count));
 
             return item.save();
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+    ).then(common.jsonSuccess(res)).catch(next);
 });
 
 /* Get info on part reservations. */
-router.get('/inventory/:id/reservations', (req, res) => {
+router.get('/inventory/:id/reservations', (req, res, next) => {
     var item = new Item(monk.id(req.params.id));
 
     item.reservations().then(
@@ -193,18 +193,18 @@ router.get('/inventory/:id/reservations', (req, res) => {
                 }
             ));
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+    ).then(common.jsonSuccess(res)).catch(next);
 });
 
 /* Redirect all part-specific reservation requests to the reservation route */
-router.all('/inventory/:id/reservations/:rid*', (req, res) => {
+router.all('/inventory/:id/reservations/:rid*', (req, res, next) => {
     // find subroute:
     subroute = req.path.split('/inventory/'+req.params.id+'/reservations/'+req.params.rid);
 
     if(subroute.length > 1) {
         res.redirect(307, req.baseUrl+'/reservations/'+req.params.rid+subroute[1]);
     } else {
-        res.status(404).send("Could not split path.");
+        next(new common.APIClientError(404, "Could not split path."));
     }
 });
 router.post('/inventory/:id/reservations', (req, res) => {
