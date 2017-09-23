@@ -11,24 +11,24 @@ var router = express.Router();
 router.use(bodyParser.json());
 
 router.get('/user',
-    (req, res) => {
-        req.user.summary().then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+    (req, res, next) => {
+        req.user.summary().then(common.jsonSuccess(res)).catch(next);
     }
 );
 
 router.post('/user/password',
-    (req, res) => {
+    (req, res, next) => {
         req.user.setPassword(req.body.password).then(
             () => { return req.user.save(); }
         ).then(
             () => { req.logout(); }
-        ).then(common.emptySuccess(res)).catch(common.apiErrorHandler(req, res));
+        ).then(common.emptySuccess(res)).catch(next);
     }
 )
 
 /* Get listing of all users. This isn't restricted to administrators, though it does require authentication. */
 router.get('/users',
-    (req, res) => {
+    (req, res, next) => {
         dbAPI.users.find({}, {}).then(
             (docs) => {
                 promises = docs.map(
@@ -40,7 +40,7 @@ router.get('/users',
 
                 return Promise.all(promises);
             }
-        ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+        ).then(common.jsonSuccess(res)).catch(next);
     }
 );
 
@@ -50,7 +50,9 @@ router.use('/users',
         req.user.admin().then(
             (isAdmin) => {
                 if(isAdmin) { next(); }
-                else { res.status(401).send("This endpoint is restricted to administrators."); }
+                else {
+                    next(new common.APIClientError(401, "This endpoint is restricted to administrators."));
+                }
             }
         );
     }
@@ -66,7 +68,7 @@ router.use('/users',
  *  disabled [boolean]
  */
 router.post('/users',
-    (req, res) => {
+    (req, res, next) => {
         common.checkRequestParameters(req, 'username', 'password', 'realname', 'activityCreator', 'admin', 'disabled').then(
             () => {
                 var user = new User();
@@ -81,7 +83,7 @@ router.post('/users',
             }
         ).then(
             (user) => { return user.summary(); }
-        ).then(common.sendJSON(res, 201)).catch(common.apiErrorHandler(req, res));
+        ).then(common.sendJSON(res, 201)).catch(next);
     }
 );
 
@@ -98,13 +100,13 @@ router.use('/users/:uid',
                 req.targetUser = user;
                 next();
             }
-        ).catch(common.apiErrorHandler(req, res));
+        ).catch(next);
     }
 );
 
 router.get('/users/:uid',
-    (req, res) => {
-        req.targetUser.summary().then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+    (req, res, next) => {
+        req.targetUser.summary().then(common.jsonSuccess(res)).catch(next);
     }
 );
 
@@ -115,7 +117,7 @@ router.get('/users/:uid/activities', common.asyncMiddleware(
 ))
 
 router.put('/users/:uid',
-    (req, res) => {
+    (req, res, next) => {
         if(req.body.username) req.targetUser.username(req.body.username);
         if(req.body.realname) req.targetUser.realname(req.body.realname);
         if(req.body.activityCreator !== undefined) req.targetUser.activityCreator(req.body.activityCreator);
@@ -124,23 +126,23 @@ router.put('/users/:uid',
 
         req.targetUser.save().then(
             () => { return req.targetUser.summary(); }
-        ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+        ).then(common.jsonSuccess(res)).catch(next);
     }
 );
 
 router.delete('/users/:uid',
-    (req, res) => { req.targetUser.delete().then(common.emptySuccess(res)).catch(common.apiErrorHandler(req, res)); }
+    (req, res, next) => { req.targetUser.delete().then(common.emptySuccess(res)).catch(next); }
 );
 
 router.post('/users/:uid/password',
-    (req, res) => {
+    (req, res, next) => {
         common.checkRequestParameters(req, 'password').then(
             () => { return req.targetUser.setPassword(req.body.password); }
         ).then(
             () => { return req.targetUser.save(); }
         ).then(
             () => { return req.targetUser.summary(); }
-        ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+        ).then(common.jsonSuccess(res)).catch(next);
     }
 );
 
