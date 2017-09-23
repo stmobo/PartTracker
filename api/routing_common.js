@@ -10,7 +10,7 @@ var winston = require('winston');
 var APIClientError = function(errorCode, message) {
     this.name = 'APIClientError';
 
-    if(typeof errorCode === 'string' && isNaN(parseInt(errorCode, 10))) {
+    if(message === undefined) {
         // treat errorCode as the message and ignore the actual message parameter
         this.message = errorCode;
         this.resCode = 400; // default error code
@@ -41,7 +41,7 @@ module.exports = {
         var params = Array.prototype.slice.call(arguments, 1);
         for(let param of params) {
             if(!(param in req.body))
-                return Promise.reject("Missing parameter: \'"+param+"\'");
+                return Promise.reject(new APIClientError("Missing parameter: \'"+param+"\'"));
         }
         return Promise.resolve();
     },
