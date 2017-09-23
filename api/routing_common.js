@@ -9,8 +9,15 @@ var winston = require('winston');
 
 var APIClientError = function(errorCode, message) {
     this.name = 'APIClientError';
-    this.message = message;
-    this.resCode = errorCode;
+
+    if(typeof errorCode === 'string' && isNaN(parseInt(errorCode, 10))) {
+        // treat errorCode as the message and ignore the actual message parameter
+        this.message = errorCode;
+        this.resCode = 400; // default error code
+    } else {
+        this.message = message;
+        this.resCode = parseInt(errorCode, 10);
+    }
     this.stack = (new Error()).stack;
 };
 
@@ -22,7 +29,7 @@ module.exports = {
     asyncMiddleware: function(fn) {
       return function(req, res, next) {
         Promise.resolve(fn(req, res, next))
-          .catch(module.exports.apiErrorHandler(req, res));
+          .catch(next);
       };
     },
 
@@ -37,25 +44,6 @@ module.exports = {
                 return Promise.reject("Missing parameter: \'"+param+"\'");
         }
         return Promise.resolve();
-    },
-
-    /* Catch handler for API handler functions using promises. */
-    apiErrorHandler: function (req, res) {
-        return (function (req, res, err) {
-            if(err instanceof module.exports.APIClientError) {
-                res.status(err.resCode);
-                res.send(err.message);
-                winston.log('error', "Error "+err.resCode.toString()+" on "+req.method+" request to "+req.originalUrl+" from "+req.socket.remoteAddress+":\n"+err.message);
-            } else if(err instanceof Error) {
-                res.status(500);
-                res.send(err.stack);
-                winston.log('error', "Error on "+req.method+" request to "+req.originalUrl+" from "+req.socket.remoteAddress+":\n"+err.stack);
-            } else {
-                res.status(400);
-                res.send(err.toString());
-                winston.log('error', "Error on "+req.method+" request to "+req.originalUrl+" from "+req.socket.remoteAddress+":\n"+err.toString());
-            }
-        }).bind(this, req, res);
     },
 
     /* Sends an object as JSON along with a given response code.
