@@ -33,19 +33,20 @@ Activity.prototype.userHours = async function(v) {
     var cleanedList = v.map((doc) => {
         return {
             user: doc.user,
-            hours: doc.hours,
+            hours: parseFloat(doc.hours, 10),
             checkIn: new Date(doc.checkIn)
         }
     });
 
     for(doc of cleanedList) {
-        if(doc.hours < 0) return Promise.reject("Hours logged for "+doc.uid+" cannot be negative.");
-        if(doc.hours > await this.maxHours()) return Promise.reject("Hours entry for user "+doc.uid+" exceeds maximum allowed hours for this activity.");
-        if(doc.checkIn.getTime() < (await this.startTime()).getTime()) return Promise.reject("Check-in time for user "+doc.uid+" is before activity start time!");
-        if(doc.checkIn.getTime() > (await this.endTime()).getTime()) return Promise.reject("Check-in time for user "+doc.uid+" is after activity end time!");
+        if(typeof doc.hours !== 'number') return Promise.reject("Hours logged for "+doc.user+" must be a number.");
+        if(doc.hours < 0) return Promise.reject("Hours logged for "+doc.user+" cannot be negative.");
+        if(doc.hours > await this.maxHours()) return Promise.reject("Hours entry for user "+doc.user+" exceeds maximum allowed hours for this activity.");
+        if(doc.checkIn.getTime() < (await this.startTime()).getTime()) return Promise.reject("Check-in time for user "+doc.user+" is before activity start time!");
+        if(doc.checkIn.getTime() > (await this.endTime()).getTime()) return Promise.reject("Check-in time for user "+doc.user+" is after activity end time!");
 
         var targetUser = new User(doc.user);
-        if(!await targetUser.exists()) return Promise.reject("User with ID "+doc.uid+" does not exist!");
+        if(!await targetUser.exists()) return Promise.reject("User with ID "+doc.user+" does not exist!");
     }
 
     return this.prop('userHours', cleanedList);
