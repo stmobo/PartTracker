@@ -64,6 +64,23 @@ app.use('/api', requests_router);
 app.use('/api', time_router);
 app.use(express.static('static'));
 
+/* Error handling middleware. */
+app.use((err, res, res, next) => {
+    if(err instanceof module.exports.APIClientError) {
+        res.status(err.resCode);
+        res.send(err.message);
+        winston.log('error', "Error "+err.resCode.toString()+" on "+req.method+" request to "+req.originalUrl+" from "+req.socket.remoteAddress+":\n"+err.message);
+    } else if(err instanceof Error) {
+        res.status(500);
+        res.send(err.stack);
+        winston.log('error', "Error on "+req.method+" request to "+req.originalUrl+" from "+req.socket.remoteAddress+":\n"+err.stack);
+    } else {
+        res.status(400);
+        res.send(err.toString());
+        winston.log('error', "Error on "+req.method+" request to "+req.originalUrl+" from "+req.socket.remoteAddress+":\n"+err.toString());
+    }
+});
+
 var http_port = (args.http_port || 80);
 var https_port = (args.https_port || 443);
 
