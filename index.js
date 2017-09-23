@@ -66,7 +66,7 @@ app.use(express.static('static'));
 
 /* Error handling middleware. */
 app.use((err, res, res, next) => {
-    if(err instanceof module.exports.APIClientError) {
+    if(err instanceof require('api/routing_common.js').APIClientError) {
         res.status(err.resCode);
         res.send(err.message);
         winston.log('error', "Error "+err.resCode.toString()+" on "+req.method+" request to "+req.originalUrl+" from "+req.socket.remoteAddress+":\n"+err.message);
