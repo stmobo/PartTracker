@@ -1,5 +1,6 @@
 var express = require('express');
 var monk = require('monk');
+var csv = require('csv');
 var bodyParser = require('body-parser');
 
 var dbAPI = require('api/db.js');
@@ -8,26 +9,109 @@ var common = require('api/routing_common.js');
 var Item = require('api/models/Item.js');
 var Reservation = require('api/models/Reservation.js');
 
+
 var router = express.Router();
 router.use(bodyParser.json());
+router.use(bodyParser.text({
+    type: 'text/csv'
+}));
+
+function sendItemSummaries(res, out_type, summaries) {
+    if(out_type === 'json') {
+        res.status(200).json(summaries);
+    } else if(out_type === 'text/csv') {
+        csv.stringify(
+            summaries,
+            {
+                columns: ['id', 'name', 'count', 'reserved', 'available', 'created', 'updated'],
+                header: true,
+                formatters: {
+                    date: (d) => d.toISOString()
+                },
+            },
+            (err, data) => {
+                res.set('Content-Disposition', 'attachment; filename="inventory.csv"');
+                res.status(200).type('text/csv').send(data);
+            }
+        );
+    }
+}
 
 /* Method handlers: */
-
-/* Return a listing of all inventory items. */
-router.get('/inventory', function(req, res) {
-    dbAPI.inventory.find({}, {}).then(
-        (docs) => {
-            promises = docs.map(
-                (doc) => {
-                    item = new Item(doc._id);
-                    return item.summary();
-                }
-            );
-
-            return Promise.all(promises);
+router.get('/inventory(.csv)?', common.asyncMiddleware(
+    async (req, res) => {
+        if(req.path === '/inventory.csv') {
+            var out_type = req.accepts('text/csv');
+        } else {
+            var out_type = req.accepts(['json', 'text/csv']);
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
-});
+
+        if(!out_type)
+            throw new common.APIClientError(406, "Request must Accept either CSV or JSON format data.");
+
+        var docs = await dbAPI.inventory.find({}, {});
+        var summaries = await Promise.all(docs.map(
+            (doc) => {
+                var item = new Item(doc._id);
+                return item.summary();
+            }
+        ));
+
+        sendItemSummaries(res, out_type, summaries);
+    }
+));
+
+/* Completely replaces the inventory collection. */
+router.put('/inventory', common.asyncMiddleware(
+    async (req, res) => {
+        if(!(await req.user.admin())) throw new common.APIClientError(403, "Only administrators are allowed to import inventory data.");
+
+        var in_type = req.is(['json', 'text/csv']);
+        if(!in_type)
+            throw new common.APIClientError(415, "Request payload must either be in CSV or JSON format.");
+
+        if(in_type === 'text/csv') {
+            var dataPromise = new Promise((resolve, reject) => {
+                csv.parse(
+                    req.body,
+                    { columns: true, auto_parse: true },
+                    (err, parsedData) => {
+                        if(err) return reject(err);
+                        return resolve(parsedData);
+                    }
+                );
+            });
+
+            var data = await dataPromise;
+        } else {
+            var data = req.body;
+        }
+
+        /* Delete all old items. */
+        var oldDocs = await dbAPI.inventory.find({}, {});
+        await Promise.all(oldDocs.map(
+            (doc) => {
+                var item = new Item(doc._id);
+                return item.delete();
+            }
+        ));
+
+        /* Create and save new items. */
+        var summaries = await Promise.all(data.map(async (userDoc) => {
+            var userItem = new Item();
+            await Promise.all([
+                await userItem.name(userDoc.name),
+                await userItem.count(userDoc.count)
+            ]);
+
+            await userItem.save();
+
+            return userItem.summary();
+        }));
+
+        sendItemSummaries(res, in_type, summaries);
+    }
+));
 
 /*
  Add a new inventory item.

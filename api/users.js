@@ -67,12 +67,13 @@ router.use('/users',
  */
 router.post('/users',
     (req, res) => {
-        common.checkRequestParameters(req, 'username', 'password', 'realname', 'admin', 'disabled').then(
+        common.checkRequestParameters(req, 'username', 'password', 'realname', 'activityCreator', 'admin', 'disabled').then(
             () => {
                 var user = new User();
 
                 user.username(req.body.username);
                 user.realname(req.body.realname);
+                user.activityCreator(req.body.activityCreator);
                 user.admin(req.body.admin);
                 user.disabled(req.body.disabled);
 
@@ -107,18 +108,21 @@ router.get('/users/:uid',
     }
 );
 
+router.get('/users/:uid/activities', common.asyncMiddleware(
+    async (req, res) => {
+        res.status(200).json(await req.targetUser.getActivityHours());
+    }
+))
+
 router.put('/users/:uid',
     (req, res) => {
-        common.checkRequestParameters(req, 'username', 'realname', 'admin', 'disabled').then(
-            () => {
-                req.targetUser.username(req.body.username);
-                req.targetUser.realname(req.body.realname);
-                req.targetUser.admin(req.body.admin);
-                req.targetUser.disabled(req.body.disabled);
+        if(req.body.username) req.targetUser.username(req.body.username);
+        if(req.body.realname) req.targetUser.realname(req.body.realname);
+        if(req.body.activityCreator !== undefined) req.targetUser.activityCreator(req.body.activityCreator);
+        if(req.body.admin !== undefined) req.targetUser.admin(req.body.admin);
+        if(req.body.disabled !== undefined) req.targetUser.disabled(req.body.disabled);
 
-                return req.targetUser.save();
-            }
-        ).then(
+        req.targetUser.save().then(
             () => { return req.targetUser.summary(); }
         ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
     }
