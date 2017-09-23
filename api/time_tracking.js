@@ -38,10 +38,10 @@ router.get('/activities', common.asyncMiddleware(
  */
 router.post('/activities', common.asyncMiddleware(
     async (req, res) => {
-        if(!await req.user.activityCreator()) return Promise.reject("User is not authorized to create Activities.");
+        if(!(await req.user.activityCreator())) throw new common.APIClientError(403, "User is not authorized to create Activities.");
 
         var exists = (await dbAPI.activities.count( {title: req.body.title}) > 0);
-        if(exists) return Promise.reject("Activity already exists.");
+        if(exists) throw new common.APIClientError("Activity already exists.");
 
         await common.checkRequestParameters(req, 'title', 'description', 'startTime', 'endTime', 'maxHours');
 
@@ -65,7 +65,7 @@ router.post('/activities', common.asyncMiddleware(
 router.use('/activities/:aid', common.asyncMiddleware(
     async (req, res, next) => {
         var activity = new Activity(monk.id(req.params.aid));
-        if(!(await activity.exists())) return Promise.reject("Activity does not exist.");
+        if(!(await activity.exists())) throw new common.APIClientError(404, "Activity does not exist.");
 
         req.activity = activity;
         next();
@@ -86,7 +86,7 @@ router.get('/activities/:aid', common.asyncMiddleware(
  */
 router.put('/activities/:aid', common.asyncMiddleware(
     async (req, res) => {
-        if(!await req.user.activityCreator()) return Promise.reject("User is not authorized to modify Activities.");
+        if(!await req.user.activityCreator()) throw new common.APIClientError(403, "User is not authorized to modify Activities.");
 
         if(req.body.title) req.activity.title(req.body.title);
         if(req.body.description) req.activity.description(req.body.description);
@@ -106,7 +106,7 @@ router.put('/activities/:aid', common.asyncMiddleware(
  */
 router.delete('/activities/:aid', common.asyncMiddleware(
     async (req, res) => {
-        if(!await req.user.activityCreator()) return Promise.reject("User is not authorized to modify Activities.");
+        if(!await req.user.activityCreator()) throw new common.APIClientError(403, "User is not authorized to modify Activities.");
 
         await req.activity.delete();
         res.status(204).end();
@@ -122,7 +122,7 @@ router.get('/activities/:aid/checkin', common.asyncMiddleware(
         var userHours = await req.activity.userHours();
         var idx = userHours.findIndex(doc => monk.id(doc.user) === monk.id(req.user.id()));
 
-        if(idx !== -1) return Promise.reject("User "+req.user.id()+" has already checked into this Activity.");
+        if(idx !== -1) throw new common.APIClientError("User "+req.user.id()+" has already checked into this Activity.");
 
         var maxHours = await req.activity.maxHours();
         var checkinObject = {
@@ -155,8 +155,8 @@ router.get('/activities/:aid/users', common.asyncMiddleware(
 
 router.put('/activities/:aid/users', common.asyncMiddleware(
     async (req, res) => {
-        if(!await req.user.activityCreator()) return Promise.reject("User is not authorized to modify Activities.");
-        if(!(req.body instanceof Array)) return Promise.reject("Sent object is not an array.");
+        if(!await req.user.activityCreator()) throw new common.APIClientError(403, "User is not authorized to modify Activities.");
+        if(!(req.body instanceof Array)) throw new common.APIClientError("Sent object is not an array.");
 
         await req.activity.userHours(req.body);
         await req.activity.save();
@@ -194,10 +194,10 @@ router.delete('/activities/:aid/users', common.asyncMiddleware(
 router.use('/activities/:aid/users/:uid', common.asyncMiddleware(
     async (req, res, next) => {
         var user = new User(monk.id(req.params.uid));
-        if(!await user.exists()) return Promise.reject("User "+req.params.uid+" does not exist.");
+        if(!await user.exists()) throw new common.APIClientError(404, "User "+req.params.uid+" does not exist.");
 
         var targetIndex = req.userHours.findIndex(doc => monk.id(doc.user).toString() === monk.id(req.params.uid).toString() );
-        if(targetIndex === -1) return Promise.reject("No hours entry found for user "+req.params.uid+".");
+        if(targetIndex === -1) throw new common.APIClientError(404, "No hours entry found for user "+req.params.uid+".");
 
         req.targetUser = user;
         req.targetIndex = targetIndex;
@@ -213,11 +213,11 @@ router.get('/activities/:aid/users/:uid', common.asyncMiddleware(
 
 router.put('/activities/:aid/users/:uid', common.asyncMiddleware(
     async (req, res) => {
-        if(!await req.user.activityCreator()) return Promise.reject("User is not allowed to modify Activities.");
+        if(!await req.user.activityCreator()) throw new common.APIClientError(403, "User is not allowed to modify Activities.");
 
         if(req.body.user) {
             var user = new User(monk.id(req.body.user));
-            if(!await user.exists()) return Promise.reject("User "+req.body.user+" does not exist.");
+            if(!await user.exists()) throw new common.APIClientError(404, "User "+req.body.user+" does not exist.");
         }
 
         if(req.body.user) req.userHours[req.targetIndex].user = req.body.user;
@@ -233,7 +233,7 @@ router.put('/activities/:aid/users/:uid', common.asyncMiddleware(
 
 router.delete('/activities/:aid/users/:uid', common.asyncMiddleware(
     async (req, res) => {
-        if(!await req.user.activityCreator()) return Promise.reject("User is not allowed to modify Activities.");
+        if(!await req.user.activityCreator()) throw new common.APIClientError(403, "User is not allowed to modify Activities.");
         req.userHours.splice(req.targetIndex, 1);
 
         await req.activity.userHours(req.userHours);
