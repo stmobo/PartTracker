@@ -190,7 +190,7 @@ if(args.no_https) {
             {
                 method: req.method,
                 url: req.originalUrl,
-                remtoteAddress: req.socket.remoteAddress.toString()
+                remoteAddress: req.socket.remoteAddress.toString()
             }
         );
 
