@@ -10,7 +10,7 @@
   "scripts": {
     "build": "gulp build",
     "start": "node index.js",
-    "start-local": "node index.js --no_syslog --pid_file server.pid --log_file server.log --no_https --http_port 3000",
+    "start-local": "node index.js --no_stackdriver --no_syslog --pid_file server.pid --log_file server.log --no_https --http_port 3000",
     "start-db": "mongod --dbpath ./data/db --port 27017",
     "postinstall": "mkdir -p data/db acme-static/.well-known/acme-challenge public/js static/js",
     "test": "concurrently -c \"green,cyan\" --kill-others \"npm run-script start-db\" \"npm run-script start\""
@@ -18,6 +18,8 @@
   "author": "Sebastian Mobo <stmobo@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@google-cloud/logging-winston": "^0.5.0",
+    "@google-cloud/trace-agent": "^2.2.0",
     "app-module-path": "^2.2.0",
     "body-parser": "^1.17.1",
     "bootstrap": "^3.3.7",
