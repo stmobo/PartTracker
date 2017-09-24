@@ -8,7 +8,7 @@ class ActivityList extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = { activities: [], editingNewActivity: false, canCreateActivities: false };
+        this.state = { activities: [], editingNewActivity: false, userInfo: {} };
 
         this.fetchActivityCollection = this.fetchActivityCollection.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
@@ -19,7 +19,7 @@ class ActivityList extends React.Component {
         this.fetchActivityCollection();
 
         getUserInfo().then(
-            (userInfo) => { this.setState({ canCreateActivities: userInfo.activityCreator }); }
+            (userInfo) => { this.setState({ 'userInfo': userInfo }); }
         ).catch(errorHandler);
     }
 
@@ -64,10 +64,10 @@ class ActivityList extends React.Component {
 
     render() {
         var elems = this.state.activities.map(
-            (activity) => { return <ActivityEntry model={activity} key={activity.id} deleteItem={this.handleDelete} />; }
+            (activity) => { return <ActivityEntry model={activity} key={activity.id} deleteItem={this.handleDelete} userInfo={this.state.userInfo} />; }
         );
 
-        if(this.state.canCreateActivities) {
+        if(this.state.userInfo.activityCreator) {
             if(this.state.editingNewActivity) {
                 var newActivityForm = (<ActivityEditingForm onSubmit={this.handleCreate} onCancel={this.cancelNewActivity} />);
             } else {
@@ -109,7 +109,6 @@ class ActivityEntry extends React.Component {
 
         this.state = {
             model: props.model,
-            editable: false,
             canCheckIn: false,
             editing: false
         };
@@ -126,13 +125,11 @@ class ActivityEntry extends React.Component {
     }
 
     async refreshUserInfo() {
-        var userInfo = await getUserInfo();
         var canCheckIn = this.state.model.userHours.findIndex(
-            (elem) => (elem.user === userInfo.id)
+            (elem) => (elem.user === this.props.userInfo.id)
         ) === -1;
 
         this.setState({
-            editable: userInfo.activityCreator,
             canCheckIn: canCheckIn
         });
     }
@@ -197,7 +194,7 @@ class ActivityEntry extends React.Component {
         if(this.state.editing) {
             return (<ActivityEditingForm model={this.state.model} onSubmit={this.updateActivity} onCancel={this.cancelEditing} />);
         } else {
-            return (<ActivityEntryInfo editable={this.state.editable} canCheckIn={this.state.canCheckIn} model={this.state.model} onRefresh={this.refreshActivityData} onEdit={this.startEditing} onDelete={this.deleteActivity} onCheckIn={this.checkIn} />);
+            return (<ActivityEntryInfo editable={this.props.userInfo.activityCreator} canCheckIn={this.state.canCheckIn} model={this.state.model} onRefresh={this.refreshActivityData} onEdit={this.startEditing} onDelete={this.deleteActivity} onCheckIn={this.checkIn} />);
         }
     }
 }
