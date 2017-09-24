@@ -111,6 +111,7 @@ router.use(bodyParser.urlencoded());
 
 router.post('/login',
     (req, res, next) => {
+        winston.log('info', req.socket.remoteAddress + " is attempting to log in...");
         passport.authenticate(['local', 'basic'],
             (err, user, info) => {
                 if(err) { return next(err); }
@@ -138,6 +139,7 @@ function authMiddleware(req, res, next) {
     } else {
         /* Attempt HTTP-Basic authentication w/o sessions */
         //console.log("Attempting basic authentication for " + req.originalUrl + " via " + req.method);
+        winston.log('info', "Attempting HTTP-Basic authentication for " + req.socket.remoteAddress + ".");
         passport.authenticate('basic', { session: false })(req, res, next);
     }
 }

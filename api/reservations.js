@@ -86,7 +86,7 @@ router.post('/reservations', (req, res, next) => {
     ).then(common.sendJSON(res, 201)).catch(next);
 });
 
-router.use('/reservations/:rid', asyncMiddleware(
+router.use('/reservations/:rid', common.asyncMiddleware(
     async (req, res, next) => {
         var rsvp = new Reservation(monk.id(req.params.rid));
         if(!(await rsvp.exists()))
