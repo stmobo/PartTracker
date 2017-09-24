@@ -1,4 +1,5 @@
 var browserify = require('browserify');
+var envify = require('envify/custom');
 var source = require('vinyl-source-stream');
 var gulp = require('gulp');
 var uglifyjs = require('uglify-es');
@@ -14,7 +15,13 @@ function react_browserify(infile, outfile, outdir, debug) {
   outdir = (outdir === undefined) ? 'static/js' : outdir;
   debug = (debug === undefined) ? !gutil.env.production : debug;
 
-  var b = browserify('client-js/'+infile+'.jsx', {transform: 'babelify', debug:!gutil.env.production});
+  var b = browserify('client-js/'+infile+'.jsx', {transform: 'babelify', debug:debug});
+
+  if(!debug) {
+      b.transform(envify({ NODE_ENV: 'production' }), { global: true });
+      b.transform('uglifyify', { global: true });
+      b.plugin('bundle-collapser');
+  }
 
   function bundlefn(cb) {
     pump([
