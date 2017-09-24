@@ -86,7 +86,7 @@ if(args.no_https) {
     // Let's Encrypt+CertBot support and TLS options here!
     var fs = require('fs');
     var http = require('http');
-    var https = require('https');
+    var spdy = require('spdy'); // Provides server for HTTP/2, SPDY, and regular HTTPS
 
     const tls_options = {
         ca: fs.readFileSync(args.le_cert_path+"/chain.pem"),
@@ -94,7 +94,7 @@ if(args.no_https) {
         key: fs.readFileSync(args.le_cert_path+"/privkey.pem"),
     }
 
-    https.createServer(tls_options, app).listen(https_port, () => {
+    spdy.createServer(tls_options, app).listen(https_port, () => {
         winston.log('info', "Main app server listening on port "+https_port.toString()+".");
     });
 
