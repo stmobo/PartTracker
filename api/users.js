@@ -95,7 +95,7 @@ router.use('/users/:uid',
         user.exists().then(
             (exists) => {
                 if(!exists) {
-                    return Promise.reject("User not found in database.");
+                    return Promise.reject(new common.APIClientError(404, "User not found in database."));
                 }
                 req.targetUser = user;
                 next();
