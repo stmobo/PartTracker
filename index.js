@@ -183,6 +183,20 @@ if(args.no_https) {
 
     // plain HTTP server for http-01 challenge support; redirects all other requests to HTTPS
     var challenge_app = express();
+    challenge_app.use((req, res, next) => {
+        winston.info(
+            'Unencrypted %s request made to %s from %s',
+            req.method, req.originalUrl, req.socket.remoteAddress.toString(),
+            {
+                method: req.method,
+                url: req.originalUrl,
+                remtoteAddress: req.socket.remoteAddress.toString()
+            }
+        );
+
+        next();
+    });
+
     challenge_app.use('/.well-known/acme-challenge', express.static('acme-static/.well-known/acme-challenge'));
     challenge_app.use((req, res) => { res.redirect('https://'+req.hostname+req.url); });
 
