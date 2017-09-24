@@ -9,6 +9,7 @@
   "main": "index.js",
   "scripts": {
     "build": "gulp build",
+    "build-production": "gulp build --production",
     "start": "node index.js",
     "start-local": "node index.js --no_syslog --pid_file server.pid --log_file server.log --no_https --http_port 3000",
     "start-db": "mongod --dbpath ./data/db --port 27017",
