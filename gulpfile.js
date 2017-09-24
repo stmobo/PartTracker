@@ -15,12 +15,12 @@ function react_browserify(infile, outfile, outdir, debug) {
   outdir = (outdir === undefined) ? 'static/js' : outdir;
   debug = (debug === undefined) ? !gutil.env.production : debug;
 
-  var b = browserify('client-js/'+infile+'.jsx', {transform: 'babelify', debug:debug});
+  var b = browserify('client-js/'+infile+'.jsx', {debug:debug});
+  b.transform('babelify');
 
   if(!debug) {
       b.transform(envify({ NODE_ENV: 'production' }), { global: true });
       b.transform('uglifyify', { global: true });
-      b.plugin('bundle-collapser');
   }
 
   function bundlefn(cb) {
