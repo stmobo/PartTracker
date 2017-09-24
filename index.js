@@ -5,6 +5,7 @@ var args = require('minimist')(process.argv.slice(2));
 var winston = require('winston');
 var uuidv1 = require('uuid/v1');
 
+/* Configure winston before anything uses it */
 winston.setLevels(winston.config.syslog.levels);
 winston.level = args.log_level ||'info';
 winston.add(winston.transports.File, { filename: args.log_file || '/var/log/parttracker.log' });
@@ -71,10 +72,7 @@ app.use('/api', common.asyncMiddleware(
             url: req.originalUrl,
             remoteAddress: req.socket.remoteAddress,
             username: await req.user.username(),
-            headers: req.headers
         }
-
-        metadata.headers.Authorization = undefined;
 
         /* Log message:
          * [method] [url] from [remoteAddress] as user [user]
@@ -82,6 +80,7 @@ app.use('/api', common.asyncMiddleware(
         winston.log('info', "%s %s from %s as user %s",
             req.method, req.originalUrl,
             req.socket.remoteAddress.toString(), await req.user.username(),
+            metadata
         );
 
         next();

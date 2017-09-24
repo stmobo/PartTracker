@@ -1,6 +1,7 @@
 var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;
 var dbAPI = require('api/db.js');
+var winston = require('winston');
 
 var Item = function (id) {
     dbAPI.DatabaseItem.call(this, dbAPI.inventory, id);
@@ -9,8 +10,16 @@ var Item = function (id) {
 Item.prototype = Object.create(dbAPI.DatabaseItem.prototype);
 Item.prototype.constructor = Item;
 
-Item.prototype.delete = function () {
+Item.prototype.delete = async function () {
     /* Remove Reservations referencing this item */
+    winston.log('info', 'Deleted object %s from %s collection.',
+        this.id().toString(), this.db.name,
+        {
+            id: this.id().toString(),
+            collection: this.db.name
+        }
+    );
+
     return dbAPI.reservations.remove({part: this.id()}).then(
         /* Now remove this item */
         () => { return dbAPI.inventory.remove({_id: this.id()}); }
