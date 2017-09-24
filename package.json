@@ -50,6 +50,7 @@
     "gulp-uglify": "^3.0.0",
     "gulp-util": "^3.0.8",
     "pump": "^1.0.2",
+    "uglify-es": "^3.1.2",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.9.0"
   },

@@ -1,18 +1,20 @@
 var browserify = require('browserify');
-var watchify = require('watchify');
 var source = require('vinyl-source-stream');
 var gulp = require('gulp');
-var uglify = require('gulp-uglify');
+var uglifyjs = require('uglify-es');
+var uglify_composer = require('gulp-uglify/composer');
 var streamify = require('gulp-streamify');
 var gutil = require('gulp-util');
 var pump = require('pump');
+
+var uglify = uglify_composer(uglifyjs, console);
 
 function react_browserify(infile, outfile, outdir, debug) {
   outfile = (outfile === undefined) ? infile : outfile;
   outdir = (outdir === undefined) ? 'static/js' : outdir;
   debug = (debug === undefined) ? !gutil.env.production : debug;
 
-  var b = browserify('client-js/'+infile+'.jsx', {transform: 'babelify', debug:true});
+  var b = browserify('client-js/'+infile+'.jsx', {transform: 'babelify', debug:!gutil.env.production});
 
   function bundlefn(cb) {
     pump([
