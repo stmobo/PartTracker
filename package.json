@@ -20,6 +20,7 @@
   "license": "MIT",
   "dependencies": {
     "app-module-path": "^2.2.0",
+    "babel-polyfill": "^6.26.0",
     "body-parser": "^1.17.1",
     "bootstrap": "^3.3.7",
     "concurrently": "^3.4.0",
@@ -45,6 +46,7 @@
   "devDependencies": {
     "babel-preset-env": "^1.6.0",
     "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
     "babelify": "^7.3.0",
     "browserify": "^14.3.0",
     "envify": "^4.1.0",
@@ -60,6 +62,7 @@
   },
   "babel": {
     "presets": [
+      "stage-0",
       "react",
       "env"
     ]
