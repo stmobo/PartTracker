@@ -18,6 +18,7 @@ if(!args.no_syslog) {
 var express = require('express');
 var passport = require('passport');
 var session = require('express-session');
+var compression = require('compression');
 
 var app = express();
 
@@ -40,9 +41,14 @@ app.use(session({ secret: 'a secret key', secure: !args.no_https }));
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use(compression()); /* Compress responses -- most / all of what we send is compressible */
+
 app.use('/api', auth_router);       /* Auth requests aren't behind the authentication barrier themselves */
 app.use('/public', express.static('public'));  /* For serving the login page, etc. */
+
 app.use('/dist', express.static('public/dist')); /* For serving external dependencies (bootstrap / jquery / etc) */
+app.use('/dist/js', express.static('node_modules/jquery/dist'));
+app.use('/dist', express.static('node_modules/bootstrap/dist'));
 
 // Fallback to CDN if these aren't stored locally
 app.get('/dist/js/jquery.min.js', (req, res) => { res.redirect('https://code.jquery.com/jquery-3.2.1.min.js'); })
