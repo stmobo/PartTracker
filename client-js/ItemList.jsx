@@ -309,7 +309,7 @@ export default class ItemList extends React.Component {
                 <div className="inv-list-item row">
                     <div className="col-md-12">
                         <div>
-                            <FileUploadButton className="btn btn-default btn-sm list-create-new-button" onFileSelected={this.handleInventoryImport}>Import from CSV</FileUploadButton>
+                            <FileUploadButton accept=".csv" className="btn btn-default btn-sm list-create-new-button" onFileSelected={this.handleInventoryImport}>Import from CSV</FileUploadButton>
                             <a className="btn btn-default btn-sm list-create-new-button" href="/api/inventory.csv">Export to CSV</a>
                         </div>
                         <NewItemForm onNewItem={this.retrItemList} />

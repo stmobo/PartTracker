@@ -32,7 +32,7 @@ export default class FileUploadButton extends React.Component {
                 <button className={this.props.className} onClick={this.handleButtonClick}>
                     {this.props.children}
                 </button>
-                <input type="file" ref={(input) => { this.fileInput = input; }} style={fileInputStyle} onChange={this.handleFileInputChange} />
+                <input type="file" ref={(input) => { this.fileInput = input; }} accept={this.props.accept} style={fileInputStyle} onChange={this.handleFileInputChange} />
             </div>
         )
     }
