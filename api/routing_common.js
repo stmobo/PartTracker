@@ -1,6 +1,7 @@
 /* convenience functions for routing and API functions */
 var express = require('express');
 var monk = require('monk');
+var csv = require('csv');
 
 var Item = require('api/models/Item.js');
 var Reservation = require('api/models/Reservation.js');
@@ -24,6 +25,41 @@ module.exports = {
         Promise.resolve(fn(req, res, next))
           .catch(module.exports.apiErrorHandler(req, res));
       };
+    },
+
+    parseCSV: function(text) {
+        return new Promise((resolve, reject) => {
+            csv.parse(
+                text,
+                { columns: true, auto_parse: true },
+                (err, parsedData) => {
+                    if(err) return reject(err);
+                    return resolve(parsedData);
+                }
+            );
+        });
+    },
+
+    sendCSV: function(res, objects, columns, filename) {
+        return new Promise((resolve, reject) => {
+            csv.stringify(
+                objects,
+                {
+                    columns: columns,
+                    header: true,
+                    formatters: {
+                        date: (d) => d.toISOString()
+                    },
+                },
+                (err, data) => {
+                    if(err) return reject(err);
+
+                    res.set('Content-Disposition', `attachment; filename="${filename}"`);
+                    res.status(200).type('text/csv').send(data);
+                    return resolve();
+                }
+            );
+        });
     },
 
     /* Tests for the existence of given keys in req.body.

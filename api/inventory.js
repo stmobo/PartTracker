@@ -1,6 +1,5 @@
 var express = require('express');
 var monk = require('monk');
-var csv = require('csv');
 var bodyParser = require('body-parser');
 
 var dbAPI = require('api/db.js');
@@ -20,19 +19,11 @@ function sendItemSummaries(res, out_type, summaries) {
     if(out_type === 'json') {
         res.status(200).json(summaries);
     } else if(out_type === 'text/csv') {
-        csv.stringify(
+        common.sendCSV(
+            res,
             summaries,
-            {
-                columns: ['id', 'name', 'count', 'reserved', 'available', 'created', 'updated'],
-                header: true,
-                formatters: {
-                    date: (d) => d.toISOString()
-                },
-            },
-            (err, data) => {
-                res.set('Content-Disposition', 'attachment; filename="inventory.csv"');
-                res.status(200).type('text/csv').send(data);
-            }
+            ['id', 'name', 'count', 'reserved', 'available', 'created', 'updated'],
+            'inventory.csv'
         );
     }
 }
@@ -71,18 +62,7 @@ router.put('/inventory', common.asyncMiddleware(
             throw new common.APIClientError(415, "Request payload must either be in CSV or JSON format.");
 
         if(in_type === 'text/csv') {
-            var dataPromise = new Promise((resolve, reject) => {
-                csv.parse(
-                    req.body,
-                    { columns: true, auto_parse: true },
-                    (err, parsedData) => {
-                        if(err) return reject(err);
-                        return resolve(parsedData);
-                    }
-                );
-            });
-
-            var data = await dataPromise;
+            var data = await common.parseCSV(req.body);
         } else {
             var data = req.body;
         }
