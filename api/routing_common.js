@@ -40,7 +40,10 @@ module.exports = {
         });
     },
 
-    sendCSV: function(res, objects, columns, filename) {
+    sendCSV: function(res, objects, filename, columns) {
+        // Autodetermine column names if necessary
+        columns = columns || Object.getOwnPropertyNames(objects[0]);
+
         return new Promise((resolve, reject) => {
             csv.stringify(
                 objects,
@@ -48,6 +51,7 @@ module.exports = {
                     columns: columns,
                     header: true,
                     formatters: {
+                        bool: (b) => b ? 'true' : 'false',
                         date: (d) => d.toISOString()
                     },
                 },
@@ -61,7 +65,6 @@ module.exports = {
             );
         });
     },
-
     /* Tests for the existence of given keys in req.body.
      * Returns a rejection promise if a key is not found,
      *  otherwise returns a fulfilled promise.

@@ -15,19 +15,6 @@ router.use(bodyParser.text({
     type: 'text/csv'
 }));
 
-function sendItemSummaries(res, out_type, summaries) {
-    if(out_type === 'json') {
-        res.status(200).json(summaries);
-    } else if(out_type === 'text/csv') {
-        common.sendCSV(
-            res,
-            summaries,
-            ['id', 'name', 'count', 'reserved', 'available', 'created', 'updated'],
-            'inventory.csv'
-        );
-    }
-}
-
 /* Method handlers: */
 router.get('/inventory(.csv)?', common.asyncMiddleware(
     async (req, res) => {
@@ -48,7 +35,11 @@ router.get('/inventory(.csv)?', common.asyncMiddleware(
             }
         ));
 
-        sendItemSummaries(res, out_type, summaries);
+        if(out_type === 'json') {
+            res.status(200).json(summaries);
+        } else if(out_type === 'text/csv') {
+            common.sendCSV(res, summaries, 'inventory.csv');
+        }
     }
 ));
 
@@ -89,7 +80,11 @@ router.put('/inventory', common.asyncMiddleware(
             return userItem.summary();
         }));
 
-        sendItemSummaries(res, in_type, summaries);
+        if(in_type === 'json') {
+            res.status(200).json(summaries);
+        } else if(in_type === 'text/csv') {
+            common.sendCSV(res, summaries, 'inventory.csv');
+        }
     }
 ));
 
