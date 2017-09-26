@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import ItemRsvpList from './ItemRsvpList.jsx';
 import {errorHandler, jsonOnSuccess, renderUpdateTime} from './common.jsx';
+import FileUploadButton from './FileUploadButton.jsx';
 
 /*
  * Renders a form for adding new item types to the inventory.
@@ -255,8 +256,6 @@ export default class ItemList extends React.Component {
 
         this.retrItemList = this.retrItemList.bind(this);
         this.handleInventoryImport = this.handleInventoryImport.bind(this);
-        this.handleImportClick = this.handleImportClick.bind(this);
-        this.handleExport = this.handleExport.bind(this);
 
         this.retrItemList();
     }
@@ -270,11 +269,8 @@ export default class ItemList extends React.Component {
         ).catch(errorHandler);
     }
 
-    handleInventoryImport(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-
-        var selectedFile = this.fileInput.files[0];
+    handleInventoryImport(fileInput) {
+        var selectedFile = fileInput.files[0];
 
         fetch('/api/inventory', {
             method: 'PUT',
@@ -287,20 +283,6 @@ export default class ItemList extends React.Component {
                 return this.retrItemList();
             }
         ).catch(errorHandler);
-    }
-
-    handleImportClick(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-
-        this.fileInput.click();
-    }
-
-    handleExport(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-
-        window.location = '/api/inventory.csv';
     }
 
     render() {
@@ -327,9 +309,8 @@ export default class ItemList extends React.Component {
                 <div className="inv-list-item row">
                     <div className="col-md-12">
                         <div>
-                            <button className="btn btn-default btn-sm list-create-new-button" onClick={this.handleImportClick}>Import from CSV</button>
-                            <button className="btn btn-default btn-sm list-create-new-button" onClick={this.handleExport}>Export to CSV</button>
-                            <input type="file" name="import-filename" accept=".csv" ref={(input) => { this.fileInput = input; }} style={fileInputStyle} onChange={this.handleInventoryImport} />
+                            <FileUploadButton className="btn btn-default btn-sm list-create-new-button" onFileSelected={this.handleInventoryImport}>Import from CSV</FileUploadButton>
+                            <a className="btn btn-default btn-sm list-create-new-button" href="/api/inventory.csv">Export to CSV</a>
                         </div>
                         <NewItemForm onNewItem={this.retrItemList} />
                     </div>
