@@ -76,6 +76,10 @@ router.put('/users', common.asyncMiddleware(
         if(!in_type)
             throw new common.APIClientError(415, "Request payload must either be in CSV or JSON format.");
 
+        var out_type = req.accepts(['json', 'text/csv']);
+        if(!out_type)
+            throw new common.APIClientError(406, "Request must Accept either CSV or JSON format data.");
+
         if(in_type === 'text/csv') {
             var data = await common.parseCSV(req.body);
         } else {
@@ -163,9 +167,9 @@ router.put('/users', common.asyncMiddleware(
         );
         var summaries = await Promise.all(promises);
 
-        if(in_type == 'text/csv') {
+        if(out_type == 'text/csv') {
             common.sendCSV(res, summaries, 'users.csv');
-        } else {
+        } else if(out_type === 'json') {
             res.status(200).json(summaries);
         }
     }

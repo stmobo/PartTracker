@@ -52,6 +52,10 @@ router.put('/inventory', common.asyncMiddleware(
         if(!in_type)
             throw new common.APIClientError(415, "Request payload must either be in CSV or JSON format.");
 
+        var out_type = req.accepts(['json', 'text/csv']);
+        if(!out_type)
+            throw new common.APIClientError(406, "Request must Accept either CSV or JSON format data.");
+
         if(in_type === 'text/csv') {
             var data = await common.parseCSV(req.body);
         } else {
@@ -80,9 +84,9 @@ router.put('/inventory', common.asyncMiddleware(
             return userItem.summary();
         }));
 
-        if(in_type === 'json') {
+        if(out_type === 'json') {
             res.status(200).json(summaries);
-        } else if(in_type === 'text/csv') {
+        } else if(out_type === 'text/csv') {
             common.sendCSV(res, summaries, 'inventory.csv');
         }
     }
