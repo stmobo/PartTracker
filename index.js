@@ -3,14 +3,18 @@ require('app-module-path').addPath(__dirname);
 var args = require('minimist')(process.argv.slice(2));
 
 var winston = require('winston');
+var uuidv1 = require('uuid/v1');
 
+/* Configure winston before anything uses it */
 winston.setLevels(winston.config.syslog.levels);
 winston.level = args.log_level ||'info';
 winston.add(winston.transports.File, { filename: args.log_file || '/var/log/parttracker.log' });
 
 if(!args.no_syslog) {
     require('winston-syslog').Syslog;
-    winston.add(winston.transports.Syslog);
+    winston.add(winston.transports.Syslog, {
+        app_name: 'parttrackerd'
+    });
 }
 
 //winston.remove(winston.transports.Console);
@@ -22,6 +26,7 @@ var compression = require('compression');
 
 var app = express();
 
+var common = require('api/routing_common.js');
 var inventory_router = require('api/inventory.js');
 var reservations_router = require('api/reservations.js');
 var time_router = require('api/time_tracking.js');
@@ -63,12 +68,81 @@ app.get('/', (req, res) => {
 /* API requests below this need to be authenticated */
 app.use(ensureAuthenticated);
 
+/* Logging middleware. */
+app.use('/api', common.asyncMiddleware(
+    async (req, res, next) => {
+        req.uuid = uuidv1();
+        var metadata = {
+            uuid: req.uuid,
+            method: req.method,
+            url: req.originalUrl,
+            remoteAddress: req.socket.remoteAddress,
+            username: await req.user.username(),
+        }
+
+        /* Log message:
+         * [method] [url] from [remoteAddress] as user [user]
+         */
+        winston.log('info', "%s %s from %s as user %s",
+            req.method, req.originalUrl,
+            req.socket.remoteAddress.toString(), await req.user.username(),
+            metadata
+        );
+
+        next();
+    }
+));
+
 app.use('/api', users_router);
 app.use('/api', inventory_router);
 app.use('/api', reservations_router);
 app.use('/api', requests_router);
 app.use('/api', time_router);
 app.use(express.static('static'));
+
+async function errorHandlingMiddleware(err, req, res, next) {
+    var metadata = {
+        uuid: req.uuid,
+        method: req.method,
+        url: req.originalUrl,
+        remoteAddress: req.socket.remoteAddress,
+        username: await req.user.username(),
+        responseCode: 400,
+        responseMsg: 'unknown message'
+    }
+
+    if(err instanceof common.APIClientError) {
+        res.status(err.resCode).send(err.message);
+
+        metadata.errorType = 'Client';
+        metadata.responseCode = err.resCode;
+        metadata.responseMsg = err.message;
+    } else if(err instanceof Error) {
+        res.status(500).send(err.stack);
+
+        metadata.errorType = 'Server';
+        metadata.responseCode = 500;
+        metadata.responseMsg = err.stack;
+    } else {
+        res.status(400).send(err.toString());
+
+        metadata.errorType = 'Client';
+        metadata.responseCode = 400;
+        metadata.responseMsg = err.toString();
+    }
+
+    winston.log('error',
+        "Error "+metadata.responseCode.toString()+
+        " on "+req.method+" request to "+req.originalUrl+
+        " from "+req.socket.remoteAddress+
+        ":\n"+metadata.responseMsg,
+        metadata
+    );
+}
+
+app.use((err, req, res, next) => {
+    Promise.resolve(errorHandlingMiddleware(err, req, res, next));
+});
 
 var http_port = (args.http_port || 80);
 var https_port = (args.https_port || 443);

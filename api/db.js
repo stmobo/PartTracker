@@ -1,5 +1,7 @@
 var monk = require('monk');
 
+var winston = require('winston')
+
 const conn = monk('localhost:27017/partstracker');
 const users = conn.get('users');
 const inventory = conn.get('inventory');
@@ -105,9 +107,27 @@ DatabaseItem.prototype.save = function () {
             if(n == 0) {
                 /* Insert this as a new document: */
                 spec.created = new Date();
+                winston.log('info', 'Added new object %s to %s collection.',
+                    this.id().toString(), this.db.name,
+                    {
+                        id: this.id().toString(),
+                        collection: this.db.name,
+                        object: JSON.stringify(spec)
+                    }
+                );
+
                 return this.db.insert(spec);
             } else {
                 /* Update the existing document: */
+                winston.log('info', 'Updated object %s in %s collection.',
+                    this.id().toString(), this.db.name,
+                    {
+                        id: this.id().toString(),
+                        collection: this.db.name,
+                        spec: JSON.stringify(spec)
+                    }
+                );
+
                 return this.db.update(
                     { _id: this.id() },
                     { $set: spec }
@@ -117,7 +137,14 @@ DatabaseItem.prototype.save = function () {
     ).then( () => { return this; } );
 };
 
-DatabaseItem.prototype.delete = function () {
+DatabaseItem.prototype.delete = async function () {
+    winston.log('info', 'Deleted object %s from %s collection.',
+        this.id().toString(), this.db.name,
+        {
+            id: this.id().toString(),
+            collection: this.db.name
+        }
+    );
     return this.db.remove({_id: this.id()});
 };
 

@@ -16,10 +16,6 @@ var Reservation = function(id) {
 Reservation.prototype = Object.create(dbAPI.DatabaseItem.prototype);
 Reservation.prototype.constructor = Reservation;
 
-Reservation.prototype.delete = function () {
-    return dbAPI.reservations.remove({_id: this.id()});
-};
-
 Reservation.prototype.count = function(v) { return this.prop('count', v); };
 
 Reservation.prototype.requester = function(v) {

@@ -13,7 +13,7 @@ var router = express.Router();
 router.use(bodyParser.json());
 
 /* Get info on all part reservations. */
-router.get('/reservations', (req, res) => {
+router.get('/reservations', (req, res, next) => {
     dbAPI.reservations.find({}, {}).then(
         (docs) => {
             promises = docs.map(
@@ -25,7 +25,7 @@ router.get('/reservations', (req, res) => {
 
             return Promise.all(promises);
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+    ).then(common.jsonSuccess(res)).catch(next);
 });
 
 /* Add new reservation.
@@ -35,7 +35,7 @@ router.get('/reservations', (req, res) => {
     - "requester": ID of user to reserve the parts under.
     - "asm" [optional]: Assembly ID to reserve the parts for.
  */
-router.post('/reservations', (req, res) => {
+router.post('/reservations', (req, res, next) => {
     common.checkRequestParameters(req, 'part', 'count').then(
         () => { return req.user.admin(); }
     ).then(
@@ -62,8 +62,8 @@ router.post('/reservations', (req, res) => {
             item = retns[2];
             requester = retns[3];
 
-            if(!item_exists) return Promise.reject("Requested part does not exist!");
-            if(!requester_exists) return Promise.reject("Requesting user does not exist!");
+            if(!item_exists) return Promise.reject(new APIClientError(404, "Requested part does not exist!"));
+            if(!requester_exists) return Promise.reject(new APIClientError(404, "Requesting user does not exist!"));
 
             return Promise.all([item.available(), requester]);
         }
@@ -74,7 +74,7 @@ router.post('/reservations', (req, res) => {
 
             requested_parts = parseInt(req.body.count);
             if(requested_parts > avail_parts)
-                return Promise.reject("Not enough parts available to satisfy new reservation.");
+                return Promise.reject(new APIClientError("Not enough parts available to satisfy new reservation."));
 
             var rsvp = new Reservation();
             rsvp.requester(requester);
@@ -83,23 +83,26 @@ router.post('/reservations', (req, res) => {
 
             return rsvp.save();
         }
-    ).then(common.sendJSON(res, 201)).catch(common.apiErrorHandler(req, res));
+    ).then(common.sendJSON(res, 201)).catch(next);
 });
 
-router.get("/reservations/:rid", (req, res) => {
-    rsvp = new Reservation(monk.id(req.params.rid));
+router.use('/reservations/:rid', common.asyncMiddleware(
+    async (req, res, next) => {
+        var rsvp = new Reservation(monk.id(req.params.rid));
+        if(!(await rsvp.exists()))
+            throw new common.APIClientError(404, "Reservation not found in database.");
 
-    rsvp.exists().then(
-        (exists) => {
-            if(!exists)
-                return Promise.reject("Reservation not found in database.");
-            return rsvp.summary();
-        }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+        req.rsvp = rsvp;
+        next();
+    }
+));
+
+router.get("/reservations/:rid", (req, res, next) => {
+    req.rsvp.summary().then(common.jsonSuccess(res)).catch(next);
 });
 
-router.put("/reservations/:rid", (req, res) => {
-    rsvp = new Reservation(monk.id(req.params.rid));
+router.put("/reservations/:rid", (req, res, next) => {
+    rsvp = req.rsvp;
 
     common.checkRequestParameters(req, 'part', 'count').then(
         () => { return req.user.admin(); }
@@ -127,8 +130,8 @@ router.put("/reservations/:rid", (req, res) => {
             item = retns[2];
             requester = retns[3];
 
-            if(!item_exists) return Promise.reject("Requested part does not exist!");
-            if(!requester_exists) return Promise.reject("Requesting user does not exist!");
+            if(!item_exists) return Promise.reject(new common.APIClientError(404, "Requested part does not exist!"));
+            if(!requester_exists) return Promise.reject(new common.APIClientError(404, "Requesting user does not exist!"));
 
             var oldPart = rsvp.part().then((part) => { return part.fetch(); });
             return Promise.all([item.fetch(), oldPart, requester]);
@@ -158,7 +161,7 @@ router.put("/reservations/:rid", (req, res) => {
 
             requested_parts = parseInt(req.body.count);
             if(requested_parts > avail_parts)
-                return Promise.reject("Not enough parts available to satisfy new reservation.");
+                return Promise.reject(new common.APIClientError(400, "Not enough parts available to satisfy new reservation."));
 
             rsvp.part(monk.id(req.body.part));
             rsvp.count(requested_parts);
@@ -166,13 +169,11 @@ router.put("/reservations/:rid", (req, res) => {
 
             return rsvp.save();
         }
-    ).then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+    ).then(common.jsonSuccess(res)).catch(next);
 });
 
-router.delete("/reservations/:rid", (req, res) => {
-    rsvp = new Reservation(monk.id(req.params.rid));
-
-    rsvp.delete().then(common.emptySuccess(res)).catch(common.apiErrorHandler(req, res));
+router.delete("/reservations/:rid", (req, res, next) => {
+    req.rsvp.delete().then(common.emptySuccess(res)).catch(next);
 });
 
 module.exports = router;

@@ -48,7 +48,7 @@ router.post('/requests', common.asyncMiddleware(
 router.use('/requests/:qid', common.asyncMiddleware(
     async (req, res, next) => {
         var targetRQ = new InventoryRequest(req.params.qid);
-        if(!(await targetRQ.exists())) throw new Error("Request does not exist.");
+        if(!(await targetRQ.exists())) throw new common.APIClientError(404, "Request does not exist.");
 
         req.invRQ = targetRQ;
         next();

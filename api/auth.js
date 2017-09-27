@@ -111,6 +111,7 @@ router.use(bodyParser.urlencoded());
 
 router.post('/login',
     (req, res, next) => {
+        winston.log('info', req.socket.remoteAddress + " is attempting to log in...");
         passport.authenticate(['local', 'basic'],
             (err, user, info) => {
                 if(err) { return next(err); }
@@ -118,8 +119,12 @@ router.post('/login',
                 req.login(user, (err) => {
                     if(err) { return next(err); }
 
-                    winston.log('debug', req.socket.remoteAddress + " began session as "+user.username+".");
-                    return user.summary().then(common.jsonSuccess(res)).catch(common.apiErrorHandler(req, res));
+                    return user.summary().then(
+                        (userInfo) => {
+                            winston.log('info', req.socket.remoteAddress + " logged in as "+userInfo.username+".");
+                            return userInfo;
+                        }
+                    ).then(common.jsonSuccess(res)).catch(next);
                 });
             }
         )(req, res, next);
@@ -134,18 +139,21 @@ function authMiddleware(req, res, next) {
     } else {
         /* Attempt HTTP-Basic authentication w/o sessions */
         //console.log("Attempting basic authentication for " + req.originalUrl + " via " + req.method);
+        winston.log('info', "Attempting HTTP-Basic authentication for " + req.socket.remoteAddress + ".");
         passport.authenticate('basic', { session: false })(req, res, next);
     }
 }
 
 router.get('/logout',
     authMiddleware,
-    (req, res) => {
-        winston.log('debug', req.socket.remoteAddress + " ended session as "+req.user.username+".");
+    common.asyncMiddleware(
+        async (req, res) => {
+            winston.log('debug', req.socket.remoteAddress + " logged out as "+(await req.user.username())+".");
 
-        req.logout();
-        res.status(204).redirect('/');
-    }
+            req.logout();
+            res.status(204).redirect('/');
+        }
+    )
 );
 
 module.exports = {
