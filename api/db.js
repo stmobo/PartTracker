@@ -1,19 +1,40 @@
 var monk = require('monk');
+var winston = require('winston');
+var args = require('minimist')(process.argv.slice(2));
 
-var winston = require('winston')
+const dbLocation = `${args.db_host || 'localhost'}:${args.db_port || 27017}/partstracker`;
 
-const conn = monk('localhost:27017/partstracker');
-const users = conn.get('users');
-const inventory = conn.get('inventory');
-const reservations = conn.get('reservations');
-const activities = conn.get('activities');
-const requests = conn.get('requests');
-const assemblies = conn.get('assemblies');
-const assembly_links = conn.get('assembly_links');
+/* Database collections are also exported under the appropriate names. */
+module.exports = {
+    DatabaseItem: DatabaseItem
+};
 
-reservations.ensureIndex( {part: 1} );
+/* This function is mostly intended for testing purposes.
+ * It should not be called when DatabaseItem (subclass) objects are in use
+ * (i.e. don't call this from middleware)
+ */
+async function reset_database_connection(newLocation) {
+    /* Close the old connection, if necessary */
+    if(module.exports.conn) {
+        await module.exports.conn.close();
+    }
 
-var DatabaseItem = function(database, id) {
+    const conn = monk(newLocation);
+
+    module.exports.conn = conn;
+    module.exports.users = conn.get('users');
+    module.exports.inventory = conn.get('inventory');
+    module.exports.reservations = conn.get('reservations');
+    module.exports.activities = conn.get('activities');
+    module.exports.requests = conn.get('requests');
+
+    module.exports.reservations.ensureIndex( {part: 1} );
+}
+
+/* Open the initial connection. */
+reset_database_connection(dbLocation);
+
+function DatabaseItem(database, id) {
     this.db = database;
     if(id === undefined) {
         this._id = monk.id();
@@ -146,16 +167,4 @@ DatabaseItem.prototype.delete = async function () {
         }
     );
     return this.db.remove({_id: this.id()});
-};
-
-module.exports = {
-    conn: conn,
-    users: users,
-    inventory: inventory,
-    reservations: reservations,
-    activities: activities,
-    requests: requests,
-    assemblies: assemblies,
-    assembly_links: assembly_links,
-    DatabaseItem: DatabaseItem
 };
