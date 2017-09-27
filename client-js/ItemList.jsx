@@ -275,13 +275,10 @@ export default class ItemList extends React.Component {
         fetch('/api/inventory', {
             method: 'PUT',
             credentials: 'include',
-            headers: { 'Content-Type': 'text/csv', 'Accept': 'text/csv' },
+            headers: { 'Content-Type': 'text/csv', 'Accept': 'application/json' },
             body: selectedFile
-        }).then(
-            (res) => {
-                if(!res.ok) return Promise.reject(res);
-                return this.retrItemList();
-            }
+        }).then(jsonOnSuccess).then(
+            (items) => { this.setState({items: items}); }
         ).catch(errorHandler);
     }
 
