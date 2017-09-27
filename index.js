@@ -2,6 +2,10 @@ require('app-module-path').addPath(__dirname);
 
 var args = require('minimist')(process.argv.slice(2));
 
+if(!args.no_stackdriver) {
+    require('@google-cloud/trace-agent').start();
+}
+
 var winston = require('winston');
 var uuidv1 = require('uuid/v1');
 
@@ -9,6 +13,11 @@ var uuidv1 = require('uuid/v1');
 winston.setLevels(winston.config.syslog.levels);
 winston.level = args.log_level ||'info';
 winston.add(winston.transports.File, { filename: args.log_file || '/var/log/parttracker.log' });
+
+if(!args.no_stackdriver) {
+    var stackdriver_transport = require('@google-cloud/logging-winston');
+    winston.add(stackdriver_transport);
+}
 
 if(!args.no_syslog) {
     require('winston-syslog').Syslog;
@@ -180,6 +189,20 @@ if(args.no_https) {
 
     // plain HTTP server for http-01 challenge support; redirects all other requests to HTTPS
     var challenge_app = express();
+    challenge_app.use((req, res, next) => {
+        winston.info(
+            'Unencrypted %s request made to %s from %s',
+            req.method, req.originalUrl, req.socket.remoteAddress.toString(),
+            {
+                method: req.method,
+                url: req.originalUrl,
+                remoteAddress: req.socket.remoteAddress.toString()
+            }
+        );
+
+        next();
+    });
+
     challenge_app.use('/.well-known/acme-challenge', express.static('acme-static/.well-known/acme-challenge'));
     challenge_app.use((req, res) => { res.redirect('https://'+req.hostname+req.url); });
 
