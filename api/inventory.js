@@ -1,6 +1,5 @@
 var express = require('express');
 var monk = require('monk');
-var csv = require('csv');
 var bodyParser = require('body-parser');
 
 var dbAPI = require('api/db.js');
@@ -15,27 +14,6 @@ router.use(bodyParser.json());
 router.use(bodyParser.text({
     type: 'text/csv'
 }));
-
-function sendItemSummaries(res, out_type, summaries) {
-    if(out_type === 'json') {
-        res.status(200).json(summaries);
-    } else if(out_type === 'text/csv') {
-        csv.stringify(
-            summaries,
-            {
-                columns: ['id', 'name', 'count', 'reserved', 'available', 'created', 'updated'],
-                header: true,
-                formatters: {
-                    date: (d) => d.toISOString()
-                },
-            },
-            (err, data) => {
-                res.set('Content-Disposition', 'attachment; filename="inventory.csv"');
-                res.status(200).type('text/csv').send(data);
-            }
-        );
-    }
-}
 
 /* Method handlers: */
 router.get('/inventory(.csv)?', common.asyncMiddleware(
@@ -57,7 +35,11 @@ router.get('/inventory(.csv)?', common.asyncMiddleware(
             }
         ));
 
-        sendItemSummaries(res, out_type, summaries);
+        if(out_type === 'json') {
+            res.status(200).json(summaries);
+        } else if(out_type === 'text/csv') {
+            common.sendCSV(res, summaries, 'inventory.csv');
+        }
     }
 ));
 
@@ -70,19 +52,12 @@ router.put('/inventory', common.asyncMiddleware(
         if(!in_type)
             throw new common.APIClientError(415, "Request payload must either be in CSV or JSON format.");
 
-        if(in_type === 'text/csv') {
-            var dataPromise = new Promise((resolve, reject) => {
-                csv.parse(
-                    req.body,
-                    { columns: true, auto_parse: true },
-                    (err, parsedData) => {
-                        if(err) return reject(err);
-                        return resolve(parsedData);
-                    }
-                );
-            });
+        var out_type = req.accepts(['json', 'text/csv']);
+        if(!out_type)
+            throw new common.APIClientError(406, "Request must Accept either CSV or JSON format data.");
 
-            var data = await dataPromise;
+        if(in_type === 'text/csv') {
+            var data = await common.parseCSV(req.body);
         } else {
             var data = req.body;
         }
@@ -109,7 +84,11 @@ router.put('/inventory', common.asyncMiddleware(
             return userItem.summary();
         }));
 
-        sendItemSummaries(res, in_type, summaries);
+        if(out_type === 'json') {
+            res.status(200).json(summaries);
+        } else if(out_type === 'text/csv') {
+            common.sendCSV(res, summaries, 'inventory.csv');
+        }
     }
 ));
 

@@ -9,6 +9,9 @@ var User = require('api/models/User.js');
 
 var router = express.Router();
 router.use(bodyParser.json());
+router.use(bodyParser.text({
+    type: 'text/csv'
+}));
 
 router.get('/user',
     (req, res, next) => {
@@ -27,22 +30,32 @@ router.post('/user/password',
 )
 
 /* Get listing of all users. This isn't restricted to administrators, though it does require authentication. */
-router.get('/users',
-    (req, res, next) => {
-        dbAPI.users.find({}, {}).then(
-            (docs) => {
-                promises = docs.map(
-                    (doc) => {
-                        user = new User(doc._id);
-                        return user.summary();
-                    }
-                );
+router.get('/users(.csv)?', common.asyncMiddleware(
+    async (req, res) => {
+        if(req.path === '/users.csv') {
+            var out_type = req.accepts('text/csv');
+        } else {
+            var out_type = req.accepts(['json', 'text/csv']);
+        }
 
-                return Promise.all(promises);
+        if(!out_type)
+            throw new common.APIClientError(406, "Request must Accept either CSV or JSON format data.");
+
+        var promises = (await dbAPI.users.find({}, {})).map(
+            (doc) => {
+                user = new User(doc._id);
+                return user.summary();
             }
-        ).then(common.jsonSuccess(res)).catch(next);
+        );
+        var summaries = await Promise.all(promises);
+
+        if(out_type == 'text/csv') {
+            common.sendCSV(res, summaries, 'users.csv');
+        } else {
+            res.status(200).json(summaries);
+        }
     }
-);
+));
 
 /* The /users endpoints are restricted to administrators only. */
 router.use('/users',
@@ -57,6 +70,112 @@ router.use('/users',
         );
     }
 );
+
+/* Completely replaces / updates the Users collection. */
+router.put('/users', common.asyncMiddleware(
+    async (req, res) => {
+        var in_type = req.is(['json', 'text/csv']);
+        if(!in_type)
+            throw new common.APIClientError(415, "Request payload must either be in CSV or JSON format.");
+
+        var out_type = req.accepts(['json', 'text/csv']);
+        if(!out_type)
+            throw new common.APIClientError(406, "Request must Accept either CSV or JSON format data.");
+
+        if(in_type === 'text/csv') {
+            var data = await common.parseCSV(req.body);
+        } else {
+            var data = req.body;
+        }
+
+        /* Make sure all passed in objects have all properties set. */
+        const params = ['username', 'realname', 'password', 'admin', 'activityCreator', 'disabled'];
+        for(let doc of data) {
+            const propNames = Object.getOwnPropertyNames(doc);
+            const missing = params.find(p => !propNames.includes(p));
+            if(missing !== undefined) throw new common.APIClientError(400, `Request body is missing parameter: ${missing}`);
+        }
+
+        /* Get old and new username lists (also map usernames to User objects) */
+        var oldUserList = (await dbAPI.users.find({}, {})).map(
+            (doc) => { return new User(doc._id); }
+        );
+
+        var oldUsernames = [];
+        var usernameMap = {};
+
+        await Promise.all(oldUserList.map(
+            async (user) => {
+                var username = await user.username();
+                oldUsernames.push(username);
+                usernameMap[username] = user;
+            }
+        ));
+
+        var newUsernames = data.map(
+            (user) => { return user.username; }
+        );
+
+        /* Get differences between each list */
+        var deletedUsers = oldUsernames.filter(x => !newUsernames.includes(x));
+        var updatedUsers = oldUsernames.filter(x => newUsernames.includes(x));
+        var addedUsers = newUsernames.filter(x => !oldUsernames.includes(x));
+
+        /* Now update / delete / add users as necessary */
+        var updates = updatedUsers.map(
+            async (username) => {
+                var user = usernameMap[username];
+                var newData = data.find(x => x.username === username);
+
+                user.realname(newData.realname);
+                user.admin(newData.admin);
+                user.disabled(newData.disabled);
+                user.activityCreator(newData.activityCreator);
+                await user.setPassword(newData.password);
+
+                return user.save();
+            }
+        );
+
+        var deletions = deletedUsers.map(
+            (username) => {
+                return usernameMap[username].delete()
+            }
+        );
+
+        var additions = addedUsers.map(
+            async (username) => {
+                var user = new User();
+                var newData = data.find(x => x.username === username);
+
+                user.username(newData.username);
+                user.realname(newData.realname);
+                user.admin(newData.admin == 'true');
+                user.disabled(newData.disabled == 'true');
+                user.activityCreator(newData.activityCreator == 'true');
+                await user.setPassword(newData.password);
+
+                return user.save();
+            }
+        );
+
+        await Promise.all(updates.concat(additions, deletions));
+
+        var promises = (await dbAPI.users.find({}, {})).map(
+            (doc) => {
+                user = new User(doc._id);
+                return user.summary();
+            }
+        );
+        var summaries = await Promise.all(promises);
+
+        if(out_type == 'text/csv') {
+            common.sendCSV(res, summaries, 'users.csv');
+        } else if(out_type === 'json') {
+            res.status(200).json(summaries);
+        }
+    }
+))
 
 
 /* Add a new user.

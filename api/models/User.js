@@ -26,9 +26,47 @@ User.prototype.delete = function () {
 
 User.prototype.username = function(v) { return this.prop('username', v); };
 User.prototype.realname = function(v) { return this.prop('realname', v); };
-User.prototype.admin = function(v) { return this.prop('admin', v); };
-User.prototype.activityCreator = function(v) { return this.prop('activityCreator', v); };
-User.prototype.disabled = function(v) { return this.prop('disabled', v); };
+User.prototype.admin = function(v) {
+    if(v === undefined) return this.prop('admin');
+
+    if(typeof v === 'string') {
+        return this.prop('admin', v.toLowerCase() == 'true');
+    } else if(typeof v === 'boolean') {
+        return this.prop('admin', v);
+    } else {
+        return Promise.reject("Value for 'admin' must be a boolean.");
+    }
+
+    return this.prop('admin', v);
+};
+
+User.prototype.activityCreator = function(v) {
+    if(v === undefined) return this.prop('activityCreator');
+
+    if(typeof v === 'string') {
+        return this.prop('activityCreator', v.toLowerCase() == 'true');
+    } else if(typeof v === 'boolean') {
+        return this.prop('activityCreator', v);
+    } else {
+        return Promise.reject("Value for 'activityCreator' must be a boolean.");
+    }
+
+    return this.prop('activityCreator', v);
+};
+
+User.prototype.disabled = function(v) {
+    if(v === undefined) return this.prop('disabled');
+
+    if(typeof v === 'string') {
+        return this.prop('disabled', v.toLowerCase() == 'true');
+    } else if(typeof v === 'boolean') {
+        return this.prop('disabled', v);
+    } else {
+        return Promise.reject("Value for 'disabled' must be a boolean.");
+    }
+
+    return this.prop('disabled', v);
+};
 
 User.prototype.passwordHash = function() { return this.prop('pw_hash'); };
 User.prototype.salt = function() { return this.prop('salt'); };

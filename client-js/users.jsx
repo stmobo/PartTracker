@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {errorHandler, jsonOnSuccess, renderUpdateTime, getUserInfo} from './common.jsx';
+import FileUploadButton from './FileUploadButton.jsx';
 
 /* Renders a single user in a list.
  * Required props:
@@ -355,6 +356,7 @@ class UserList extends React.Component {
 
         this.retrState = this.retrState.bind(this);
         this.deleteUser = this.deleteUser.bind(this);
+        this.handleUsersImport = this.handleUsersImport.bind(this);
 
         this.retrState();
     }
@@ -363,7 +365,7 @@ class UserList extends React.Component {
     retrState() {
         fetch('/api/users', {credentials: 'include'}).then(jsonOnSuccess).then(
             (users) => {
-                this.setState({users: users});
+                this.setState({'users': users});
                 return getUserInfo();
             }
         ).then(
@@ -378,10 +380,23 @@ class UserList extends React.Component {
         .then(this.retrState).catch(errorHandler);
     }
 
+    handleUsersImport(fileInput) {
+        var selectedFile = fileInput.files[0];
+
+        fetch('/api/users', {
+            method: 'PUT',
+            credentials: 'include',
+            headers: { 'Content-Type': 'text/csv', 'Accept': 'application/json' },
+            body: selectedFile
+        }).then(jsonOnSuccess).then(
+            (userData) => { this.setState({'users': userData}); }
+        ).catch(errorHandler);
+    }
+
     render() {
         var elems = this.state.users.map(
             (userObject) => {
-                return <UserListElement canEdit={this.state.isAdmin} model={userObject} key={userObject.id} onDelete={this.deleteUser} />
+                return (<UserListElement canEdit={this.state.isAdmin} model={userObject} key={userObject.id} onDelete={this.deleteUser} />);
             }
         )
 
@@ -402,6 +417,10 @@ class UserList extends React.Component {
                 </div>
                 {elems}
                 {newUserForm}
+                <div>
+                    <FileUploadButton accept=".csv" className="btn btn-default btn-sm list-create-new-button" onFileSelected={this.handleUsersImport}>Import from CSV</FileUploadButton>
+                    <a className="btn btn-default btn-sm list-create-new-button" href="/api/users.csv">Export to CSV</a>
+                </div>
             </div>
         );
     }
