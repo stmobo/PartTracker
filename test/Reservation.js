@@ -27,42 +27,7 @@ describe('Reservation', function() {
     describe('#count()', common.numeric_prop_tests.bind(null, dbAPI.reservations, Reservation, 'count'));
 
     describe('#part()', function() {
-        it('should return null if the property is not set', async function() {
-            var testRSVP = new Reservation();
-            testRSVP.part().should.become(null);
-        })
-
-        it("should save and load Item objects", async function() {
-            var testRSVP = new Reservation();
-            var rid = testRSVP.id();
-            var testItem = new Item();
-            await testItem.save();
-
-            await testRSVP.part(testItem);
-            await testRSVP.save();
-
-            testRSVP = new Reservation(rid);
-            var loadedItem = await testRSVP.part();
-
-            loadedItem.should.satisfy(x => x instanceof Item);
-            loadedItem.id().should.satisfy(testItem.id().equals);
-        });
-
-        it("should accept an Item's ID and return an Item object", async function() {
-            var testRSVP = new Reservation();
-            var rid = testRSVP.id();
-            var testItem = new Item();
-            await testItem.save();
-
-            await testRSVP.part(testItem.id().toString());
-            await testRSVP.save();
-
-            testRSVP = new Reservation(rid);
-            var loadedItem = await testRSVP.part();
-
-            loadedItem.should.satisfy(x => x instanceof Item);
-            loadedItem.id().should.satisfy(testItem.id().equals);
-        });
+        common.model_prop_tests(dbAPI.reservations, Reservation, 'part', Item);
     });
 
     describe.skip('#requester()', function() {

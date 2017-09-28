@@ -13,7 +13,8 @@ should = chai.should();
 module.exports = {
     string_prop_tests: string_prop_tests,
     numeric_prop_tests: numeric_prop_tests,
-    boolean_prop_tests: boolean_prop_tests
+    boolean_prop_tests: boolean_prop_tests,
+    model_prop_tests: model_prop_tests,
 };
 
 // types that shouldn't be accepted by most prop functions
@@ -190,4 +191,61 @@ function boolean_prop_tests(collection, Model, prop_name) {
     });
 
     rejection_tests(collection, Model, prop_name, usual_rejected_test_cases);
+}
+
+/* Common tests for properties that refer to other objects. */
+function model_prop_tests(collection, Model, prop_name, ForeignModel) {
+    const rejected_string_case = 'foobar';
+
+    generic_prop_tests(Model, prop_name, new ForeignModel());
+    rejection_tests(collection, Model, prop_name, usual_rejected_test_cases);
+
+    var forn_model_name = ForeignModel.name;
+
+    it(`should accept ${forn_model_name} IDs from the database and return ${forn_model_name} objects`, async function() {
+        var foreignInstance = new ForeignModel();
+        await foreignInstance.save();
+
+        var doc = await collection.insert({ [prop_name]: foreignInstance.id() });
+        var instance = new Model(doc._id);
+
+        return instance[prop_name]().should.eventually.satisfy(x => x instanceof ForeignModel);
+    });
+
+    it(`should accept ${forn_model_name} objects as property values`, async function () {
+        var foreignInstance = new ForeignModel();
+        await foreignInstance.save();
+
+        var instanceA = new Model();
+        await instanceA[prop_name](foreignInstance.id());
+        await instanceA.save();
+
+        var instanceB = new Model(instanceA.id());
+        return instanceB[prop_name]().should.eventually.satisfy(x => x.id().equals(foreignInstance.id()));
+    });
+
+    it(`should accept Object IDs as property values`, async function () {
+        var foreignID = monk.id();
+        var instanceA = new Model();
+        await instanceA[prop_name](foreignID);
+        await instanceA.save();
+
+        var instanceB = new Model(instanceA.id());
+        return instanceB[prop_name]().should.eventually.satisfy(x => x.id().equals(foreignID));
+    });
+
+    it(`should accept stringified Object IDs as property values`, async function () {
+        var foreignID = monk.id();
+        var instanceA = new Model();
+        await instanceA[prop_name](foreignID.toString());
+        await instanceA.save();
+
+        var instanceB = new Model(instanceA.id());
+        return instanceB[prop_name]().should.eventually.satisfy(x => x.id().equals(foreignID));
+    });
+
+    it(`should reject other strings as property values`, async function () {
+        var instanceA = new Model();
+        return instanceA[prop_name](rejected_string_case).should.be.rejected;
+    });
 }
