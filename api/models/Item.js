@@ -2,6 +2,7 @@ var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;
 var dbAPI = require('api/db.js');
 var winston = require('winston');
+var type = require('type-detect');
 
 var Item = function (id) {
     dbAPI.DatabaseItem.call(this, dbAPI.inventory, id);
@@ -27,16 +28,33 @@ Item.prototype.delete = async function () {
 };
 
 /* Get / Set item name and total inventory count... */
-Item.prototype.name = function(v) { return this.prop('name', v); };
+Item.prototype.name = async function(v) {
+    if(type(v) === 'string') {
+        return this.prop('name', v);
+    } else if(v === undefined) {
+        var t = await this.prop('name');
+        if(t === null || type(t) === 'string') return t;
+
+        throw new Error("Got non-string value for Item.name() from database!");
+    } else {
+        throw new Error("Item.name() value must be a string!");
+    }
+};
+
 Item.prototype.count = async function(v) {
-    if(typeof v === 'string' && !isNaN(parseInt(v))) {
-        return this.prop('count', parseInt(v));
-    } else if(typeof v === 'number') {
+    if(type(v) === 'string' && !isNaN(parseInt(v, 10))) {
+        return this.prop('count', parseInt(v, 10));
+    } else if(type(v) === 'number') {
         return this.prop('count', v);
     } else if(v === undefined) {
-        return this.prop('count');
+        var t = await this.prop('count');
+
+        if(t === null || type(t) === 'number') return t;
+        else if(type(t) === 'string' && !isNaN(parseInt(t, 10))) return parseInt(t, 10);
+
+        throw new Error("Got non-numerical, non-null value for Item.count() from database!");
     } else {
-        throw new Error("Invalid parameter for Item Count!");
+        throw new Error("Item.count() value must be a numerical value (parsable string or number)!");
     }
 };
 
