@@ -28,7 +28,7 @@ Item.prototype.delete = async function () {
 
 /* Get / Set item name and total inventory count... */
 Item.prototype.name = function(v) { return this.prop('name', v); };
-Item.prototype.count = function(v) {
+Item.prototype.count = async function(v) {
     if(typeof v === 'string' && !isNaN(parseInt(v))) {
         return this.prop('count', parseInt(v));
     } else if(typeof v === 'number') {
