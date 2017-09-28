@@ -56,7 +56,7 @@ function rejection_tests(collection, Model, prop_name, params) {
             var instance = new Model();
             var set_promise = instance[prop_name](param);
             should.exist(set_promise)
-            return set_promise.should.be.rejected();
+            return set_promise.should.be.rejected;
         });
     });
 }
@@ -113,7 +113,7 @@ function numeric_prop_tests(collection, Model, prop_name) {
     it('should reject non-numerical strings as property values', async function() {
         var instance = new Model();
 
-        return instance[prop_name](nonnumeric_string).should.be.rejected();
+        return instance[prop_name](nonnumeric_string).should.be.rejected;
     });
 
     rejection_tests(collection, Model, prop_name, usual_rejected_test_cases);
@@ -181,7 +181,7 @@ function boolean_prop_tests(collection, Model, prop_name) {
     it("should reject other strings", async function() {
         var instance = new Model(doc._id);
 
-        return instance[prop_name](rejected_string_case).should.be.rejected();
+        return instance[prop_name](rejected_string_case).should.be.rejected;
     });
 
     rejection_tests(collection, Model, prop_name, usual_rejected_test_cases);
