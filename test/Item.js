@@ -1,5 +1,5 @@
 var dbAPI = require('api/db.js');
-var Item = require('api/Models/Item.js');
+var Item = require('api/models/Item.js');
 
 var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;

@@ -5,12 +5,7 @@ var Item = require('api/models/Item.js');
 var User = require('api/models/User.js');
 
 var Reservation = function(id) {
-    if((id instanceof ObjectID) || (typeof id === 'string')) {
-        /* Load an item from the DB */
-        dbAPI.DatabaseItem.call(this, dbAPI.reservations, id);
-    } else {
-        dbAPI.DatabaseItem.call(this, dbAPI.reservations);
-    }
+    dbAPI.DatabaseItem.call(this, dbAPI.reservations, id);
 };
 
 Reservation.prototype = Object.create(dbAPI.DatabaseItem.prototype);

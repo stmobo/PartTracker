@@ -15,7 +15,7 @@ var mongo_tmpdir;
 
 spin_up_tmpdb().then(
     (tmpdir) => {
-        dbAPI.reset_database_connection('localhost:27017/parttracker');
+        //dbAPI.reset_database_connection('localhost:27017/parttracker');
         run();
     }
 );

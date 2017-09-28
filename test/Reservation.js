@@ -1,7 +1,7 @@
 var dbAPI = require('api/db.js');
-var Item = require('api/Models/Item.js');
-var User = require('api/Models/User.js');
-var Reservation = require('api/Models/Reservation.js');
+var Item = require('api/models/Item.js');
+var User = require('api/models/User.js');
+var Reservation = require('api/models/Reservation.js');
 
 var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;
@@ -9,6 +9,8 @@ var ObjectID = require('mongodb').ObjectID;
 var chai = require('chai');
 chai.use(require('chai-as-promised'));
 chai.should();
+
+var common = require('test/support/model_common.js');
 
 describe('Reservation', function() {
     var testItemName = 'Foobar';
@@ -22,33 +24,18 @@ describe('Reservation', function() {
         dbAPI.reservations.remove({});
     });
 
-    describe('#count()', function() {
-        it('should be able to save and load numbers', async function() {
-            var testRSVP = new Reservation();
+    describe('test', function() {
+        it('test', async function() {
 
-            await testRSVP.count(testCount);
-            await testRSVP.save();
+            var doc = await dbAPI.reservations.insert({ count: 42 });
+            var instance = new Reservation(doc._id);
 
-            var otherTestRSVP = new Reservation(testRSVP.id());
-            return otherTestRSVP.count().should.become(testCount);
+            // or alternately, test .should.become(param.toString())
+            return instance['count']().should.become(42);
         });
+    })
 
-        it('should be able to save a numerical string and load a number', async function() {
-            var testRSVP = new Reservation();
-
-            await testRSVP.count(testNumericString);
-            await testRSVP.save();
-
-            var otherTestRSVP = new Reservation(testRSVP.id());
-            return otherTestRSVP.count().should.become(parseInt(testNumericString, 10));
-        });
-
-        it('should reject non-numerical strings', async function() {
-            var testRSVP = new Reservation();
-
-            return testRSVP.count(testString).should.be.rejectedWith(Error);
-        });
-    });
+    describe('#count()', common.numeric_prop_tests.bind(null, dbAPI.reservations, Reservation, 'count'));
 
     describe('#part()', function() {
         it('should return null if the property is not set', async function() {

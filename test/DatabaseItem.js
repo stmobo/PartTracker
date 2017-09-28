@@ -103,7 +103,7 @@ describe('DatabaseItem', function() {
             await newDBItem.prop(testPropKey, testPropValue);
             await newDBItem.save();
 
-            testCollection.update(
+            await testCollection.update(
                 { _id: newDBItem.id() },
                 { $set: { [testPropKey]: testPropChangedValue } }
             );
