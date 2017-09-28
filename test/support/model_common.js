@@ -70,6 +70,11 @@ function generic_prop_tests(Model, prop_name, accepted_value) {
         get_promise.should.be.a('promise');
     });
 
+    it('should return null if the property is not set', async function() {
+        var instance = new Model();
+        instance[prop_name]().should.become(null);
+    })
+
     it('should return a Promise for set calls', async function() {
         var instance = new Model();
 

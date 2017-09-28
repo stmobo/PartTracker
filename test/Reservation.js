@@ -24,17 +24,6 @@ describe('Reservation', function() {
         dbAPI.reservations.remove({});
     });
 
-    describe('test', function() {
-        it('test', async function() {
-
-            var doc = await dbAPI.reservations.insert({ count: 42 });
-            var instance = new Reservation(doc._id);
-
-            // or alternately, test .should.become(param.toString())
-            return instance['count']().should.become(42);
-        });
-    })
-
     describe('#count()', common.numeric_prop_tests.bind(null, dbAPI.reservations, Reservation, 'count'));
 
     describe('#part()', function() {
