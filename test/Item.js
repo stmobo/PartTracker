@@ -8,6 +8,8 @@ var chai = require('chai');
 chai.use(require('chai-as-promised'));
 chai.should();
 
+var common = require('test/support/model_common.js');
+
 describe('Item', function() {
     var testItemName = 'Foobar';
     var testString = 'batman';
@@ -20,43 +22,11 @@ describe('Item', function() {
     });
 
     describe('#count()', function() {
-        it('should be able to save and load numbers', async function() {
-            var testItem = new Item();
-
-            await testItem.count(testCount);
-            await testItem.save();
-
-            var otherTestItem = new Item(testItem.id());
-            return otherTestItem.count().should.become(testCount);
-        });
-
-        it('should be able to save a numerical string and load a number', async function() {
-            var testItem = new Item();
-
-            await testItem.count(testNumericString);
-            await testItem.save();
-
-            var otherTestItem = new Item(testItem.id());
-            return otherTestItem.count().should.become(parseInt(testNumericString, 10));
-        });
-
-        it('should reject non-numerical strings', async function() {
-            var testItem = new Item();
-
-            return testItem.count(testString).should.be.rejectedWith(Error);
-        });
+        common.numeric_prop_tests(dbAPI.inventory, Item, 'count');
     });
 
     describe('#name()', function() {
-        it('should be able to save and load strings', async function() {
-            var testItem = new Item();
-
-            await testItem.name(testItemName);
-            await testItem.save();
-
-            var otherTestItem = new Item(testItem.id());
-            return otherTestItem.name().should.become(testItemName);
-        });
+        common.string_prop_tests(dbAPI.inventory, Item, 'name');
     });
 
     describe('#delete()', function() {
