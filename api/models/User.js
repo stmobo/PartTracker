@@ -1,6 +1,7 @@
 var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;
 var dbAPI = require('api/db.js');
+var type = require('type-detect');
 
 const crypto = require('crypto');
 
@@ -24,84 +25,112 @@ User.prototype.delete = function () {
     return dbAPI.users.remove({_id: this.id()});
 };
 
-User.prototype.username = function(v) { return this.prop('username', v); };
-User.prototype.realname = function(v) { return this.prop('realname', v); };
-User.prototype.admin = function(v) {
+User.prototype.username = async function(v) {
+    if(v === undefined) {
+        var t = await this.prop('username');
+        if(t !== null && type(t) !== 'string') throw new Error("Got non-string data for User.username() from database!");
+
+        return t;
+    }
+
+    if(type(v) !== 'string') throw new Error("Value for User.username() must be a string!");
+    return this.prop('username', v);
+};
+
+User.prototype.realname = async function(v) {
+    if(v === undefined) {
+        var t = await this.prop('realname');
+        if(t !== null && type(t) !== 'string') throw new Error("Got non-string data for User.realname() from database!");
+
+        return t;
+    }
+
+    if(type(v) !== 'string') throw new Error("Value for User.realname() must be a string!");
+    return this.prop('realname', v);
+};
+
+User.prototype.admin = async function(v) {
     if(v === undefined) return this.prop('admin');
 
-    if(typeof v === 'string') {
-        return this.prop('admin', v.toLowerCase() == 'true');
-    } else if(typeof v === 'boolean') {
+    if(type(v) === 'string') {
+        v = v.toLowerCase();
+        if(v === 'true') { v = true; }
+        else if(v === 'false') { v = false; }
+        else { throw new Error("Given value for 'admin' cannot be converted to a boolean!"); }
+
+        return this.prop('admin', v);
+    } else if(type(v) === 'boolean') {
         return this.prop('admin', v);
     } else {
-        return Promise.reject("Value for 'admin' must be a boolean.");
+        throw new Error("Value for 'admin' must be a boolean.");
     }
-
-    return this.prop('admin', v);
 };
 
-User.prototype.activityCreator = function(v) {
+User.prototype.activityCreator = async function(v) {
     if(v === undefined) return this.prop('activityCreator');
 
-    if(typeof v === 'string') {
-        return this.prop('activityCreator', v.toLowerCase() == 'true');
-    } else if(typeof v === 'boolean') {
+    if(type(v) === 'string') {
+        v = v.toLowerCase();
+        if(v === 'true') { v = true; }
+        else if(v === 'false') { v = false; }
+        else { throw new Error("Given value for 'activityCreator' cannot be converted to a boolean!"); }
+
+        return this.prop('activityCreator', v);
+    } else if(type(v) === 'boolean') {
         return this.prop('activityCreator', v);
     } else {
-        return Promise.reject("Value for 'activityCreator' must be a boolean.");
+        throw new Error("Value for 'activityCreator' must be a boolean.");
     }
-
-    return this.prop('activityCreator', v);
 };
 
-User.prototype.disabled = function(v) {
+User.prototype.disabled = async function(v) {
     if(v === undefined) return this.prop('disabled');
 
-    if(typeof v === 'string') {
-        return this.prop('disabled', v.toLowerCase() == 'true');
-    } else if(typeof v === 'boolean') {
+    if(type(v) === 'string') {
+        v = v.toLowerCase();
+        if(v === 'true') { v = true; }
+        else if(v === 'false') { v = false; }
+        else { throw new Error("Given value for 'disabled' cannot be converted to a boolean!"); }
+
+        return this.prop('disabled', v);
+    } else if(type(v) === 'boolean') {
         return this.prop('disabled', v);
     } else {
-        return Promise.reject("Value for 'disabled' must be a boolean.");
+        throw new Error("Value for 'disabled' must be a boolean.");
     }
-
-    return this.prop('disabled', v);
 };
 
 User.prototype.passwordHash = function() { return this.prop('pw_hash'); };
 User.prototype.salt = function() { return this.prop('salt'); };
 
 /* Computes the hash of (v + user.salt) */
-User.prototype.computePasswordHash = function(v) {
-    return this.salt().then(
-        (salt) => {
-            var hash = crypto.createHash('sha256');
-            hash.update(v + salt);
-            return hash.digest();
-        }
-    );
+User.prototype.computePasswordHash = async function(v) {
+    if(type(v) !== 'string')
+        return Promise.reject(new TypeError('Parameter to computePasswordHash() must be a string!'));
+
+    var hash = crypto.createHash('sha256');
+    hash.update(v + (await this.salt()));
+    return hash.digest();
 }
 
 /* Checks to see if the password given is the same as the user's password */
-User.prototype.validatePassword = function (pw) {
-    return Promise.all([this.computePasswordHash(pw), this.passwordHash()]).then(
-        (retns) => {
-            var inputHashDigest = retns[0];
-            var userPWHash = Buffer.from(retns[1], 'base64');
+User.prototype.validatePassword = async function (pw) {
+    if(type(pw) !== 'string')
+        return Promise.reject(new TypeError('Parameter to validatePassword() must be a string!'));
 
-            return userPWHash.equals(inputHashDigest);
-        }
-    );
+    var inputHashDigest = await this.computePasswordHash(pw);
+    var userPWHash = Buffer.from(await this.passwordHash(), 'base64');
+
+    return userPWHash.equals(inputHashDigest);
 };
 
 /* Hashes and sets a user's password. */
-User.prototype.setPassword = function (v) {
-    if(typeof v !== 'string')
+User.prototype.setPassword = async function (v) {
+    if(type(v) !== 'string')
         return Promise.reject(new TypeError('Parameter to setPassword() must be a string!'));
 
-    return this.computePasswordHash(v).then(
-        (hashDigest) => { return this.prop('pw_hash', hashDigest.toString('base64')); }
-    );
+    var hashDigest = await this.computePasswordHash(v);
+    return this.prop('pw_hash', hashDigest.toString('base64'));
 };
 
 /* Gets information on the activities the user has done.

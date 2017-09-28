@@ -60,7 +60,7 @@ DatabaseItem.prototype.prop = function (k, v) {
         if(this['_'+k] === undefined) {
             return this.db.findOne({_id: this.id()}).then(
                 (doc) => {
-                    if(doc === null) {
+                    if(doc === null || doc[k] === undefined) {
                         return null;
                     } else {
                         this['_'+k] = doc[k];
