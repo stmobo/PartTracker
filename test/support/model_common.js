@@ -1,5 +1,4 @@
 var dbAPI = require('api/db.js');
-
 var util = require('util');
 var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;
@@ -15,6 +14,7 @@ module.exports = {
     numeric_prop_tests: numeric_prop_tests,
     boolean_prop_tests: boolean_prop_tests,
     model_prop_tests: model_prop_tests,
+    summary_tests: summary_tests,
 };
 
 // types that shouldn't be accepted by most prop functions
@@ -249,3 +249,65 @@ function model_prop_tests(collection, Model, prop_name, ForeignModel) {
         return instanceA[prop_name](rejected_string_case).should.be.rejected;
     });
 }
+
+/* Tests for common summary properties. */
+function summary_tests(collection, Model, testing_document) {
+    async function initializeInstance() {
+        var instance = new Model();
+        for(prop in testing_document) {
+            if(testing_document.hasOwnProperty(prop)) {
+                await instance[prop](testing_document[prop]);
+            }
+        }
+        await instance.save();
+
+        return instance;
+    }
+
+    it('should return a plain object', async function () {
+        var instance = await initializeInstance();
+
+        return instance.summary().should.eventually.be.an('object');
+    });
+
+    it('should have an ID field', async function () {
+        var instance = await initializeInstance();
+
+        var summary = await instance.summary();
+        summary.should.have.own.property('id');
+        summary.id.should.satisfy(x => x instanceof ObjectID);
+    });
+
+    it('should have an update timestamp', async function () {
+        var instance = await initializeInstance();
+
+        var summary = await instance.summary();
+        summary.should.have.own.property('updated');
+        summary.updated.should.be.a('date');
+    });
+
+    it('should have a creation timestamp', async function () {
+        var instance = await initializeInstance();
+
+        var summary = await instance.summary();
+        summary.should.have.own.property('created');
+        summary.created.should.be.a('date');
+    });
+
+    for(prop in testing_document) {
+        if(testing_document.hasOwnProperty(prop)
+            && type(testing_document[prop]) !== 'Object'
+            && type(testing_document[prop]) !== 'Array')
+        {
+            it(`should have a '${prop}' property of type ${type(testing_document[prop])}`, async function () {
+                var instance = await initializeInstance();
+
+                var summary = await instance.summary();
+                summary.should.have.own.property(prop);
+                summary[prop].should.equal(testing_document[prop]);
+            });
+        }
+    }
+}
+
+/*  */

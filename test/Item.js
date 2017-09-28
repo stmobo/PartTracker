@@ -64,35 +64,7 @@ describe('Item', function() {
     });
 
     describe('#summary()', function() {
-        it("should return an object with all of an item's saved properties", async function() {
-            var testItem = new Item();
-            var testItemID = testItem.id();
-
-            await Promise.all([
-                testItem.name(testItemName),
-                testItem.count(testCount)
-            ]);
-
-            await testItem.save();
-
-            testItem = new Item(testItem.id());
-            var testItemSummary = await testItem.summary();
-
-            testItemSummary.should.have.own.property('id');
-            testItemSummary.id.should.satisfy(x => x instanceof ObjectID);
-
-            testItemSummary.should.have.own.property('name');
-            testItemSummary.name.should.equal(testItemName);
-
-            testItemSummary.should.have.own.property('count');
-            testItemSummary.count.should.equal(testCount);
-
-            testItemSummary.should.have.own.property('updated');
-            testItemSummary.updated.should.be.a('date');
-
-            testItemSummary.should.have.own.property('created');
-            testItemSummary.created.should.be.a('date');
-        });
+        common.summary_tests(dbAPI.inventory, Item, { name: 'foobar', count: 0 });
 
         it("should calculate how many units of an item are reserved and available", async function() {
             var testItem = new Item();
