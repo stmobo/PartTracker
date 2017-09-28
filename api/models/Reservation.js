@@ -1,5 +1,7 @@
 var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;
+var type = require('type-detect');
+
 var dbAPI = require('api/db.js');
 var Item = require('api/models/Item.js');
 var User = require('api/models/User.js');
@@ -51,7 +53,7 @@ Reservation.prototype.requester = function(v) {
     }
 };
 
-Reservation.prototype.part = function(v) {
+Reservation.prototype.part = async function(v) {
     if(v === undefined) {
         /* Get part object. */
         return this.prop('part').then(
@@ -66,7 +68,7 @@ Reservation.prototype.part = function(v) {
     } else {
         if(v instanceof Item) {
             return this.prop('part', v.id());
-        } else if((v instanceof ObjectID) || (typeof v === 'string')) {
+        } else if((v instanceof ObjectID) || (type(v) === 'string')) {
             return this.prop('part', monk.id(v));
         } else {
             throw new Error("Invalid PartID passed to setter!");
