@@ -30,18 +30,8 @@ describe('Reservation', function() {
         common.model_prop_tests(dbAPI.reservations, Reservation, 'part', Item);
     });
 
-    describe.skip('#requester()', function() {
-        it('should return a User', async function() {
-
-        });
-
-        it('should accept a User', async function() {
-
-        });
-
-        it("should accept a User's ID", async function() {
-
-        });
+    describe('#requester()', function() {
+        common.model_prop_tests(dbAPI.reservations, Reservation, 'requester', User);
     });
 
 
