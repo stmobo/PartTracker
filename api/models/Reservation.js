@@ -24,11 +24,11 @@ Reservation.prototype.count = async function(v) {
         var t = await this.prop('count');
         if(typeof t === 'string' && !isNaN(parseInt(t, 10))) {
             return parseInt(t, 10);
-        } else if(typeof t === 'number') {
+        } else if(typeof t === 'number' || t === null) {
             return t;
         }
 
-        throw new Error("Got non-numerical value for count() from database!");
+        throw new Error("Got non-numerical, non-null value for count() from database!");
     }
 };
 
