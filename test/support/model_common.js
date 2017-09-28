@@ -185,7 +185,7 @@ function boolean_prop_tests(collection, Model, prop_name) {
     });
 
     it("should reject other strings", async function() {
-        var instance = new Model(doc._id);
+        var instance = new Model();
 
         return instance[prop_name](rejected_string_case).should.be.rejected;
     });
@@ -309,5 +309,3 @@ function summary_tests(collection, Model, testing_document) {
         }
     }
 }
-
-/*  */
