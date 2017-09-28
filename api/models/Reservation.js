@@ -34,18 +34,15 @@ Reservation.prototype.count = async function(v) {
     }
 };
 
-Reservation.prototype.requester = function(v) {
+Reservation.prototype.requester = async function(v) {
     if(v === undefined) {
-        return this.prop('requester').then(
-            (userID) => {
-                if(userID === null) return null;
-                return new User(userID);
-            }
-        );
+        var userID = await this.prop('requester');
+        if(userID === null) return null;
+        return new User(userID);
     } else {
         if(v instanceof User) {
             return this.prop('requester', v.id());
-        } else if((v instanceof ObjectID) || (typeof v === 'string')) {
+        } else if((v instanceof ObjectID) || (type(v) === 'string')) {
             return this.prop('requester', monk.id(v));
         } else {
             throw new Error("Invalid UserID passed to setter!");
@@ -56,15 +53,9 @@ Reservation.prototype.requester = function(v) {
 Reservation.prototype.part = async function(v) {
     if(v === undefined) {
         /* Get part object. */
-        return this.prop('part').then(
-            (partID) => {
-                if(partID === null) {
-                    return null;
-                }
-
-                return new Item(partID);
-            }
-        );
+        var partID = await this.prop('part');
+        if(partID === null) return null;
+        return new Item(partID);
     } else {
         if(v instanceof Item) {
             return this.prop('part', v.id());
