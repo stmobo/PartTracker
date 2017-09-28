@@ -6,7 +6,8 @@ const dbLocation = `${args.db_host || 'localhost'}:${args.db_port || 27017}/part
 
 /* Database collections are also exported under the appropriate names. */
 module.exports = {
-    DatabaseItem: DatabaseItem
+    DatabaseItem: DatabaseItem,
+    reset_database_connection: reset_database_connection
 };
 
 /* This function is mostly intended for testing purposes.
@@ -76,8 +77,8 @@ DatabaseItem.prototype.prop = function (k, v) {
     }
 };
 
-DatabaseItem.prototype.updated = function () { return this.prop('updated'); };
-DatabaseItem.prototype.created = function () { return this.prop('created'); };
+DatabaseItem.prototype.updated = async function () { return this.prop('updated'); };
+DatabaseItem.prototype.created = async function () { return this.prop('created'); };
 
 /* Check to see if this item exists in the database. */
 DatabaseItem.prototype.exists = function () {
