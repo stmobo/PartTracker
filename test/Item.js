@@ -59,6 +59,40 @@ describe('Item', function() {
         });
     });
 
+    describe('#delete()', function() {
+        it('should remove the item from the inventory', async function() {
+            var newItem = await dbAPI.inventory.insert({ name: testItemName, count: testCount });
+            var testItem = new Item(newItem._id);
+            await testItem.delete();
+
+            return dbAPI.inventory.findOne({ _id: newItem._id }).should.become(null);
+        });
+    });
+
+    describe('#reserved()', function() {
+        it('should return the number of reserved units of an item', async function() {
+            /* Note that we test the non-zero case in the tests for Reservation objects. */
+            var testItem = new Item();
+
+            await testItem.count(testCount);
+            await testItem.save();
+
+            return testItem.reserved().should.become(0);
+        });
+    });
+
+    describe('#available()', function() {
+        it('should return the number of non-reserved units of an item', async function() {
+            /* Note that we test the non-zero case in the tests for Reservation objects. */
+            var testItem = new Item();
+
+            await testItem.count(testCount);
+            await testItem.save();
+
+            return testItem.available().should.become(testCount - (await testItem.reserved()));
+        });
+    });
+
     describe('#summary()', function() {
         it("should return an object with all of an item's saved properties", async function() {
             var testItem = new Item();
