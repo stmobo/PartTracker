@@ -4,9 +4,11 @@ var util = require('util');
 var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;
 
+var type = require('type-detect');
+
 var chai = require('chai');
 chai.use(require('chai-as-promised'));
-chai.should();
+should = chai.should();
 
 module.exports = {
     string_prop_tests: string_prop_tests,
@@ -22,11 +24,8 @@ function read_write_tests(collection, Model, prop_name, params) {
         params = [params];
     }
 
-    it(`should accept ${typeof params[0]}s from the database`, function() {
+    it(`should accept ${type(params[0])}s from the database`, function() {
         return Promise.all(params.map(async function(param) {
-            var obj = { [prop_name]: param };
-            console.log(`\n\n\ninserting ${util.inspect(obj)}`);
-
             var doc = await collection.insert({ [prop_name]: param });
             var instance = new Model(doc._id);
 
@@ -35,7 +34,7 @@ function read_write_tests(collection, Model, prop_name, params) {
         }));
     });
 
-    it(`should accept ${typeof params[0]}s as property values`, function() {
+    it(`should accept ${type(params[0])}s as property values`, function() {
         return Promise.all(params.map(async function(param) {
             var instanceA = new Model();
             await instanceA[prop_name](param);
@@ -53,15 +52,36 @@ function rejection_tests(collection, Model, prop_name, params) {
     }
 
     params.forEach(function(param) {
-        it(`should reject ${typeof param}s as property values`, async function() {
+        it(`should reject ${type(param)}s as property values`, async function() {
             var instance = new Model();
-            return instance[prop_name](param).should.be.rejected();
+            var set_promise = instance[prop_name](param);
+            should.exist(set_promise)
+            return set_promise.should.be.rejected();
         });
+    });
+}
+
+function generic_prop_tests(Model, prop_name, accepted_value) {
+    it('should return a Promise for get calls', async function() {
+        var instance = new Model();
+
+        var get_promise = instance[prop_name]();
+        should.exist(get_promise);
+        get_promise.should.be.a('promise');
+    });
+
+    it('should return a Promise for set calls', async function() {
+        var instance = new Model();
+
+        var set_promise = instance[prop_name](accepted_value);
+        should.exist(set_promise);
+        set_promise.should.be.a('promise');
     });
 }
 
 /* Common tests for model string properties */
 function string_prop_tests(collection, Model, prop_name) {
+    generic_prop_tests(Model, prop_name, 'test');
     read_write_tests(collection, Model, prop_name, 'test');
     rejection_tests(collection, Model, prop_name, usual_rejected_test_cases);
 }
@@ -69,8 +89,9 @@ function string_prop_tests(collection, Model, prop_name) {
 /* Common tests for model number properties */
 function numeric_prop_tests(collection, Model, prop_name) {
     const numeric_string = '42';
-    const nonumeric_string = 'foobar';
+    const nonnumeric_string = 'foobar';
 
+    generic_prop_tests(Model, prop_name, numeric_string);
     read_write_tests(collection, Model, prop_name, 42);
 
     it('should accept numerical strings from the database', async function() {
@@ -92,7 +113,7 @@ function numeric_prop_tests(collection, Model, prop_name) {
     it('should reject non-numerical strings as property values', async function() {
         var instance = new Model();
 
-        return instance[prop_name](nonumeric_string).should.be.rejected();
+        return instance[prop_name](nonnumeric_string).should.be.rejected();
     });
 
     rejection_tests(collection, Model, prop_name, usual_rejected_test_cases);
@@ -110,6 +131,8 @@ function boolean_prop_tests(collection, Model, prop_name) {
     };
 
     const rejected_string_case = 'foobar';
+
+    generic_prop_tests(Model, prop_name, true);
 
     it("should accept boolean values from the database", async function() {
         var docA = await collection.insert({ [prop_name]: true });

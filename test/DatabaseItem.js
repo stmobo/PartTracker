@@ -4,7 +4,7 @@ var ObjectID = require('mongodb').ObjectID;
 
 var chai = require('chai');
 chai.use(require('chai-as-promised'));
-chai.should();
+should = chai.should();
 
 describe('DatabaseItem', function() {
     var testCollection = dbAPI.conn.get('testCollection');

@@ -62,6 +62,7 @@
     "mongodb-prebuilt": "^6.3.3",
     "pump": "^1.0.2",
     "rimraf": "^2.6.2",
+    "type-detect": "^4.0.3",
     "uglify-es": "^3.1.2",
     "uglifyify": "^4.0.4",
     "vinyl-source-stream": "^1.1.0",
