@@ -1,11 +1,19 @@
 var dbAPI = require('api/db.js');
 var Item = require('api/Models/Item.js');
 
+var monk = require('monk');
+var ObjectID = require('mongodb').ObjectID;
+
 var chai = require('chai');
 chai.use(require('chai-as-promised'));
 chai.should();
 
-describe.skip('Item', function() {
+describe('Item', function() {
+    var testItemName = 'Foobar';
+    var testString = 'batman';
+    var testCount = 42;
+    var testNumericString = '42';
+
     afterEach(function() {
         /* Completely clear Inventory collection. */
         dbAPI.inventory.remove({});
@@ -14,30 +22,26 @@ describe.skip('Item', function() {
     describe('#count()', function() {
         it('should be able to save and load numbers', async function() {
             var testItem = new Item();
-            // choice of number shouldn't matter; maybe replace with some kind of random number?
-            var testCount = 42;
 
             await testItem.count(testCount);
             await testItem.save();
 
             var otherTestItem = new Item(testItem.id());
-            return otherTestItem.count().should.eventually.equal(testCount);
+            return otherTestItem.count().should.become(testCount);
         });
 
         it('should be able to save a numerical string and load a number', async function() {
             var testItem = new Item();
-            var testCount = '42';
 
-            await testItem.count(testCount);
+            await testItem.count(testNumericString);
             await testItem.save();
 
             var otherTestItem = new Item(testItem.id());
-            return otherTestItem.count().should.eventually.equal(parseInt(testCount, 10));
+            return otherTestItem.count().should.become(parseInt(testNumericString, 10));
         });
 
         it('should reject non-numerical strings', async function() {
             var testItem = new Item();
-            var testString = 'batman';
 
             return testItem.count(testString).should.be.rejectedWith(Error);
         });
@@ -46,19 +50,65 @@ describe.skip('Item', function() {
     describe('#name()', function() {
         it('should be able to save and load strings', async function() {
             var testItem = new Item();
-            var testString = 'Foobar';
 
-            await testItem.name(testString);
+            await testItem.name(testItemName);
             await testItem.save();
 
             var otherTestItem = new Item(testItem.id());
-            return otherTestItem.name().should.eventually.equal(testString);
+            return otherTestItem.name().should.become(testItemName);
         });
     });
 
     describe('#summary()', function() {
         it("should return an object with all of an item's saved properties", async function() {
             var testItem = new Item();
+            var testItemID = testItem.id();
+
+            await Promise.all([
+                testItem.name(testItemName),
+                testItem.count(testCount)
+            ]);
+
+            await testItem.save();
+
+            testItem = new Item(testItem.id());
+            var testItemSummary = await testItem.summary();
+
+            testItemSummary.should.have.own.property('id');
+            testItemSummary.id.should.satisfy(x => x instanceof ObjectID);
+
+            testItemSummary.should.have.own.property('name');
+            testItemSummary.name.should.equal(testItemName);
+
+            testItemSummary.should.have.own.property('count');
+            testItemSummary.count.should.equal(testCount);
+
+            testItemSummary.should.have.own.property('updated');
+            testItemSummary.updated.should.be.a('date');
+
+            testItemSummary.should.have.own.property('created');
+            testItemSummary.created.should.be.a('date');
         });
-    })
+
+        it("should calculate how many units of an item are reserved and available", async function() {
+            var testItem = new Item();
+            var testItemID = testItem.id();
+
+            await Promise.all([
+                testItem.name(testItemName),
+                testItem.count(testCount)
+            ]);
+
+            await testItem.save();
+
+            testItem = new Item(testItem.id());
+            var testItemSummary = await testItem.summary();
+
+            testItemSummary.should.have.own.property('reserved');
+            testItemSummary.reserved.should.equal(0);
+
+            testItemSummary.should.have.own.property('available');
+            testItemSummary.available.should.equal(testCount);
+        });
+    });
 });
