@@ -89,7 +89,7 @@ describe('Reservation', function() {
     });
 
     describe('#summary()', function() {
-        common.summary_tests(dbAPI.reservations, Reservation, { part: monk.id(), requester: monk.id(), count: 0 });
+        common.summary_tests(dbAPI.reservations, Reservation, { requester: User, count: 0 });
 
         it(`should have a 'part' property containing an Item's ObjectID`, async function () {
             var instance = new Reservation();
@@ -108,26 +108,6 @@ describe('Reservation', function() {
             summary.part.should.satisfy(x => x instanceof ObjectID);
             summary.part.should.satisfy(x => x.equals(rsvpItemID));
         });
-
-        it(`should have a 'requester' property containing a User object`, async function () {
-            var instance = new Reservation();
-            var rsvpUser = new User();
-
-            await Promise.all([
-                rsvpUser.save(),
-                instance.count(0),
-                instance.part(monk.id()),
-                instance.requester(rsvpUser.id()),
-            ]);
-            await instance.save();
-
-            instance = new Reservation(instance.id());
-            var summary = await instance.summary();
-
-            summary.should.have.own.property('requester');
-            summary.requester.should.be.a('Object');
-            summary.requester.should.have.own.property('id');
-            summary.requester.id.should.satisfy( x => monk.id(x).equals(rsvpUser.id()) );
-        });
+        
     });
 });

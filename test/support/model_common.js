@@ -300,11 +300,18 @@ function model_prop_tests(collection, Model, prop_name, ForeignModel) {
 function summary_tests(collection, Model, testing_document) {
     async function initializeInstance() {
         var instance = new Model();
-        for(prop in testing_document) {
+        var promises = [];
+        for(let prop in testing_document) {
             if(testing_document.hasOwnProperty(prop)) {
-                await instance[prop](testing_document[prop]);
+                if(testing_document[prop].generate !== undefined) {
+                    let foreignInstance = await testing_document[prop].generate();
+                    promises.push(instance[prop](foreignInstance));
+                } else {
+                    promises.push(instance[prop](testing_document[prop]));
+                }
             }
         }
+        await Promise.all(promises);
         await instance.save();
 
         return instance;
@@ -340,22 +347,35 @@ function summary_tests(collection, Model, testing_document) {
         summary.created.should.be.a('date');
     });
 
-    for(prop in testing_document) {
-        if(testing_document.hasOwnProperty(prop)
-            && type(testing_document[prop]) !== 'Object'
-            && type(testing_document[prop]) !== 'Array')
+    for(let prop in testing_document) {
+        if(testing_document.hasOwnProperty(prop) && type(testing_document[prop]) !== 'Array')
         {
-            it(`should have a '${prop}' property of type ${type(testing_document[prop])}`, async function () {
-                var instance = await initializeInstance();
+            if(testing_document[prop].generate !== undefined) {
+                let desc = Object.getOwnPropertyDescriptor(testing_document[prop], 'name');
+                it(`should have a '${prop}' property of type '${desc.value}'`, async function () {
+                    var instance = await initializeInstance();
+                    var foreignInstance = await instance[prop]();
 
-                var summary = await instance.summary();
-                summary.should.have.own.property(prop);
-                if(type(summary[prop]) === 'Date') {
-                    summary[prop].should.satisfy(x => x.getTime() === testing_document[prop].getTime())
-                } else {
-                    summary[prop].should.equal(testing_document[prop]);
-                }
-            });
+                    var summary = await instance.summary();
+
+                    summary.should.have.own.property(prop);
+                    summary[prop].should.be.a('Object');
+                    summary[prop].should.have.own.property('id');
+                    summary[prop].id.should.satisfy(x => monk.id(x).equals(foreignInstance.id()));
+                });
+            } else {
+                it(`should have a '${prop}' property of type ${type(testing_document[prop])}`, async function () {
+                    var instance = await initializeInstance();
+
+                    var summary = await instance.summary();
+                    summary.should.have.own.property(prop);
+                    if(type(summary[prop]) === 'Date') {
+                        summary[prop].should.satisfy(x => x.getTime() === testing_document[prop].getTime())
+                    } else {
+                        summary[prop].should.equal(testing_document[prop]);
+                    }
+                });
+            }
         }
     }
 }

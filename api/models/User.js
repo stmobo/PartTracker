@@ -182,4 +182,19 @@ User.prototype.summary = function () {
     );
 };
 
+User.generate = async function () {
+    var instance = new User();
+    await Promise.all([
+        instance.username('username'),
+        instance.realname('realname'),
+        instance.admin(false),
+        instance.disabled(false),
+        instance.activityCreator(false)
+    ]);
+
+    await instance.save();
+
+    return instance;
+};
+
 module.exports = User;

@@ -70,7 +70,9 @@ describe('InventoryRequest', function () {
         common.summary_tests(dbAPI.requests, InventoryRequest, {
             count: 10,
             status: 'waiting',
-            eta: new Date()
+            eta: new Date(),
+            item: Item,
+            requester: User
         });
     })
 })

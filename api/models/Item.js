@@ -125,4 +125,17 @@ Item.prototype.reservations = function () {
     );
 };
 
+/* For testing purposes. */
+Item.generate = async function() {
+    var instance = new Item();
+    await Promise.all([
+        instance.count(50),
+        instance.name('Name')
+    ]);
+
+    await instance.save();
+
+    return instance;
+}
+
 module.exports = Item;
