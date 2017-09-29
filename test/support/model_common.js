@@ -148,6 +148,7 @@ function date_prop_tests(collection, Model, prop_name) {
 
         // for whatever reason, the actual time returned from #getTime()
         // doesn't seem to be exact
+        retrieved_time.should.be.a('date');
         retrieved_time.getTime().should.be.within(test_time-date_tolerance, test_time+date_tolerance);
     });
 
@@ -161,6 +162,7 @@ function date_prop_tests(collection, Model, prop_name) {
         var retrieved_time = await instanceB[prop_name]();
         var test_time = test_date.getTime();
 
+        retrieved_time.should.be.a('date');
         retrieved_time.getTime().should.be.within(test_time-date_tolerance, test_time+date_tolerance);
     });
 
@@ -369,6 +371,7 @@ function summary_tests(collection, Model, testing_document) {
 
                     var summary = await instance.summary();
                     summary.should.have.own.property(prop);
+                    summary[prop].should.be.a(type(testing_document[prop]));
                     if(type(summary[prop]) === 'Date') {
                         summary[prop].should.satisfy(x => x.getTime() === testing_document[prop].getTime())
                     } else {
