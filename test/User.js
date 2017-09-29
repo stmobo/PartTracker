@@ -120,4 +120,14 @@ describe('User', function () {
             ]);
         });
     });
+
+    describe('#summary()', function () {
+        common.summary_tests(dbAPI.users, User, {
+            realname: 'Foo Bar',
+            username: 'foobar',
+            admin: true,
+            activityCreator: true,
+            disabled: false
+        });
+    });
 });

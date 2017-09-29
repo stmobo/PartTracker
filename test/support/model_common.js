@@ -10,10 +10,13 @@ chai.use(require('chai-as-promised'));
 should = chai.should();
 
 module.exports = {
+    generic_prop_tests: generic_prop_tests,
+    rejection_tests: rejection_tests,
     string_prop_tests: string_prop_tests,
     numeric_prop_tests: numeric_prop_tests,
     boolean_prop_tests: boolean_prop_tests,
     model_prop_tests: model_prop_tests,
+    date_prop_tests: date_prop_tests,
     summary_tests: summary_tests,
 };
 
@@ -63,25 +66,27 @@ function rejection_tests(collection, Model, prop_name, params) {
 }
 
 function generic_prop_tests(Model, prop_name, accepted_value) {
-    it('should return a Promise for get calls', async function() {
+    it('should return a Promise for get calls', function() {
         var instance = new Model();
 
         var get_promise = instance[prop_name]();
         should.exist(get_promise);
         get_promise.should.be.a('promise');
+        return get_promise.should.be.fulfilled;
     });
 
     it('should return null if the property is not set', async function() {
         var instance = new Model();
-        instance[prop_name]().should.become(null);
+        return instance[prop_name]().should.become(null);
     })
 
-    it('should return a Promise for set calls', async function() {
+    it('should return a Promise for set calls', function() {
         var instance = new Model();
 
         var set_promise = instance[prop_name](accepted_value);
         should.exist(set_promise);
         set_promise.should.be.a('promise');
+        return set_promise.should.be.fulfilled;
     });
 }
 
@@ -123,6 +128,47 @@ function numeric_prop_tests(collection, Model, prop_name) {
     });
 
     rejection_tests(collection, Model, prop_name, usual_rejected_test_cases);
+}
+
+function date_prop_tests(collection, Model, prop_name) {
+    const test_date = new Date();
+    const valid_string = test_date.toString();
+    const invalid_string = 'foobar';
+    const date_tolerance = 1000; // ms
+
+    generic_prop_tests(Model, prop_name, test_date);
+    read_write_tests(collection, Model, prop_name, test_date);
+
+    it('should accept valid date/time strings from the database', async function() {
+        var doc = await collection.insert({ [prop_name]: valid_string });
+        var instance = new Model(doc._id);
+
+        var retrieved_time = await instance[prop_name]();
+        var test_time = test_date.getTime();
+
+        // for whatever reason, the actual time returned from #getTime()
+        // doesn't seem to be exact
+        retrieved_time.getTime().should.be.within(test_time-date_tolerance, test_time+date_tolerance);
+    });
+
+    it('should accept valid date/time strings as property values', async function() {
+        var instanceA = new Model();
+        await instanceA[prop_name](valid_string);
+        await instanceA.save();
+
+        var instanceB = new Model(instanceA.id());
+
+        var retrieved_time = await instanceB[prop_name]();
+        var test_time = test_date.getTime();
+
+        retrieved_time.getTime().should.be.within(test_time-date_tolerance, test_time+date_tolerance);
+    });
+
+    it('should reject invalid date/time strings as property values', async function() {
+        var instance = new Model();
+
+        return instance[prop_name](invalid_string).should.be.rejected;
+    });
 }
 
 /* Common tests for boolean properties */
@@ -304,7 +350,11 @@ function summary_tests(collection, Model, testing_document) {
 
                 var summary = await instance.summary();
                 summary.should.have.own.property(prop);
-                summary[prop].should.equal(testing_document[prop]);
+                if(type(summary[prop]) === 'Date') {
+                    summary[prop].should.satisfy(x => x.getTime() === testing_document[prop].getTime())
+                } else {
+                    summary[prop].should.equal(testing_document[prop]);
+                }
             });
         }
     }
