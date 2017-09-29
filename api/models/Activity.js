@@ -2,6 +2,7 @@ var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;
 var User = require('api/models/User.js');
 var dbAPI = require('api/db.js');
+var type = require('type-detect');
 
 var Activity = function (id) {
     dbAPI.DatabaseItem.call(this, dbAPI.activities, id);
@@ -10,8 +11,18 @@ var Activity = function (id) {
 Activity.prototype = Object.create(dbAPI.DatabaseItem.prototype);
 Activity.prototype.constructor = Activity;
 
-Activity.prototype.title = function(v) { return this.prop('title', v); };
-Activity.prototype.description = function(v) { return this.prop('description', v); };
+Activity.prototype.title = async function(v) {
+    if(v === undefined) return this.prop('title');
+
+    if(type(v) !== 'string') throw new Error("Value for Activity.title must be a string!");
+    return this.prop('title', v);
+};
+Activity.prototype.description = async function(v) {
+    if(v === undefined) return this.prop('description');
+
+    if(type(v) !== 'string') throw new Error("Value for Activity.description must be a string!");
+    return this.prop('description', v);
+};
 
 /*
  * The userHours property is a bit weird, because it's an array of subdocuments.
@@ -53,33 +64,50 @@ Activity.prototype.userHours = async function(v) {
 };
 
 Activity.prototype.startTime = async function(v) {
-    if(v === undefined)
-        return this.prop('startTime');
+    if(v === undefined) {
+        var t = await this.prop('startTime');
+        if(type(t) === 'string') t = new Date(t);
+        if(t === null || (type(t) === 'Date' && !isNaN(t.getTime()))) return t;
+        throw new Error("Got invalid value for Activity.startTime() from database!");
+    }
 
     var newTime = new Date(v);
-    return this.prop('startTime', newTime);
+    if(!isNaN(newTime.getTime())) return this.prop('startTime', newTime);
+    throw new Error("Start time must be a valid Date.");
 };
 
 Activity.prototype.endTime = async function(v) {
-    if(v === undefined)
-        return this.prop('endTime');
+    if(v === undefined) {
+        var t = await this.prop('endTime');
+        if(type(t) === 'string') t = new Date(t);
+        if(t === null || (type(t) === 'Date' && !isNaN(t.getTime()))) return t;
+        throw new Error("Got invalid value for Activity.endTime() from database!");
+    }
 
     var newTime = new Date(v);
-    return this.prop('endTime', newTime);
+    if(!isNaN(newTime.getTime())) return this.prop('endTime', newTime);
+    throw new Error("End time must be a valid Date.");
 };
 
 Activity.prototype.maxHours = async function(v) {
-    if(v === undefined)
-        return this.prop('maxHours');
+    if(v === undefined) {
+        var t = await this.prop('maxHours');
+        if(t === null || type(t) === 'number') return t;
+        if(type(t) === 'string' && !isNaN(parseFloat(t, 10))) return parseFloat(t, 10);
+        throw new Error("Got invalid value for Activity.maxHours() from database!");
+    }
 
-    if(typeof v === 'string') v = parseFloat(v, 10);
-    if(typeof v !== 'number') return Promise.reject("Maximum allowed hours must be a number.");
-    if(v <= 0) return Promise.reject("Maximum allowed hours cannot be negative or zero.");
+    if(type(v) === 'string') v = parseFloat(v, 10);
+    if(type(v) !== 'number' || isNaN(v)) throw new Error("Maximum allowed hours must be a number.");
+    if(v <= 0) throw new Error("Maximum allowed hours cannot be negative or zero.");
 
     var userHours = await this.userHours();
-    for(doc of userHours) {
-        if(doc.hours > v) return Promise.reject("User "+doc.uid+" has more hours logged for this Activity than the new limit.");
+    if(userHours !== null) {
+        for(doc of userHours) {
+            if(doc.hours > v) return Promise.reject("User "+doc.uid+" has more hours logged for this Activity than the new limit.");
+        }
     }
+
 
     return this.prop('maxHours', v);
 };
