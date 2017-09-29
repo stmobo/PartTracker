@@ -23,34 +23,34 @@ InventoryRequest.prototype.item = async function(v) {
 
     var targetItem;
     if(v instanceof Item) {
-        targetItem = v;
+        targetItem = v.id();
     } else if(v instanceof ObjectID || type(v) === 'string') {
-        targetItem = new Item(monk.id(v));
+        targetItem = monk.id(v)
     } else {
         throw new Error("Invalid value passed to #item()!");
     }
 
-    return this.prop('item', targetItem.id());
+    return this.prop('item', targetItem);
 };
 
 InventoryRequest.prototype.requester = async function(v) {
     if(v === undefined) {
         var id = await this.prop('requester');
         if(id === null) return null;
-        
+
         return new User(id);
     }
 
     var targetUser;
     if(v instanceof User) {
-        targetUser = v;
+        targetUser = v.id();
     } else if(v instanceof ObjectID || type(v) === 'string') {
-        targetUser = new User(monk.id(v));
+        targetUser = monk.id(v);
     } else {
         throw new Error("Invalid value passed to #requester()!");
     }
 
-    return this.prop('requester', targetUser.id());
+    return this.prop('requester', targetUser);
 }
 
 InventoryRequest.prototype.count = async function(v) {
@@ -113,15 +113,20 @@ InventoryRequest.prototype.summary = async function () {
         this.created()
     ]);
 
+    const [itemSummary, requesterSummary] = await Promise.all([
+        item.summary(),
+        requester.summary(),
+    ])
+
     return {
-        id: this.id(),
-        item: item,
-        requester: requester,
-        count: count,
-        status: status,
-        eta: eta,
-        updated: updated,
-        created: created
+        'id': this.id(),
+        'item': itemSummary,
+        'requester': requesterSummary,
+        'count': count,
+        'status': status,
+        'eta': eta,
+        'updated': updated,
+        'created': created
     };
 };
 
