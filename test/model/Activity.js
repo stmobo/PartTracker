@@ -6,7 +6,6 @@ var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;
 
 var chai = require('chai');
-chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
 should = chai.should();
 
