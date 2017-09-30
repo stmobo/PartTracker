@@ -1,6 +1,7 @@
 /* convenience functions for routing and API functions */
 var express = require('express');
 var monk = require('monk');
+var ObjectID = require('mongodb').ObjectID;
 var csv = require('csv');
 
 var Item = require('api/models/Item.js');
@@ -87,7 +88,7 @@ module.exports = {
         });
     },
 
-    sendCSV: function(res, objects, filename, columns) {
+    stringifyCSV: function(objects, columns) {
         // Autodetermine column names if necessary
         columns = columns || Object.getOwnPropertyNames(objects[0]);
 
@@ -99,19 +100,27 @@ module.exports = {
                     header: true,
                     formatters: {
                         bool: (b) => b ? 'true' : 'false',
-                        date: (d) => d.toISOString()
+                        date: (d) => d.toISOString(),
+                        object: (o) => {
+                            if(o instanceof ObjectID) return o.toString(); // prevent double-quoting object IDs
+                            return JSON.stringify(o);
+                        }
                     },
                 },
                 (err, data) => {
                     if(err) return reject(err);
-
-                    res.set('Content-Disposition', `attachment; filename="${filename}"`);
-                    res.status(200).type('text/csv').send(data);
-                    return resolve();
+                    return resolve(data);
                 }
             );
         });
     },
+
+    sendCSV: async function(res, objects, filename, columns) {
+        var data = await module.exports.stringifyCSV(objects, columns);
+        res.set('Content-Disposition', `attachment; filename="${filename}"`);
+        res.status(200).type('text/csv').send(data);
+    },
+
     /* Tests for the existence of given keys in req.body.
      * Returns a rejection promise if a key is not found,
      *  otherwise returns a fulfilled promise.
