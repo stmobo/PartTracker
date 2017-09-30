@@ -36,7 +36,7 @@ Activity.prototype.description = async function(v) {
 Activity.prototype.userHours = async function(v) {
     if(v === undefined) {
         var userHours = await this.prop('userHours');
-        if(userHours === undefined) return [];
+        if(userHours === undefined || userHours === null) return [];
         else return userHours;
     }
 
@@ -126,6 +126,22 @@ Activity.prototype.summary = async function() {
         'created': await this.created(),
         'updated': await this.updated(),
     };
+}
+
+Activity.generate = async function () {
+    var instance = new Activity();
+    await Promise.all([
+        instance.title('Test'),
+        instance.description('Test'),
+        instance.startTime(new Date(1)),
+        instance.endTime(new Date(Date.now()+(90*24*3600*1000))),
+        instance.maxHours(9999),
+        instance.userHours([]),
+    ]);
+
+    await instance.save();
+
+    return instance;
 }
 
 module.exports = Activity;
