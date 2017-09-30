@@ -168,6 +168,8 @@ describe('Routes: /api/requests', function () {
             ]);
             await serverInstance.save();
 
+            var oldSummary = JSON.parse(JSON.stringify(await serverInstance.summary()));
+
             var payload = {
                 item: reqUser2.id().toString(),
                 requester: reqItem2.id().toString(),
@@ -186,6 +188,7 @@ describe('Routes: /api/requests', function () {
             expect(res.body).to.deep.include(payload);
 
             var normalizedResult = JSON.parse(JSON.stringify(await serverInstance.summary()));
+            expect(oldSummary).to.not.eql(normalizedResult);
             expect(normalizedResult).to.deep.include(payload);
             res.body.should.eql(normalizedResult);
         });

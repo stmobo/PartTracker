@@ -204,9 +204,12 @@ describe('Routes: /api/inventory', function () {
             var newCollection = (await dbAPI.inventory.find({}, {})).map(d => (new Item(d._id)).summary());
             var normalizedResult = JSON.parse(JSON.stringify(await Promise.all(newCollection)));
 
-            expect(normalizedResult).to.have.lengthOf(2);
+            expect(normalizedResult).to.have.lengthOf(payload.length);
             payload.forEach(
-                (elem, idx) => expect(normalizedResult[idx]).to.deep.include(elem)
+                (payloadElem) => {
+                    var correspondingResult = normalizedResult.find(x => x.name === payloadElem.name);
+                    expect(correspondingResult).to.deep.include(payloadElem);
+                }
             );
 
             expect(res.body).to.deep.equal(normalizedResult);
@@ -263,6 +266,8 @@ describe('Routes: /api/inventory', function () {
                 count: 9999
             };
 
+            var oldSummary = JSON.parse(JSON.stringify(await item.summary()));
+
             var res = await chai.request(app)
                 .put('/api/inventory/'+item.id().toString())
                 .set('Accept', 'application/json')
@@ -273,6 +278,7 @@ describe('Routes: /api/inventory', function () {
             expect(res.body).to.deep.include(payload);
 
             var normalizedResult = JSON.parse(JSON.stringify(await item.summary()));
+            expect(oldSummary).to.not.eql(normalizedResult);
             expect(normalizedResult).to.deep.include(payload);
             expect(res.body).to.eql(normalizedResult);
         });
