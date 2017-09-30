@@ -27,6 +27,46 @@ APIClientError.prototype = new Error;
 module.exports = {
     APIClientError: APIClientError,
 
+    errorHandlingMiddleware: async function(err, req, res, next) {
+        var metadata = {
+            uuid: req.uuid,
+            method: req.method,
+            url: req.originalUrl,
+            remoteAddress: req.socket.remoteAddress,
+            username: await req.user.username(),
+            responseCode: 400,
+            responseMsg: 'unknown message'
+        }
+
+        if(err instanceof common.APIClientError) {
+            res.status(err.resCode).send(err.message);
+
+            metadata.errorType = 'Client';
+            metadata.responseCode = err.resCode;
+            metadata.responseMsg = err.message;
+        } else if(err instanceof Error) {
+            res.status(500).send(err.stack);
+
+            metadata.errorType = 'Server';
+            metadata.responseCode = 500;
+            metadata.responseMsg = err.stack;
+        } else {
+            res.status(400).send(err.toString());
+
+            metadata.errorType = 'Client';
+            metadata.responseCode = 400;
+            metadata.responseMsg = err.toString();
+        }
+
+        winston.log('error',
+            "Error "+metadata.responseCode.toString()+
+            " on "+req.method+" request to "+req.originalUrl+
+            " from "+req.socket.remoteAddress+
+            ":\n"+metadata.responseMsg,
+            metadata
+        );
+    },
+
     asyncMiddleware: function(fn) {
       return function(req, res, next) {
         Promise.resolve(fn(req, res, next))
