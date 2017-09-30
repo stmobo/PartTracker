@@ -34,6 +34,10 @@ function pass_failed_requests(err) {
 function isolate_module(router) {
     var app = express();
 
+    afterEach(async function () {
+        return dbAPI.users.remove(); // clear out the fake user(s)
+    })
+
     /* Mimic a user, for testing permissions */
     app.fake_user = {
         username: 'mocha',
@@ -45,16 +49,22 @@ function isolate_module(router) {
 
     app.use('/api', common.asyncMiddleware(
         async (req, res, next) => {
-            var fake_user = new User();
-            await Promise.all([
-                fake_user.username(app.fake_user.username),
-                fake_user.realname(app.fake_user.realname),
-                fake_user.admin(app.fake_user.admin),
-                fake_user.disabled(app.fake_user.disabled),
-                fake_user.activityCreator(app.fake_user.activityCreator),
-            ]);
+            if(app.current_user !== undefined) {
+                var fake_user = new User(app.current_user);
+            } else {
+                var fake_user = new User();
+                await Promise.all([
+                    fake_user.username(app.fake_user.username),
+                    fake_user.realname(app.fake_user.realname),
+                    fake_user.admin(app.fake_user.admin),
+                    fake_user.disabled(app.fake_user.disabled),
+                    fake_user.activityCreator(app.fake_user.activityCreator),
+                ]);
+                await fake_user.save();
+            }
 
             req.user = fake_user;
+            req.logout = function () {};
             next();
         }
     ));
