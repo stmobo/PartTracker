@@ -12,7 +12,7 @@ should = chai.should();
 
 var common = require('test/support/model_common.js');
 
-describe('Activity', function () {
+describe('Model: Activity', function () {
     afterEach(async function() {
         return Promise.all([
             dbAPI.users.remove({}),

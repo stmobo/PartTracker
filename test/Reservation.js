@@ -12,7 +12,7 @@ should = chai.should();
 
 var common = require('test/support/model_common.js');
 
-describe('Reservation', function() {
+describe('Model: Reservation', function() {
     afterEach(function() {
         /* Completely clear Inventory and Reservation collections. */
         dbAPI.inventory.remove({});
@@ -108,6 +108,6 @@ describe('Reservation', function() {
             summary.part.should.satisfy(x => x instanceof ObjectID);
             summary.part.should.satisfy(x => x.equals(rsvpItemID));
         });
-        
+
     });
 });

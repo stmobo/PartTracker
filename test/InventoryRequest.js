@@ -13,7 +13,7 @@ should = chai.should();
 
 var common = require('test/support/model_common.js');
 
-describe('InventoryRequest', function () {
+describe('Model: InventoryRequest', function () {
     afterEach(async function() {
         await Promise.all([
             dbAPI.users.remove({}),

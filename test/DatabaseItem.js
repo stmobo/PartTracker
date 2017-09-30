@@ -6,7 +6,7 @@ var chai = require('chai');
 chai.use(require('chai-as-promised'));
 should = chai.should();
 
-describe('DatabaseItem', function() {
+describe('Model: DatabaseItem', function() {
     var testCollection = dbAPI.conn.get('testCollection');
 
     // just constants for testing, the actual values aren't important

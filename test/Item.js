@@ -10,7 +10,7 @@ chai.should();
 
 var common = require('test/support/model_common.js');
 
-describe('Item', function() {
+describe('Model: Item', function() {
     var testItemName = 'Foobar';
     var testString = 'batman';
     var testCount = 42;

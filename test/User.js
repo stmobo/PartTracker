@@ -10,7 +10,7 @@ should = chai.should();
 
 var common = require('test/support/model_common.js');
 
-describe('User', function () {
+describe('Model: User', function () {
     afterEach(function() {
         /* Completely clear Inventory collection. */
         dbAPI.users.remove({});
