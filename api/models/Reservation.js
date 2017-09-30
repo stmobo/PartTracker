@@ -73,20 +73,20 @@ Reservation.prototype.summary = function () {
             return Promise.all([
                 this.prop('part'),
                 this.count(),
-                this.requester().then( (user) => user.summary() ),
+                this.requester(),
                 this.created(),
                 this.updated(),
             ]);
         }
     ).then(
-        (retn) => {
+        ([part, count, requester, created, updated]) => {
             return {
                 id: this.id(),
-                part: retn[0],
-                count: retn[1],
-                requester: retn[2],
-                created: retn[3],
-                updated: retn[4],
+                part: part,
+                count: count,
+                requester: requester.id(),
+                created: created,
+                updated: updated,
             };
         }
     );

@@ -113,15 +113,10 @@ InventoryRequest.prototype.summary = async function () {
         this.created()
     ]);
 
-    const [itemSummary, requesterSummary] = await Promise.all([
-        item.summary(),
-        requester.summary(),
-    ])
-
     return {
         'id': this.id(),
-        'item': itemSummary,
-        'requester': requesterSummary,
+        'item': item.id(),
+        'requester': requester.id(),
         'count': count,
         'status': status,
         'eta': eta,
