@@ -20,7 +20,7 @@ var InventoryRequest = require('api/models/InventoryRequest.js');
 var app = req_common.isolate_module(require('api/inv_requests.js'));
 
 describe('Routes: /api/requests', function () {
-    beforeEach(async function () {
+    afterEach(async function () {
         return Promise.all([
             dbAPI.users.remove({}),
             dbAPI.inventory.remove({}),
@@ -94,6 +94,7 @@ describe('Routes: /api/requests', function () {
             res.body.id.should.be.a('string');
             var createdObject = new InventoryRequest(res.body.id);
 
+            expect(createdObject.exists()).to.become(true);
             var normalizedResult = JSON.parse(JSON.stringify(await createdObject.summary()));
 
             res.body.should.eql(normalizedResult);
@@ -109,7 +110,7 @@ describe('Routes: /api/requests', function () {
         });
     });
 
-    describe('/api/requests/:qid', function () {
+    describe('All Methods - /api/requests/:qid', function () {
         it('should 404 for nonexistent objects', async function () {
             var res = await chai.request(app)
                 .get('/api/requests/'+monk.id().toString())
@@ -162,28 +163,31 @@ describe('Routes: /api/requests', function () {
                 serverInstance.item(reqItem),
                 serverInstance.requester(reqUser),
                 serverInstance.count(50),
-                serverInstance.status('waiting')
+                serverInstance.status('waiting'),
+                serverInstance.eta(new Date())
             ]);
             await serverInstance.save();
+
+            var payload = {
+                item: reqUser2.id().toString(),
+                requester: reqItem2.id().toString(),
+                count: 100,
+                status: 'delayed',
+                eta: new Date(Date.now()+1000*3600).toISOString()
+            };
 
             var res = await chai.request(app)
                 .put('/api/requests/'+serverInstance.id().toString())
                 .set('Accept', 'application/json')
-                .send({
-                    item: reqUser2.id(),
-                    requester: reqItem2.id(),
-                    count: 100,
-                    status: 'delayed'
-                });
+                .send(payload);
 
             expect(res).to.have.status(200);
             expect(res).to.be.json;
+            expect(res.body).to.deep.include(payload);
 
-            /* serialize and then deserialize stuff on the 'server'-side
-             * mainly to account for deep-eql not working for ObjectIDs
-             */
             var normalizedResult = JSON.parse(JSON.stringify(await serverInstance.summary()));
-            res.body.should.deep.equal(normalizedResult);
+            expect(normalizedResult).to.deep.include(payload);
+            res.body.should.eql(normalizedResult);
         });
     });
 
