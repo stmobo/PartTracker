@@ -350,7 +350,7 @@ function summary_tests(collection, Model, testing_document) {
     });
 
     for(let prop in testing_document) {
-        if(testing_document.hasOwnProperty(prop) && type(testing_document[prop]) !== 'Array')
+        if(testing_document.hasOwnProperty(prop))
         {
             if(testing_document[prop].generate !== undefined) {
                 let desc = Object.getOwnPropertyDescriptor(testing_document[prop], 'name');
