@@ -168,7 +168,10 @@ describe('Routes: /api/inventory', function () {
 
             expect(normalizedResult).to.have.lengthOf(2);
             payload.forEach(
-                (elem, idx) => expect(normalizedResult[idx]).to.deep.include(elem)
+                (payloadElem) => {
+                    var correspondingResult = normalizedResult.find(x => x.name === payloadElem.name);
+                    expect(correspondingResult).to.deep.include(payloadElem);
+                }
             );
 
             expect(res.body).to.deep.equal(normalizedResult);
