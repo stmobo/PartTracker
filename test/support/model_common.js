@@ -8,6 +8,7 @@ var type = require('type-detect');
 var chai = require('chai');
 chai.use(require('chai-as-promised'));
 should = chai.should();
+expect = chai.expect;
 
 module.exports = {
     generic_prop_tests: generic_prop_tests,
@@ -354,16 +355,15 @@ function summary_tests(collection, Model, testing_document) {
         {
             if(testing_document[prop].generate !== undefined) {
                 let desc = Object.getOwnPropertyDescriptor(testing_document[prop], 'name');
-                it(`should have a '${prop}' property of type '${desc.value}'`, async function () {
+                it(`should have a '${prop}' property containing an ObjectID for a(n) ${desc.value}`, async function () {
                     var instance = await initializeInstance();
                     var foreignInstance = await instance[prop]();
 
                     var summary = await instance.summary();
 
                     summary.should.have.own.property(prop);
-                    summary[prop].should.be.a('Object');
-                    summary[prop].should.have.own.property('id');
-                    summary[prop].id.should.satisfy(x => monk.id(x).equals(foreignInstance.id()));
+                    expect(summary[prop], 'Property value is not an Object ID').to.satisfy(x => monk.id(x) instanceof ObjectID);
+                    expect(summary[prop], 'Property value is wrong Object ID').to.satisfy(x => monk.id(x).equals(foreignInstance.id()));
                 });
             } else {
                 it(`should have a '${prop}' property of type ${type(testing_document[prop])}`, async function () {
