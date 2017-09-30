@@ -54,6 +54,7 @@
     "browserify": "^14.3.0",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
+    "chai-http": "^3.0.0",
     "envify": "^4.1.0",
     "gulp": "^3.9.1",
     "gulp-streamify": "^1.0.2",
