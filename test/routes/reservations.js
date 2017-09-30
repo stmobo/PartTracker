@@ -61,7 +61,7 @@ describe('Routes: /api/reservations', function () {
 
             expect(res).to.have.status(200);
             expect(res).to.be.json;
-            expect(res.body).to.eql(normalizedResult);
+            expect(res.body).to.have.deep.members(normalizedResult);
         });
     });
 

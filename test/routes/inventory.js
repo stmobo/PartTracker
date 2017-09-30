@@ -46,7 +46,7 @@ describe('Routes: /api/inventory', function () {
 
             expect(res).to.have.status(200);
             expect(res).to.be.json;
-            expect(res.body).to.eql(summaryList);
+            expect(res.body).to.have.deep.members(summaryList);
         });
 
         it("should also respond with a CSV-formatted list of Item objects", async function () {
@@ -68,7 +68,7 @@ describe('Routes: /api/inventory', function () {
             expect(res.header['content-type']).to.include('text/csv');
             var body = await routing_common.parseCSV(res.text);
 
-            expect(body).to.eql(summaryList);
+            expect(body).to.have.deep.members(summaryList);
         });
     });
 
@@ -91,7 +91,7 @@ describe('Routes: /api/inventory', function () {
             expect(res.header['content-disposition']).to.include('attachment');
             var body = await routing_common.parseCSV(res.text);
 
-            expect(body).to.eql(summaryList);
+            expect(body).to.have.deep.members(summaryList);
         });
     });
 

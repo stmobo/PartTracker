@@ -62,7 +62,7 @@ describe('Routes: /api/requests', function () {
              * mainly to account for deep-eql not working for ObjectIDs
              */
             var normalizedResult = JSON.parse(JSON.stringify(collection));
-            res.body.should.deep.equal(normalizedResult);
+            res.body.should.have.deep.members(normalizedResult);
         });
     });
 

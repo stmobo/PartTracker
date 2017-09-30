@@ -60,4 +60,40 @@ describe('Routes: /api/user', function () {
             expect(await current_user.validatePassword(passwordB)).to.be.true;
         });
     });
+
+
+    describe('Routes: /api/users', function () {
+        beforeEach(function () {
+            app.current_user = undefined;
+            app.fake_user.admin = true;
+        });
+
+        describe('GET /api/users', function () {
+            it('should return a JSON-encoded list of Users', async function () {
+                var userA = await User.generate();
+                var userB = await User.generate();
+
+                var summaries = await Promise.all([
+                    userA.summary(),
+                    userB.summary(),
+                ]);
+
+                var normalizedResult = JSON.parse(JSON.stringify(summaries));
+
+                /* If we don't do this the testing middleware will automatically
+                 * make a new user, which will make this test fail
+                 */
+                app.current_user = userA.id();
+
+                var res = await chai.request(app)
+                    .get('/api/users')
+                    .set('Accept', 'application/json');
+
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+                expect(res.body).to.have.deep.members(normalizedResult);
+            })
+        });
+
+    });
 });
