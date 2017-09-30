@@ -127,7 +127,7 @@ User.prototype.validatePassword = async function (pw) {
 /* Hashes and sets a user's password. */
 User.prototype.setPassword = async function (v) {
     if(type(v) !== 'string')
-        return Promise.reject(new TypeError('Parameter to setPassword() must be a string!'));
+        throw new TypeError('Parameter to setPassword() must be a string; got '+type(v));
 
     var hashDigest = await this.computePasswordHash(v);
     return this.prop('pw_hash', hashDigest.toString('base64'));

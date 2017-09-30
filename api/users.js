@@ -10,7 +10,7 @@ var User = require('api/models/User.js');
 var router = express.Router();
 router.use(bodyParser.json());
 router.use(bodyParser.text({
-    type: 'text/csv'
+    type: ['text/csv', 'text/plain']
 }));
 
 router.get('/user',
@@ -19,15 +19,19 @@ router.get('/user',
     }
 );
 
-router.post('/user/password',
-    (req, res, next) => {
-        req.user.setPassword(req.body.password).then(
-            () => { return req.user.save(); }
-        ).then(
-            () => { req.logout(); }
-        ).then(common.emptySuccess(res)).catch(next);
+router.post('/user/password', common.asyncMiddleware(
+    async (req, res) => {
+        if(req.is('text/plain')) {
+            await req.user.setPassword(req.body);
+            await req.user.save();
+
+            req.logout();
+            res.status(204).end();
+        } else {
+            throw new common.APIClientError(415, 'Passwords must be strings sent as text/plain.');
+        }
     }
-)
+));
 
 /* Get listing of all users. This isn't restricted to administrators, though it does require authentication. */
 router.get('/users(.csv)?', common.asyncMiddleware(
