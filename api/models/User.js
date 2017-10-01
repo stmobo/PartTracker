@@ -184,8 +184,10 @@ User.prototype.summary = function () {
 
 User.generate = async function () {
     var instance = new User();
+    var num_users = await dbAPI.users.count({});
+
     await Promise.all([
-        instance.username('username'),
+        instance.username('user'+num_users.toString()),
         instance.realname('realname'),
         instance.admin(false),
         instance.disabled(false),
