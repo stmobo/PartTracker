@@ -19,7 +19,8 @@ var Activity = require('api/models/Activity.js');
 var app = req_common.isolate_module(require('api/time_tracking.js'));
 
 describe('Routes: /api/activities', function () {
-    afterEach(async function () {
+    beforeEach(async function () {
+        app.current_user = undefined;
         app.fake_user.admin = true;
         app.fake_user.activityCreator = true;
 
@@ -150,9 +151,37 @@ describe('Routes: /api/activities', function () {
             });
         });
 
-        describe.skip('PUT /api/activities/:aid', function () {
+        describe('PUT /api/activities/:aid', function () {
             it('should update a specific Activity', async function () {
+                var activity = await Activity.generate();
+                var user = await User.generate();
+                var checkin = await Activity.generate_checkin(user, activity);
 
+                var payload = {
+                    title: 'Foobar',
+                    description: 'a description',
+                    startTime: (new Date(Date.now()-10*1000)).toISOString(),
+                    endTime: (new Date(Date.now()+10*1000)).toISOString(),
+                    maxHours: 9999,
+                    userHours: [checkin]
+                }
+
+                var old_summary = JSON.parse(JSON.stringify(await activity.summary()));
+                var res = await chai.request(app)
+                    .put(`/api/activities/${activity.id().toString()}`)
+                    .set('Accept', 'application/json')
+                    .send(payload)
+                    .catch(req_common.catch_failed_requests);
+
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+
+                activity = new Activity(activity.id());
+                var new_summary = JSON.parse(JSON.stringify(await activity.summary()));
+                expect(new_summary).to.not.eql(old_summary);
+
+                expect(res.body).to.eql(new_summary);
+                expect(new_summary).to.deep.include(payload);
             });
 
             it('should return 403 Forbidden for unauthorized users', async function () {
@@ -168,9 +197,19 @@ describe('Routes: /api/activities', function () {
             });
         });
 
-        describe.skip('DELETE /api/activities/:aid', function () {
+        describe('DELETE /api/activities/:aid', function () {
             it('should delete a specific Activity', async function () {
+                var activity = await Activity.generate();
 
+                var res = await chai.request(app)
+                    .delete(`/api/activities/${activity.id().toString()}`)
+                    .catch(req_common.catch_failed_requests);
+
+                expect(res).to.have.status(204);
+                expect(res.body).to.be.empty;
+
+                activity = new Activity(activity.id());
+                return expect(activity.exists()).to.become(false);
             });
 
             it('should return 403 Forbidden for unauthorized users', async function () {
@@ -186,16 +225,62 @@ describe('Routes: /api/activities', function () {
         });
     });
 
-    describe.skip('Routes: /api/activities/:aid/users', function () {
-        describe.skip('GET /api/activities/:aid/users', function () {
+    describe('Routes: /api/activities/:aid/users', function () {
+        describe('GET /api/activities/:aid/users', function () {
             it('should return information on all of the checked-in Users for this Activity', async function () {
+                var activity = await Activity.generate();
+                var userA = await User.generate();
+                var userB = await User.generate();
+                var checkins = await Promise.all([
+                    Activity.generate_checkin(userA, activity),
+                    Activity.generate_checkin(userB, activity),
+                ]);
 
+                await activity.userHours(checkins);
+                await activity.save();
+
+                var res = await chai.request(app)
+                    .get(`/api/activities/${activity.id().toString()}/users`)
+                    .set('Accept', 'application/json')
+                    .catch(req_common.catch_failed_requests);
+
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+                expect(res.body).to.have.deep.members(checkins);
             });
         });
 
-        describe.skip('PUT /api/activities/:aid/users', function () {
+        describe('PUT /api/activities/:aid/users', function () {
             it('should update / replace all of the check-ins for this Activity', async function () {
+                var activity = await Activity.generate();
+                var userA = await User.generate();
 
+                await activity.userHours([await Activity.generate_checkin(userA, activity)]);
+                await activity.save();
+
+                var userB = await User.generate();
+                var payload = await Promise.all([
+                    Activity.generate_checkin(userA, activity),
+                    Activity.generate_checkin(userB, activity),
+                ]);
+
+                var old_summary = JSON.parse(JSON.stringify(await activity.userHours()));
+
+                var res = await chai.request(app)
+                    .put(`/api/activities/${activity.id().toString()}/users`)
+                    .set('Accept', 'application/json')
+                    .send(payload)
+                    .catch(req_common.catch_failed_requests);
+
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+
+                activity = new Activity(activity.id());
+
+                var normalizedResult = JSON.parse(JSON.stringify(await activity.userHours()));
+                expect(res.body).to.have.deep.members(payload);
+                expect(normalizedResult).to.not.have.deep.members(old_summary);
+                expect(normalizedResult).to.have.deep.members(payload);
             });
 
             it('should return 403 Forbidden for unauthorized users', async function () {
@@ -211,9 +296,26 @@ describe('Routes: /api/activities', function () {
             });
         });
 
-        describe.skip('POST /api/activities/:aid/users', function () {
+        describe('POST /api/activities/:aid/users', function () {
             it('should create a new check-in for this Activity', async function () {
+                var activity = await Activity.generate();
+                var user = await User.generate();
+                var checkin = await Activity.generate_checkin(user, activity);
 
+                var res = await chai.request(app)
+                    .post(`/api/activities/${activity.id().toString()}/users`)
+                    .set('Accept', 'application/json')
+                    .send(checkin)
+                    .catch(req_common.catch_failed_requests);
+
+                expect(res).to.have.status(201);
+                expect(res).to.be.json;
+
+                activity = new Activity(activity.id());
+                var normalizedResult = await JSON.parse(JSON.stringify(await activity.userHours()));
+
+                expect(normalizedResult).to.eql([checkin]);
+                expect(res.body).to.eql(checkin);
             });
 
             it('should return 403 Forbidden for unauthorized users', async function () {
@@ -229,9 +331,31 @@ describe('Routes: /api/activities', function () {
             });
         });
 
-        describe.skip('DELETE /api/activities/:aid/users', function () {
+        describe('DELETE /api/activities/:aid/users', function () {
             it('should delete all check-ins for this Activity', async function () {
+                var activity = await Activity.generate();
+                var userA = await User.generate();
+                var userB = await User.generate();
+                var checkins = await Promise.all([
+                    Activity.generate_checkin(userA, activity),
+                    Activity.generate_checkin(userB, activity),
+                ]);
 
+                await activity.userHours(checkins);
+                await activity.save();
+
+                expect(await activity.userHours()).to.have.lengthOf.above(0);
+
+                var res = await chai.request(app)
+                    .delete(`/api/activities/${activity.id().toString()}/users`)
+                    .set('Accept', 'application/json')
+                    .catch(req_common.catch_failed_requests);
+
+                expect(res).to.have.status(204);
+                expect(res.body).to.be.empty;
+
+                activity = new Activity(activity.id());
+                expect(await activity.userHours()).to.have.lengthOf(0);
             });
 
 
@@ -248,22 +372,69 @@ describe('Routes: /api/activities', function () {
         });
     });
 
-    describe.skip('Routes: /api/activities/:aid/users/:uid', function () {
-        describe.skip('All Routes', function () {
+    describe('Routes: /api/activities/:aid/users/:uid', function () {
+        describe('All Routes', function () {
             it('should return 404 Not Found if the referenced User has not checked in to this Activity', async function () {
+                var activity = await Activity.generate();
 
+                var res = await chai.request(app)
+                    .get(`/api/activities/${activity.id().toString()}/users/${monk.id().toString()}`)
+                    .catch(req_common.pass_failed_requests);
+
+                expect(res).to.have.status(404);
             });
         });
 
-        describe.skip('GET /api/activities/:aid/users/:uid', function () {
+        describe('GET /api/activities/:aid/users/:uid', function () {
             it("should get info on a specific User's checkin for this Activity", async function () {
+                var activity = await Activity.generate();
+                var user = await User.generate();
+                var checkin = await Activity.generate_checkin(user, activity);
 
+                await activity.userHours([checkin]);
+                await activity.save();
+
+                var res = await chai.request(app)
+                    .get(`/api/activities/${activity.id().toString()}/users/${user.id().toString()}`)
+                    .catch(req_common.catch_failed_requests);
+
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+                expect(res.body).to.eql(checkin);
             });
         });
 
-        describe.skip('PUT /api/activities/:aid/users/:uid', function () {
+        describe('PUT /api/activities/:aid/users/:uid', function () {
             it("should update a specific User's checkin for this Activity", async function () {
+                var activity = await Activity.generate();
+                var userA = await User.generate();
+                var userB = await User.generate();
+                var checkin = await Activity.generate_checkin(userA, activity);
 
+                await activity.userHours([checkin]);
+                await activity.save();
+
+                var payload = {
+                    user: userB.id().toString(),
+                    hours: 10,
+                    checkIn: (new Date(Date.now()+(1000*1000))).toISOString()
+                };
+
+                var res = await chai.request(app)
+                    .put(`/api/activities/${activity.id().toString()}/users/${userA.id().toString()}`)
+                    .send(payload)
+                    .catch(req_common.catch_failed_requests);
+
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+
+                activity = new Activity(activity.id());
+
+                var normalizedResult = JSON.parse(JSON.stringify(await activity.userHours()));
+
+                expect(normalizedResult).to.have.lengthOf(1);
+                expect(normalizedResult[0]).to.eql(payload);
+                expect(res.body).to.eql(payload);
             });
 
             it('should return 403 Forbidden for unauthorized users', async function () {
@@ -284,9 +455,26 @@ describe('Routes: /api/activities', function () {
             });
         });
 
-        describe.skip('DELETE /api/activities/:aid/users/:uid', function () {
+        describe('DELETE /api/activities/:aid/users/:uid', function () {
             it("should delete a specific User's checkin for this Activity", async function () {
+                var activity = await Activity.generate();
+                var user = await User.generate();
+                var checkin = await Activity.generate_checkin(user, activity);
 
+                await activity.userHours([checkin]);
+                await activity.save();
+
+                expect(await activity.userHours()).to.have.lengthOf.above(0);
+
+                var res = await chai.request(app)
+                    .delete(`/api/activities/${activity.id().toString()}/users/${user.id().toString()}`)
+                    .catch(req_common.catch_failed_requests);
+
+                expect(res).to.have.status(204);
+                expect(res.body).to.be.empty;
+
+                activity = new Activity(activity.id());
+                expect(await activity.userHours()).to.have.lengthOf(0);
             });
 
             it('should return 403 Forbidden for unauthorized users', async function () {
