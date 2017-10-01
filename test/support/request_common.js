@@ -17,8 +17,19 @@ var User = require('api/models/User.js');
 module.exports = {
     isolate_module: isolate_module,
     catch_failed_requests: catch_failed_requests,
-    pass_failed_requests: pass_failed_requests
+    pass_failed_requests: pass_failed_requests,
+    error_handler: error_handler
 };
+
+function error_handler(err, req, res, next) {
+    if(err instanceof common.APIClientError) {
+        res.status(err.resCode).send(err.message);
+    } else if(err instanceof Error) {
+        res.status(500).send(err.stack);
+    } else {
+        res.status(400).send(err.toString());
+    }
+}
 
 /* Formats and re-throws failed Superagent / Chai-HTTP requests. */
 function catch_failed_requests(err) {
@@ -76,15 +87,7 @@ function isolate_module(router) {
     app.use('/api', router);
 
     /* Also mount error-handling middleware. */
-    app.use((err, req, res, next) => {
-        if(err instanceof common.APIClientError) {
-            res.status(err.resCode).send(err.message);
-        } else if(err instanceof Error) {
-            res.status(500).send(err.stack);
-        } else {
-            res.status(400).send(err.toString());
-        }
-    });
+    app.use(error_handler);
 
     return app;
 }
