@@ -68,7 +68,7 @@ router.use('/users',
             (isAdmin) => {
                 if(isAdmin) { next(); }
                 else {
-                    next(new common.APIClientError(401, "This endpoint is restricted to administrators."));
+                    next(new common.APIClientError(403, "This endpoint is restricted to administrators."));
                 }
             }
         );
@@ -154,9 +154,9 @@ router.put('/users', common.asyncMiddleware(
 
                 user.username(newData.username);
                 user.realname(newData.realname);
-                user.admin(newData.admin == 'true');
-                user.disabled(newData.disabled == 'true');
-                user.activityCreator(newData.activityCreator == 'true');
+                user.admin(newData.admin);
+                user.disabled(newData.disabled);
+                user.activityCreator(newData.activityCreator);
                 await user.setPassword(newData.password);
 
                 return user.save();
@@ -257,16 +257,17 @@ router.delete('/users/:uid',
     (req, res, next) => { req.targetUser.delete().then(common.emptySuccess(res)).catch(next); }
 );
 
-router.post('/users/:uid/password',
-    (req, res, next) => {
-        common.checkRequestParameters(req, 'password').then(
-            () => { return req.targetUser.setPassword(req.body.password); }
-        ).then(
-            () => { return req.targetUser.save(); }
-        ).then(
-            () => { return req.targetUser.summary(); }
-        ).then(common.jsonSuccess(res)).catch(next);
+router.post('/users/:uid/password', common.asyncMiddleware(
+    async (req, res, next) => {
+        if(req.is('text/plain')) {
+            await req.targetUser.setPassword(req.body);
+            await req.targetUser.save();
+
+            res.status(204).end();
+        } else {
+            throw new common.APIClientError(415, 'Passwords must be strings sent as text/plain.');
+        }
     }
-);
+));
 
 module.exports = router;
