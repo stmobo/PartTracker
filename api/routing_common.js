@@ -8,6 +8,7 @@ var Item = require('api/models/Item.js');
 var Reservation = require('api/models/Reservation.js');
 
 var winston = require('winston');
+var type = require('type-detect');
 
 var APIClientError = function(errorCode, message) {
     this.name = 'APIClientError';
@@ -82,6 +83,22 @@ module.exports = {
                 { columns: true, auto_parse: true },
                 (err, parsedData) => {
                     if(err) return reject(err);
+
+                    /* Convert 'true' and 'false' to boolean types,
+                     * because csv.parse doesn't do this for us */
+                    parsedData = parsedData.map(
+                        (o) => {
+                            for(k in o) {
+                                if(o.hasOwnProperty(k) && type(o[k]) === 'string') {
+                                    if(o[k].toLowerCase() === 'true') o[k] = true;
+                                    else if(o[k].toLowerCase() === 'false') o[k] = false;
+                                }
+                            }
+
+                            return o;
+                        }
+                    )
+
                     return resolve(parsedData);
                 }
             );
