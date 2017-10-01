@@ -39,6 +39,7 @@
     "passport-local": "^1.0.0",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
+    "redux": "^3.7.2",
     "spdy": "^3.4.7",
     "type-detect": "^4.0.3",
     "underscore": "^1.8.3",
