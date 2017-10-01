@@ -166,23 +166,28 @@ router.put('/activities/:aid/users', common.asyncMiddleware(
 
 router.post('/activities/:aid/users', common.asyncMiddleware(
     async (req, res) => {
+        if(!await req.user.activityCreator()) throw new common.APIClientError(403, "User is not authorized to modify Activities.");
         await common.checkRequestParameters(req, 'user', 'hours', 'checkIn');
 
-        req.userHours.push({
+        var addedObject = {
             user: req.body.user,
             hours: req.body.hours,
             checkIn: req.body.checkIn
-        });
+        }
+
+        req.userHours.push(addedObject);
 
         await req.activity.userHours(req.userHours);
         await req.activity.save();
 
-        res.status(200).json(await req.activity.userHours());
+        res.status(201).json(addedObject);
     }
 ));
 
 router.delete('/activities/:aid/users', common.asyncMiddleware(
     async (req, res) => {
+        if(!await req.user.activityCreator()) throw new common.APIClientError(403, "User is not authorized to modify Activities.");
+
         await req.activity.userHours([]);
         await req.activity.save();
 

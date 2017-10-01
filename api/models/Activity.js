@@ -148,9 +148,9 @@ Activity.generate = async function () {
 
 Activity.generate_checkin = async function(user, activity) {
     return {
-        user: user.id(),
+        user: user.id().toString(),
         hours: (await activity.maxHours()) / 2,
-        checkIn: new Date()
+        checkIn: (new Date()).toISOString()
     };
 }
 
