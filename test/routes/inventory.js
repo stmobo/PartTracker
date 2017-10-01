@@ -174,7 +174,7 @@ describe('Routes: /api/inventory', function () {
                 }
             );
 
-            expect(res.body).to.deep.equal(normalizedResult);
+            expect(res.body).to.have.deep.members(normalizedResult);
             return Promise.all([
                 expect(itemA.exists()).to.become(false),
                 expect(itemB.exists()).to.become(false),
@@ -215,7 +215,7 @@ describe('Routes: /api/inventory', function () {
                 }
             );
 
-            expect(res.body).to.deep.equal(normalizedResult);
+            expect(res.body).to.have.deep.members(normalizedResult);
             return Promise.all([
                 expect(itemA.exists()).to.become(false),
                 expect(itemB.exists()).to.become(false),
@@ -322,7 +322,6 @@ describe('Routes: /api/inventory', function () {
     describe('DELETE /api/inventory/:iid', function () {
         it('should delete Items from the database', async function () {
             var item = await Item.generate();
-            var normalizedResult = JSON.parse(JSON.stringify(await item.summary()));
 
             var res = await chai.request(app)
                 .delete('/api/inventory/'+item.id().toString());

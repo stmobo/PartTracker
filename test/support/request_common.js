@@ -22,7 +22,11 @@ module.exports = {
 
 /* Formats and re-throws failed Superagent / Chai-HTTP requests. */
 function catch_failed_requests(err) {
-    throw new Error(`Server returned error response ${err.response.status}: ${err.response.text}`);
+    if(err.response !== undefined) {
+        throw new Error(`Server returned error response ${err.response.status}: ${err.response.text}`);
+    } else {
+        throw err;
+    }
 }
 
 /* Allows failed requests to pass through as a response result; */
