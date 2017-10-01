@@ -130,8 +130,10 @@ Activity.prototype.summary = async function() {
 
 Activity.generate = async function () {
     var instance = new Activity();
+    var instance_num = await dbAPI.activities.count({});
+
     await Promise.all([
-        instance.title('Test'),
+        instance.title('Test'+instance_num.toString()),
         instance.description('Test'),
         instance.startTime(new Date(1)),
         instance.endTime(new Date(Date.now()+(90*24*3600*1000))),
@@ -142,6 +144,14 @@ Activity.generate = async function () {
     await instance.save();
 
     return instance;
+}
+
+Activity.generate_checkin = async function(user, activity) {
+    return {
+        user: user.id(),
+        hours: (await activity.maxHours()) / 2,
+        checkIn: new Date()
+    };
 }
 
 module.exports = Activity;

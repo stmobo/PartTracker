@@ -120,7 +120,7 @@ router.delete('/activities/:aid', common.asyncMiddleware(
 router.get('/activities/:aid/checkin', common.asyncMiddleware(
     async (req, res) => {
         var userHours = await req.activity.userHours();
-        var idx = userHours.findIndex(doc => monk.id(doc.user) === monk.id(req.user.id()));
+        var idx = userHours.findIndex(doc => monk.id(doc.user).equals(monk.id(req.user.id())));
 
         if(idx !== -1) throw new common.APIClientError("User "+req.user.id()+" has already checked into this Activity.");
 
