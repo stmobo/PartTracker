@@ -1,6 +1,7 @@
 import React from 'react';
 import ItemInfo from "./ItemInfo.jsx";
 import ItemEditor from "./ItemEditor.jsx";
+import ReservationList from "../reservations/ReservationList.jsx";
 
 /*
  * props.onUpdate(id, model) is a callback that results in a PUT request being
@@ -13,7 +14,7 @@ export default class Item extends React.Component {
         var { itemModel, onUpdate, onDelete } = props;
         super(props);
 
-        this.state = { editing: false };
+        this.state = { editing: false, expanded: false };
 
         this.handleUpdate = (function(newModel) {
             this.props.onUpdate(this.props.itemModel.id, newModel);
@@ -25,13 +26,26 @@ export default class Item extends React.Component {
 
         this.startEdit = (function() { this.setState({ editing: true }); }).bind(this);
         this.stopEdit = (function() { this.setState({ editing: false }); }).bind(this);
+
+        this.toggleRSVPList = (function(ev) {
+            ev.stopPropagation();
+            this.setState({ expanded: !this.state.expanded });
+        }).bind(this);
     }
 
     render() {
+        var itemRenderer;
         if(this.state.editing) {
-            return (<ItemEditor model={this.props.itemModel} onSubmit={this.handleUpdate} onCancel={this.stopEdit} />);
+            itemRenderer = (<ItemEditor model={this.props.itemModel} expanded={this.state.expanded} onSubmit={this.handleUpdate} onCancel={this.stopEdit} />);
         } else {
-            return (<ItemInfo itemModel={this.props.itemModel} onDelete={this.handleDelete} onEdit={this.startEdit} />);
+            itemRenderer = (<ItemInfo itemModel={this.props.itemModel} expanded={this.state.expanded} onDelete={this.handleDelete} onEdit={this.startEdit} />);
         }
+
+        return (
+            <div>
+                <div onClick={this.toggleRSVPList}>{itemRenderer}</div>
+                {this.state.expanded && <ReservationList parentItem={this.props.itemModel} />}
+            </div>
+        )
     }
 }

@@ -1,10 +1,10 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { store } from "./common/store.js";
 
-function mapStateToProps(state) {
+function mapStateToProps(state, ownProps) {
+    var { collection, labelKey, initial, onChange } = ownProps;
     return {
-        users: Array.from(state.users.values())
+        objects: Array.from(state[collection].values())
     }
 }
 
@@ -13,12 +13,12 @@ function mapStateToProps(state) {
  * props.onChange(userID) - callback for getting the selected user ID.
  * props.initial - Initial user ID to select.
  */
-class UserSelectDropdown extends React.Component {
-    constructor({ users, initial, onChange }) {
-        super({ users, initial, onChange });
+class CollectionSelector extends React.Component {
+    constructor(props) {
+        var { objects, collection, labelKey, initial, onChange } = props;
+        super(props);
 
-        this.state = { selected: initialSelectedUser };
-
+        this.state = { selected: initial };
         this.onSelectChanged = this.onSelectChanged.bind(this);
     }
 
@@ -29,12 +29,12 @@ class UserSelectDropdown extends React.Component {
     }
 
     render() {
-        var elems = this.props.users.map(
-            (userObject) => (<option value={userObject.id} key={userObject.id}>{userObject.username}</option>);
+        var elems = this.props.objects.map(
+            (object) => (<option value={object.id} key={object.id}>{object[this.props.labelKey]}</option>)
         );
 
         return (<select onChange={this.onSelectChanged} value={this.state.selected}>{elems}</select>);
     }
 }
 
-export default UserDropdownList = connect(mapStateToProps)(UserSelectDropdown);
+export default CollectionSelector = connect(mapStateToProps)(CollectionSelector);

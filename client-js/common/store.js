@@ -2,6 +2,15 @@ var redux = require('redux');
 var thunkMiddleware = require('redux-thunk').default;
 import { composeWithDevTools } from 'redux-devtools-extension';
 
+const initialState = {
+    inventory: new Map(),
+    reservations: new Map(),
+    requests: new Map(),
+    activities: new Map(),
+    users: new Map(),
+    current_user: undefined,
+}
+
 /* Main state shape:
     {
         "inventory": { <Collection of Item objects> },
@@ -69,15 +78,6 @@ function auth_reducer(state, action) {
     }
 
     return stateClone;
-}
-
-const initialState = {
-    inventory: new Map(),
-    reservations: new Map(),
-    requests: new Map(),
-    activities: new Map(),
-    users: new Map(),
-    current_user: undefined,
 }
 
 function mainReducer(state, action) {

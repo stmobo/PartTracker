@@ -19,17 +19,17 @@ export function jsonOnSuccess(res) {
     return res.json();
 }
 
-export function renderUpdateTime(updated) {
+export function UpdateTime({ updated }) {
     if(!(updated instanceof Date)) {
         updated = new Date(updated);
     }
-    
+
     var elapsed = Date.now() - updated;
     var timeStr = updated.toLocaleTimeString(localeString, {timeZone: timezone});
 
     if(elapsed >= (24*3600*1000)) { // ms in a day
         /* Render date portion only, with update time on hover */
-        (<small className="list-timestamp">
+        return (<small className="list-timestamp">
             <abbr title={timeStr}>
                (last updated { updated.toLocaleDateString(localeString, {timeZone: timezone}) })
            </abbr>

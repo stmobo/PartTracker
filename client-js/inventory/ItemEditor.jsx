@@ -10,7 +10,7 @@ const defaultModel = {
 
 export default class ItemEditor extends React.Component {
     constructor(props) {
-        var { model, onSubmit, onCancel } = props;
+        var { model, expanded, onSubmit, onCancel } = props;
         super(props);
 
         if(typeof model === 'undefined') {
@@ -37,7 +37,7 @@ export default class ItemEditor extends React.Component {
         ev.preventDefault();
         ev.stopPropagation();
 
-        if(typeof model === 'undefined') {
+        if(typeof this.props.model === 'undefined') {
             this.setState(defaultModel);
         } else {
             this.setState(Object.assign({}, this.props.model));
@@ -84,10 +84,12 @@ export default class ItemEditor extends React.Component {
         return (
             <form className="inv-list-item inv-list-editing row" onSubmit={this.handleFormSubmit} onReset={this.handleFormCancel}>
                 <div className="col-md-7">
+                    {(this.props.expanded === false) && <span className="glyphicon glyphicon-menu-down text-left"></span>}
+                    {(this.props.expanded === true) && <span className="glyphicon glyphicon-menu-up text-left"></span>}
                     <input type="text" name="name" value={this.state.name} onChange={this.handleFormChange} />
-                    <button type="submit" className="btn btn-success btn-xs">Save</button>
-                    <button type="reset" className="btn btn-danger btn-xs">Reset</button>
-                    <button onClick={this.handleFormCancel} className="btn btn-danger btn-xs">Cancel</button>
+                    <button type="submit" className="btn btn-success btn-xs edit-form-btn">Save</button>
+                    <button type="reset" className="btn btn-danger btn-xs edit-form-btn">Reset</button>
+                    <button onClick={this.handleFormCancel} className="btn btn-danger btn-xs edit-form-btn">Cancel</button>
                 </div>
                 <div className="col-md-2">{status}</div>
                 <div className={"col-md-1 "+tr_ctxt_class}>

@@ -1,8 +1,8 @@
 import React from 'react';
-import {renderUpdateTime} from '../common.jsx';
+import {UpdateTime} from '../common.jsx';
 
 /* Renders one item statically. */
-export default function ItemInfo({ itemModel, onEdit, onDelete }) {
+export default function ItemInfo({ itemModel, expanded, onEdit, onDelete }) {
     var tr_ctxt_class = "col-md-1 ";
     var status = "";
 
@@ -20,8 +20,11 @@ export default function ItemInfo({ itemModel, onEdit, onDelete }) {
     return (
         <div className="inv-list-item row">
             <div className="inv-item-name col-md-7">
+                {(expanded === false) && <span className="glyphicon glyphicon-menu-down text-left"></span>}
+                {(expanded === true) && <span className="glyphicon glyphicon-menu-up text-left"></span>}
+
                 {itemModel.name}
-                {renderUpdateTime(itemModel.updated)}
+                <UpdateTime updated={itemModel.updated} />
                 <span onClick={handleEdit} className="glyphicon glyphicon-pencil offset-button"></span>
                 <span onClick={handleDelete} className="glyphicon glyphicon-remove offset-button"></span>
             </div>
