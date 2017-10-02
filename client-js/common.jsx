@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 
 export function errorHandler(err) {
     if(err instanceof Response) {
-        console.error("Request to "+err.url+" returned error "+err.status.toString()+' '+err.statusText);
+        console.error(`Request to ${err.url} returned status ${err.status.toString()} (${err.statusText}):`)
         console.error(err.body);
     } else if(err instanceof Error) {
         console.error(err.stack);
@@ -20,6 +20,10 @@ export function jsonOnSuccess(res) {
 }
 
 export function renderUpdateTime(updated) {
+    if(!(updated instanceof Date)) {
+        updated = new Date(updated);
+    }
+    
     var elapsed = Date.now() - updated;
     var timeStr = updated.toLocaleTimeString(localeString, {timeZone: timezone});
 
@@ -84,45 +88,6 @@ export function getUserInfoByID(userID) {
     return apiGetRequest('/users').then((userList) => {
         return userList.find((userDoc) => userDoc.id === userID);
     });
-}
-
-/* Renders a dropdown list for selecting users.
- * Required props:
- * props.onChange(userID) - callback for getting the selected user ID.
- * props.initial - Initial user ID to select.
- */
-export class UserSelectDropdown extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { users: [], selected: props.initial };
-
-        this.onSelectChanged = this.onSelectChanged.bind(this);
-        this.populateUsers = this.populateUsers.bind(this);
-
-        this.populateUsers();
-    }
-
-    populateUsers() {
-        apiGetRequest('/users').then(
-            (usersList) => { this.setState({ users: usersList }); }
-        ).catch(errorHandler);
-    }
-
-    onSelectChanged(ev) {
-        ev.preventDefault();
-        this.setState({ selected: ev.target.value });
-        this.props.onChange(ev.target.value);
-    }
-
-    render() {
-        var elems = this.state.users.map((userObject) => {
-            return (
-                <option value={userObject.id} key={userObject.id}>{userObject.username}</option>
-            );
-        });
-
-        return (<select onChange={this.onSelectChanged} value={this.state.selected}>{elems}</select>);
-    }
 }
 
 export var localeString = 'en-US';
