@@ -6,6 +6,7 @@ import { connect, Provider } from 'react-redux';
 
 import Item from "./inventory/Item.jsx";
 import ItemCreateForm from "./inventory/ItemCreateForm.jsx";
+import FileUploadButton from './common/FileUploadButton.jsx';
 
 import {errorHandler, jsonOnSuccess, renderUpdateTime} from './common.jsx';
 import { store } from "./common/store.js";
@@ -23,7 +24,7 @@ function ItemListHeader() {
     );
 }
 
-function ItemList({ collection, createItem, updateItem, deleteItem }) {
+function ItemList({ collection, createItem, updateItem, deleteItem, importCSV }) {
     var elements = collection.map(
         x => (<Item key={x.id} itemModel={x} onUpdate={updateItem} onDelete={deleteItem} />)
     );
@@ -33,6 +34,12 @@ function ItemList({ collection, createItem, updateItem, deleteItem }) {
             <ItemListHeader />
             {elements}
             <ItemCreateForm createItem={createItem} />
+            <div className="inv-list-item row">
+                <div className="col-md-12">
+                    <FileUploadButton accept=".csv" className="btn btn-default btn-sm list-create-new-button" onFileSelected={importCSV}>Import from CSV</FileUploadButton>
+                    <a className="btn btn-default btn-sm list-create-new-button" href="/api/inventory.csv">Export to CSV</a>
+                </div>
+            </div>
         </div>
     );
 }
@@ -53,7 +60,10 @@ function mapDispatchToProps(dispatch) {
         },
         deleteItem: (id) => {
             dispatch(api.delete('inventory', id));
-        }
+        },
+        importCSV: (fileInput) => {
+            dispatch(api.importCSV('inventory', fileInput.files[0]));
+        },
     };
 }
 

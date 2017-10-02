@@ -5,6 +5,7 @@ module.exports = {
     create: apiCreate,
     update: apiUpdate,
     delete: apiDelete,
+    importCSV: apiImportCSV,
     readElement: apiReadElement,
     readCollection: apiReadCollection,
 }
@@ -78,6 +79,22 @@ function apiUpdate(collection, object, id) {
         var updatedObject = await res.json();
         dispatch(actions.update(collection, updatedObject));
     }
+}
+
+function apiImportCSV(collection, selectedFile) {
+    return async function (dispatch, getState) {
+        var res = await fetch(`/api/${collection}`, {
+            method: 'PUT',
+            credentials: 'include',
+            headers: { 'Content-Type': 'text/csv', 'Accept': 'application/json' },
+            body: selectedFile
+        });
+
+        if(!res.ok) return common.errorHandler(res);
+        var updatedCollection = await res.json();
+
+        dispatch(actions.update_collection(collection, updatedCollection));
+    };
 }
 
 /* ... ditto for DELETE */
