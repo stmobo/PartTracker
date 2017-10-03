@@ -18,6 +18,4 @@ ReactDOM.render(
 );
 
 store.dispatch(api.readCollection('users'));
-store.dispatch(api.readCollection('reservations'));
-store.dispatch(api.readCollection('inventory'));
 store.dispatch(api.getCurrentUser());
