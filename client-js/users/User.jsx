@@ -53,7 +53,7 @@ class User extends React.Component {
         if(this.state.editing) {
             return (<UserEditor model={this.props.model} showPWEditBox={true} onSubmit={this.props.onUpdate} onPWChange={this.props.onPWChange} onClose={this.stopEditing} />);
         } else {
-            return (<UserInfo model={this.props.model} canEdit={this.props.canEdit} onEdit={this.startEditing} onDelete={this.onDelete} />);
+            return (<UserInfo model={this.props.model} canEdit={this.props.canEdit} onEdit={this.startEditing} onDelete={this.props.onDelete} />);
         }
     }
 }

@@ -25,7 +25,7 @@ class UserCreator extends React.Component {
             newPassword: '',
         };
 
-        this.showEditor = (function() { this.setState({editorVisible: true}); }).bind(this);
+        this.showEditor = (function() { this.setState({editorVisible: true, newPassword: ''}); }).bind(this);
         this.hideEditor = (function() { this.setState({editorVisible: false}); }).bind(this);
         this.handleCreate = this.handleCreate.bind(this);
         this.handlePWFieldUpdate = this.handlePWFieldUpdate.bind(this);
@@ -37,7 +37,6 @@ class UserCreator extends React.Component {
     }
 
     handlePWFieldUpdate(ev) {
-        ev.preventDefault();
         ev.stopPropagation();
 
         if(ev.target.name === "newPassword") {
