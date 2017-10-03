@@ -1,36 +1,8 @@
-.user-list-item, .user-list-header {
-    padding-top: 0.5em;
-    padding-bottom: 0.5em;
-}
-
-.user-list-item {
-    border-top-style: inset;
-}
-
 label {
     margin-right: 0.5em;
 }
 
-.offset-button {
-    padding-left: 0.5em;
-}
-
-.editing-buttons {
-    opacity: 0;
-}
-
-.editing-buttons:hover {
-    opacity: 1.0;
-}
-
-.list-username:hover > .editing-buttons {
-    opacity: 0.5;
-}
-
-.user-list-editing input[type=number] {
-    width: 75%;
-}
-
-.list-timestamp {
-    padding-left: 0.5em;
+.password-editor {
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
