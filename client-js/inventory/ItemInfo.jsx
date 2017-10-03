@@ -18,7 +18,7 @@ export default function ItemInfo({ itemModel, expanded, onEdit, onDelete }) {
     var handleDelete = (ev) => { ev.preventDefault(); ev.stopPropagation(); onDelete(); }
 
     return (
-        <div className="inv-list-item row">
+        <div className="list-row row">
             <div className="inv-item-name col-md-7">
                 {(expanded === false) && <span className="glyphicon glyphicon-menu-down text-left"></span>}
                 {(expanded === true) && <span className="glyphicon glyphicon-menu-up text-left"></span>}

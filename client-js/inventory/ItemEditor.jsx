@@ -82,7 +82,7 @@ export default class ItemEditor extends React.Component {
         }
 
         return (
-            <form className="inv-list-item inv-list-editing row" onSubmit={this.handleFormSubmit} onReset={this.handleFormCancel}>
+            <form className="list-row list-editor row" onSubmit={this.handleFormSubmit} onReset={this.handleFormCancel}>
                 <div className="col-md-7">
                     {(this.props.expanded === false) && <span className="glyphicon glyphicon-menu-down text-left"></span>}
                     {(this.props.expanded === true) && <span className="glyphicon glyphicon-menu-up text-left"></span>}

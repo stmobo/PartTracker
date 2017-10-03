@@ -8,7 +8,7 @@ import api from "../common/api.js";
 
 function ItemListHeader() {
     return (
-        <div className="inv-list-header row">
+        <div className="list-header row">
             <div className="col-md-7"><strong>Item Name</strong></div>
             <div className="col-md-2"><strong>Status</strong></div>
             <div className="col-md-1"><strong>Available</strong></div>
@@ -28,7 +28,7 @@ function ItemList({ collection, createItem, updateItem, deleteItem, importCSV })
             <ItemListHeader />
             {elements}
             <ItemCreateForm createItem={createItem} />
-            <div className="inv-list-item row">
+            <div className="list-row row">
                 <div className="col-md-12">
                     <FileUploadButton accept=".csv" className="btn btn-default btn-sm list-create-new-button" onFileSelected={importCSV}>Import from CSV</FileUploadButton>
                     <a className="btn btn-default btn-sm list-create-new-button" href="/api/inventory.csv">Export to CSV</a>
