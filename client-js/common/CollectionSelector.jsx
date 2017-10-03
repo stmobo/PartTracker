@@ -3,8 +3,19 @@ import { connect } from 'react-redux';
 
 function mapStateToProps(state, ownProps) {
     var { collection, labelKey, initial, onChange } = ownProps;
+    var objects = Array.from(state[collection].values())
+
+    if(ownProps.sorted) {
+        objects.sort(
+            (a,b) => {
+                if(a[ownProps.labelKey] === b[ownProps.labelKey]) return 0;
+                return (a[ownProps.labelKey] < b[ownProps.labelKey]) ? -1 : 1;
+            }
+        );
+    }
+
     return {
-        objects: Array.from(state[collection].values())
+        objects,
     }
 }
 
@@ -17,6 +28,10 @@ class CollectionSelector extends React.Component {
     constructor(props) {
         var { objects, collection, labelKey, initial, onChange } = props;
         super(props);
+
+        if(typeof initial === undefined || initial === '') {
+            onChange(objects[0].id);
+        }
 
         this.state = { selected: initial };
         this.onSelectChanged = this.onSelectChanged.bind(this);
