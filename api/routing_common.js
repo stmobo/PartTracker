@@ -40,7 +40,7 @@ module.exports = {
             responseMsg: 'unknown message'
         }
 
-        if(err instanceof common.APIClientError) {
+        if(err instanceof APIClientError) {
             res.status(err.resCode).send(err.message);
 
             metadata.errorType = 'Client';

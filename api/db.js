@@ -146,7 +146,7 @@ DatabaseItem.prototype.save = function () {
                     {
                         id: this.id().toString(),
                         collection: this.db.name,
-                        spec: JSON.stringify(spec)
+                        //spec: JSON.stringify(spec)
                     }
                 );
 
