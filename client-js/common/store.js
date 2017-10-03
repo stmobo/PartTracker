@@ -71,7 +71,7 @@ function collection_op_reducer(state, action) {
  */
 function auth_reducer(state, action) {
     var stateClone = Object.assign({}, state);
-    if(action.type === 'login') {
+    if(action.type === 'set-current-user') {
         stateClone.current_user = action.user;
     } else if(action.type === 'logout') {
         stateClone.current_user = undefined;
@@ -91,7 +91,7 @@ function mainReducer(state, action) {
         case 'update-collection':
         case 'delete':
             return collection_op_reducer(state, action);
-        case 'login':
+        case 'set-current-user':
         case 'logout':
             return auth_reducer(state, action);
         default:

@@ -6,6 +6,7 @@ module.exports = {
     update_collection: updateCollectionOperation,
     create: createOperation,
     delete: deleteOperation,
+    setCurrentUser: setCurrentUser,
 };
 
 function updateOperation(collection, object) {
@@ -47,5 +48,13 @@ function deleteOperation(collection, objectOrID) {
             collection: collection,
             target: objectOrID
         };
+    }
+}
+
+
+function setCurrentUser(userObject) {
+    return {
+        type: 'set-current-user',
+        user: userObject
     }
 }

@@ -8,6 +8,7 @@ module.exports = {
     importCSV: apiImportCSV,
     readElement: apiReadElement,
     readCollection: apiReadCollection,
+    getCurrentUser: getCurrentUser,
 }
 
 /* Reads a collection element from the API and stores it. */
@@ -41,6 +42,20 @@ function apiReadCollection(collection) {
         if(!res.ok) return common.errorHandler(res);
         var fetchedCollection = await res.json();
         dispatch(actions.update_collection(collection, fetchedCollection));
+    }
+}
+
+function getCurrentUser() {
+    return async function(dispatch, getState) {
+        var res = await fetch('/api/user', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {"Accept": "application/json"},
+        });
+
+        if(!res.ok) return common.errorHandler(res);
+        var fetchedUser = await res.json();
+        dispatch(actions.setCurrentUser(fetchedUser));
     }
 }
 
