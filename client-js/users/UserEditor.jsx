@@ -8,9 +8,9 @@ const defaultModel = {
     activityCreator: false,
 };
 
-class UserEditor extends React.Component {
+export default class UserEditor extends React.Component {
     constructor(props) {
-        var { model, onSubmit, onCancel, onPWChange } = props;
+        var { model, showPWEditBox, onSubmit, onClose, onPWChange } = props;
         super(props);
 
         if(typeof model === 'undefined') {
@@ -19,8 +19,13 @@ class UserEditor extends React.Component {
             this.state = Object.assign({ editingPW:false, newPassword: '' }, model);
         }
 
+        this.handleNewPWSubmit = this.handleNewPWSubmit.bind(this);
+        this.handleNewPWReset = this.handleNewPWReset.bind(this);
+        this.handleNewPWStartEdit = this.handleNewPWStartEdit.bind(this);
+
         this.handleFormSubmit = this.handleFormSubmit.bind(this);
         this.handleFormReset = this.handleFormReset.bind(this);
+
         this.handleFormCancel = this.handleFormCancel.bind(this);
         this.handleFormChange = this.handleFormChange.bind(this);
     }
@@ -33,6 +38,7 @@ class UserEditor extends React.Component {
         delete newObject.newPassword;
 
         this.props.onSubmit(newObject);
+        this.props.onClose();
     }
 
     handleNewPWSubmit(ev) {
@@ -40,6 +46,21 @@ class UserEditor extends React.Component {
         ev.stopPropagation();
 
         this.props.onPWChange(this.state.newPassword);
+        this.setState({ editingPW: false, newPassword: '' });
+    }
+
+    handleNewPWReset(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        this.setState({ editingPW: false, newPassword: '' });
+    }
+
+    handleNewPWStartEdit(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        this.setState({ editingPW: true });
     }
 
     handleFormReset(ev) {
@@ -57,11 +78,10 @@ class UserEditor extends React.Component {
         ev.preventDefault();
         ev.stopPropagation();
 
-        this.props.onCancel();
+        this.props.onClose();
     }
 
     handleFormChange(ev) {
-        ev.preventDefault();
         ev.stopPropagation();
 
         if(ev.target.name === "admin" || ev.target.name === "disabled" || ev.target.name === "activityCreator") {
@@ -75,36 +95,33 @@ class UserEditor extends React.Component {
         }
     }
 
-
-
-    handleNewPWReset
-
     render() {
         var newPWForm = null;
-        if(this.state.editingPW && this.props.canEdit) {
+        if(this.state.editingPW && this.props.showPWEditBox) {
             newPWForm = (
-                <form>
-                    <input type="password" name="password" value={this.state.newPassword} onChange={this.handlePasswordFieldChange} />
-                    <button onClick={this.handleNewPWSubmit} className="btn btn-success btn-xs">Save</button>
-                    <button onClick={this.handleNewPWReset} className="btn btn-danger btn-xs">Cancel</button>
-                </form>
+                <div className="password-editor">
+                    <input type="password" name="newPassword" placeholder="Password" value={this.state.newPassword} onChange={this.handleFormChange} />
+                    <button onClick={this.handleNewPWSubmit} className="btn btn-success btn-xs edit-form-btn">Save Password</button>
+                    <button onClick={this.handleNewPWReset} className="btn btn-danger btn-xs edit-form-btn">Cancel Change Password</button>
+                </div>
             );
-        } else if(this.props.canEdit) {
+        } else if(this.props.showPWEditBox) {
             newPWForm = (
-                <abbr title="Change Password" className="glyphicon glyphicon-lock editing-buttons" onClick={this.handleNewPWStartEdit}></abbr>
+                <button className="btn btn-default btn-xs" onClick={this.handleNewPWStartEdit}>Password</button>
             )
         }
 
         return (
-            <form className="user-list-item user-list-editing row" onSubmit={this.handleFormSubmit} onReset={this.handleFormReset}>
+            <form className="list-row list-editor row" onSubmit={this.handleFormSubmit} onReset={this.handleFormReset}>
                 <div className="col-md-5">
-                    <input type="text" name="username" value={this.state.username} onChange={this.handleFormChange} />
+                    <input type="text" name="username" placeholder="Username" value={this.state.username} onChange={this.handleFormChange} />
                     {newPWForm}
-                    <button type="submit" className="btn btn-success btn-xs">Save</button>
-                    <button type="reset" className="btn btn-danger btn-xs">Cancel</button>
+                    <button type="submit" className="btn btn-success btn-xs edit-form-btn">Save</button>
+                    <button type="reset" className="btn btn-danger btn-xs edit-form-btn">Reset</button>
+                    <button onClick={this.handleFormCancel} className="btn btn-danger btn-xs edit-form-btn">Cancel</button>
                 </div>
                 <div className="col-md-4">
-                    <input type="text" name="realname" value={this.state.realname} onChange={this.handleFormChange} />
+                    <input type="text" name="realname" placeholder="Real Name" value={this.state.realname} onChange={this.handleFormChange} />
                 </div>
                 <div className="col-md-1">
                     <input type="checkbox" name="admin" checked={this.state.admin} onChange={this.handleFormChange} />
