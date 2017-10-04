@@ -4,8 +4,8 @@ import {UpdateTime} from '../common.jsx';
 import FileUploadButton from '../common/FileUploadButton.jsx';
 import api from '../common/api.js';
 
-import User from './user.jsx';
-import UserCreator from './userCreator.jsx';
+import User from './User.jsx';
+import UserCreator from './UserCreator.jsx';
 
 function UserListHeader() {
     return (
