@@ -7,6 +7,7 @@ module.exports = {
     create: createOperation,
     delete: deleteOperation,
     setCurrentUser: setCurrentUser,
+    setCollectionETag,
 };
 
 function updateOperation(collection, object) {
@@ -56,5 +57,13 @@ function setCurrentUser(userObject) {
     return {
         type: 'set-current-user',
         user: userObject
+    }
+}
+
+function setCollectionETag(collection, etag) {
+    return {
+        type: 'set-collection-etag',
+        collection,
+        data: etag,
     }
 }

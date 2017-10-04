@@ -9,6 +9,7 @@ const initialState = {
     requests: new Map(),
     activities: new Map(),
     users: new Map(),
+    collection_etags: {},
     logged_in: false,
     current_user: {
         username: '',
@@ -16,6 +17,7 @@ const initialState = {
         activityCreator: false,
         admin: false,
         disabled: false,
+        ETag: '',
     },
 }
 
@@ -90,6 +92,18 @@ function auth_reducer(state, action) {
     return stateClone;
 }
 
+function etag_reducer(state, action) {
+    var stateClone = Object.assign({}, state);
+    var etagsClone = Object.assign({}, state.collection_etags);
+
+    if(action.type === 'set-collection-etag') {
+        etagsClone[action.collection] = action.data;
+        stateClone.collection_etags = etagsClone;
+
+        return stateClone;
+    }
+}
+
 function mainReducer(state, action) {
     if(typeof state === 'undefined') {
         return initialState;
@@ -104,6 +118,8 @@ function mainReducer(state, action) {
         case 'set-current-user':
         case 'logout':
             return auth_reducer(state, action);
+        case 'set-collection-etag':
+            return etag_reducer(state, action);
         default:
             return state;
     }

@@ -21,43 +21,75 @@ function apiReadElement(collection, objectOrID) {
     }
 
     return async function(dispatch, getState) {
+        var storedElement = getState()[collection].get(id);
+        var reqHeaders = {"Accept": "application/json"}
+        if(storedElement !== undefined && storedElement.ETag !== undefined) {
+            reqHeaders["If-None-Match"] = storedElement.ETag;
+        }
+
         var res = await fetch(`/api/${collection}/${id}`, {
             method: 'GET',
             credentials: 'include',
-            headers: {"Accept": "application/json"},
+            headers: reqHeaders,
         });
 
         if(!res.ok) return common.errorHandler(res);
-        var fetchedObject = await res.json();
-        dispatch(actions.update(collection, fetchedObject));
+        if(res.status !== 304) {
+            var fetchedObject = await res.json();
+            if(res.headers.has('ETag')) {
+                fetchedObject.ETag = res.headers.get('ETag');
+            }
+            dispatch(actions.update(collection, fetchedObject));
+        }
     }
 }
 
 function apiReadCollection(collection) {
     return async function(dispatch, getState) {
+        var reqHeaders = {"Accept": "application/json"}
+        if(getState().collection_etags[collection] !== undefined) {
+            reqHeaders["If-None-Match"] = getState().collection_etags[collection];
+        }
+
         var res = await fetch(`/api/${collection}`, {
             method: 'GET',
             credentials: 'include',
-            headers: {"Accept": "application/json"},
+            headers: reqHeaders,
         });
 
         if(!res.ok) return common.errorHandler(res);
-        var fetchedCollection = await res.json();
-        dispatch(actions.update_collection(collection, fetchedCollection));
+        if(res.status !== 304) {
+            var fetchedCollection = await res.json();
+            if(res.headers.has('ETag')) {
+                dispatch(actions.setCollectionETag(collection, res.headers.get('ETag')));
+            }
+            dispatch(actions.update_collection(collection, fetchedCollection));
+        }
     }
 }
 
 function getCurrentUser() {
     return async function(dispatch, getState) {
+        var existingUserInfo = getState().current_user;
+        var reqHeaders = {"Accept": "application/json"};
+        if(existingUserInfo.ETag !== undefined && existingUserInfo.ETag !== '') {
+            reqHeaders['If-None-Match'] = existingUserInfo.ETag;
+        }
+
         var res = await fetch('/api/user', {
             method: 'GET',
             credentials: 'include',
-            headers: {"Accept": "application/json"},
+            headers: reqHeaders,
         });
 
         if(!res.ok) return common.errorHandler(res);
-        var fetchedUser = await res.json();
-        dispatch(actions.setCurrentUser(fetchedUser));
+        if(res.status !== 304) {
+            var fetchedUser = await res.json();
+            if(res.headers.has('ETag')) {
+                fetchedUser.ETag = res.headers.get('ETag');
+            }
+            dispatch(actions.setCurrentUser(fetchedUser));
+        }
     }
 }
 
