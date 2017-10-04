@@ -1,3 +1,18 @@
-.activity-userhours-list {
-    padding-left: 30px;
+.activity-userhours-list .list-row {
+    border-top: none;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+}
+
+.checkin-hours-editor {
+    width: 5%;
+}
+
+.checkin-editor input {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.checkin-editor select {
+    margin-right: 5px;
 }

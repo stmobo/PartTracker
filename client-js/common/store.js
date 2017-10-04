@@ -8,7 +8,14 @@ const initialState = {
     requests: new Map(),
     activities: new Map(),
     users: new Map(),
-    current_user: undefined,
+    logged_in: false,
+    current_user: {
+        username: '',
+        realname: '',
+        activityCreator: false,
+        admin: false,
+        disabled: false,
+    },
 }
 
 /* Main state shape:
@@ -72,9 +79,11 @@ function collection_op_reducer(state, action) {
 function auth_reducer(state, action) {
     var stateClone = Object.assign({}, state);
     if(action.type === 'set-current-user') {
+        stateClone.logged_in = true;
         stateClone.current_user = action.user;
     } else if(action.type === 'logout') {
-        stateClone.current_user = undefined;
+        stateClone.logged_in = false;
+        stateClone.current_user = initialState.current_user;
     }
 
     return stateClone;

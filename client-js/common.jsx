@@ -44,6 +44,8 @@ export function UpdateTime({ updated }) {
 
 /* Converts a Javascript Date object to a string in the format of HTML datetime-local input values */
 export function dateToInputValue(dt) {
+    if(typeof dt === 'string') dt = new Date(dt);
+    
     var nFmt = new Intl.NumberFormat(undefined, { minimumIntegerDigits: 2 });
     var date = `${dt.getFullYear()}-${nFmt.format(dt.getMonth()+1)}-${nFmt.format(dt.getDate())}`;
     var time = `T${nFmt.format(dt.getHours())}:${nFmt.format(dt.getMinutes())}`;

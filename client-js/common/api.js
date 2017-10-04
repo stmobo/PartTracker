@@ -10,6 +10,7 @@ module.exports = {
     readElement: apiReadElement,
     readCollection: apiReadCollection,
     getCurrentUser: getCurrentUser,
+    checkIn: checkIn,
 }
 
 /* Reads a collection element from the API and stores it. */
@@ -130,4 +131,24 @@ function apiDelete(collection, objectOrID) {
 
         dispatch(actions.delete(collection, id));
     }
+}
+
+function checkIn(activity) {
+    return async function(dispatch, getState) {
+        var res = await fetch(`/api/activities/${activity.id}/checkin`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {"Accept": "application/json"},
+        });
+
+        if(!res.ok) return common.errorHandler(res);
+
+        res = await fetch(`/api/activities/${activity.id}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {"Accept": "application/json"},
+        });
+
+        dispatch(actions.update('activities', activity.id));
+     }
 }
