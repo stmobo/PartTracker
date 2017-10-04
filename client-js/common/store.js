@@ -1,7 +1,13 @@
 var redux = require('redux');
-import {persistStore, autoRehydrate} from 'redux-persist';
+import {persistStore, autoRehydrate, createTransform} from 'redux-persist';
+import {REHYDRATE} from 'redux-persist/constants'
 var thunkMiddleware = require('redux-thunk').default;
 import { composeWithDevTools } from 'redux-devtools-extension';
+
+import localforage from 'localforage';
+var localforage_store = localforage.createInstance({
+  name: "PartsTracker"
+});
 
 const initialState = {
     inventory: new Map(),
@@ -104,6 +110,18 @@ function etag_reducer(state, action) {
     }
 }
 
+function rehydrateReducer(state, action) {
+    var stateClone = Object.assign({}, action.payload);
+
+    stateClone.users = new Map(action.payload.users);
+    stateClone.inventory = new Map(action.payload.inventory);
+    stateClone.requests = new Map(action.payload.requests);
+    stateClone.activities = new Map(action.payload.activities);
+    stateClone.reservations = new Map(action.payload.reservations);
+
+    return stateClone;
+}
+
 function mainReducer(state, action) {
     if(typeof state === 'undefined') {
         return initialState;
@@ -120,6 +138,8 @@ function mainReducer(state, action) {
             return auth_reducer(state, action);
         case 'set-collection-etag':
             return etag_reducer(state, action);
+        case REHYDRATE:
+            return rehydrateReducer(state, action);
         default:
             return state;
     }
@@ -133,6 +153,25 @@ var store = redux.createStore(
     )
 );
 
-persistStore(store);
+var persist = new Promise((resolve, reject) => {
+    try {
+        persistStore(store, {storage: localforage_store}, () => {
+            var api = require('./api.js');
 
-module.exports = { store };
+            store.dispatch(api.readCollection('users'));
+            store.dispatch(api.readCollection('reservations'));
+            store.dispatch(api.readCollection('inventory'));
+            store.dispatch(api.readCollection('activities'));
+            store.dispatch(api.readCollection('requests'));
+            store.dispatch(api.getCurrentUser());
+
+            resolve(store);
+        });
+    } catch(e) {
+        reject(e);
+    }
+});
+
+
+
+module.exports = { store, persist };

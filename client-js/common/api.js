@@ -33,7 +33,8 @@ function apiReadElement(collection, objectOrID) {
             headers: reqHeaders,
         });
 
-        if(!res.ok) return common.errorHandler(res);
+        if(res.status >= 400 && res.status <= 599) return common.errorHandler(res);
+
         if(res.status !== 304) {
             var fetchedObject = await res.json();
             if(res.headers.has('ETag')) {
@@ -57,7 +58,7 @@ function apiReadCollection(collection) {
             headers: reqHeaders,
         });
 
-        if(!res.ok) return common.errorHandler(res);
+        if(res.status >= 400 && res.status <= 599) return common.errorHandler(res);
         if(res.status !== 304) {
             var fetchedCollection = await res.json();
             if(res.headers.has('ETag')) {
@@ -82,7 +83,7 @@ function getCurrentUser() {
             headers: reqHeaders,
         });
 
-        if(!res.ok) return common.errorHandler(res);
+        if(res.status >= 400 && res.status <= 599) return common.errorHandler(res);
         if(res.status !== 304) {
             var fetchedUser = await res.json();
             if(res.headers.has('ETag')) {

@@ -31,6 +31,7 @@
     "express-session": "^1.15.6",
     "helmet": "^3.8.2",
     "jquery": "^3.2.1",
+    "localforage": "^1.5.0",
     "minimist": "^1.2.0",
     "monk": "^6.0.4",
     "npid": "^0.4.0",
