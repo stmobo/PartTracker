@@ -41,6 +41,7 @@
     "react-dom": "^16.0.0",
     "react-redux": "^5.0.6",
     "redux": "^3.7.2",
+    "redux-persist": "^4.10.1",
     "redux-thunk": "^2.2.0",
     "spdy": "^3.4.7",
     "type-detect": "^4.0.3",

@@ -1,4 +1,5 @@
 var redux = require('redux');
+import {persistStore, autoRehydrate} from 'redux-persist';
 var thunkMiddleware = require('redux-thunk').default;
 import { composeWithDevTools } from 'redux-devtools-extension';
 
@@ -110,7 +111,12 @@ function mainReducer(state, action) {
 
 var store = redux.createStore(
     mainReducer,
-    composeWithDevTools(redux.applyMiddleware(thunkMiddleware))
+    composeWithDevTools(
+        redux.applyMiddleware(thunkMiddleware),
+        autoRehydrate()
+    )
 );
+
+persistStore(store);
 
 module.exports = { store };
