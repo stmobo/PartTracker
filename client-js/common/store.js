@@ -111,7 +111,7 @@ function etag_reducer(state, action) {
 }
 
 function rehydrateReducer(state, action) {
-    var stateClone = Object.assign({}, action.payload);
+    var stateClone = Object.assign({}, state, action.payload);
 
     stateClone.users = new Map(action.payload.users);
     stateClone.inventory = new Map(action.payload.inventory);
