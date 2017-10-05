@@ -174,4 +174,4 @@ var persist = new Promise((resolve, reject) => {
 
 
 
-module.exports = { store, persist };
+module.exports = { store, persist, mainReducer, initialState };

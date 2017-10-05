@@ -23,7 +23,7 @@ class UserInfoHeader extends React.Component {
 /* Handles navbar stuff.
  * Info about the currently logged in user is stored as state.
  */
-class MainNavBar extends React.Component {
+export default class MainNavBar extends React.Component {
     constructor(props) {
         super(props);
 
