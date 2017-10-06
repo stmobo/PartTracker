@@ -1,4 +1,5 @@
 import React from 'react';
+import {connect} from 'react-redux';
 import {UpdateTime} from '../common.jsx';
 
 /* Renders one item statically. */
@@ -19,7 +20,7 @@ export default function ItemInfo({ itemModel, expanded, onEdit, onDelete }) {
 
     return (
         <div className="list-row row">
-            <div className="inv-item-name col-md-7">
+            <div className="inv-item-name col-md-6">
                 {(expanded === false) && <span className="glyphicon glyphicon-menu-down text-left"></span>}
                 {(expanded === true) && <span className="glyphicon glyphicon-menu-up text-left"></span>}
 
@@ -30,6 +31,7 @@ export default function ItemInfo({ itemModel, expanded, onEdit, onDelete }) {
             </div>
             <div className="col-md-2">{status}</div>
             <div className={tr_ctxt_class}>{itemModel.available}</div>
+            <div className="col-md-1">{itemModel.requested}</div>
             <div className="col-md-1">{itemModel.reserved}</div>
             <div className="col-md-1">{itemModel.count}</div>
         </div>

@@ -5,6 +5,7 @@ const defaultModel = {
     name: '',
     count: 0,
     reserved: 0,
+    requested: 0,
     available: 0
 };
 
@@ -83,7 +84,7 @@ export default class ItemEditor extends React.Component {
 
         return (
             <form className="list-row list-editor row" onSubmit={this.handleFormSubmit} onReset={this.handleFormCancel}>
-                <div className="col-md-7">
+                <div className="col-md-6">
                     {(this.props.expanded === false) && <span className="glyphicon glyphicon-menu-down text-left"></span>}
                     {(this.props.expanded === true) && <span className="glyphicon glyphicon-menu-up text-left"></span>}
                     <input type="text" name="name" value={this.state.name} onChange={this.handleFormChange} />
@@ -95,6 +96,7 @@ export default class ItemEditor extends React.Component {
                 <div className={"col-md-1 "+tr_ctxt_class}>
                     <input type="number" name="available" value={this.state.available} min="0" onChange={this.handleFormChange} />
                 </div>
+                <div className="col-md-1">{this.state.requested}</div>
                 <div className="col-md-1">{this.state.reserved}</div>
                 <div className="col-md-1">
                     <input type="number" name="count" value={this.state.count} min={this.state.reserved} onChange={this.handleFormChange} />

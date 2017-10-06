@@ -9,9 +9,10 @@ import api from "../common/api.js";
 function ItemListHeader() {
     return (
         <div className="list-header row">
-            <div className="col-md-7"><strong>Item Name</strong></div>
+            <div className="col-md-6"><strong>Item Name</strong></div>
             <div className="col-md-2"><strong>Status</strong></div>
             <div className="col-md-1"><strong>Available</strong></div>
+            <div className="col-md-1"><strong>Requested</strong></div>
             <div className="col-md-1"><strong>Reserved</strong></div>
             <div className="col-md-1"><strong>Total</strong></div>
         </div>
