@@ -35,56 +35,39 @@ router.get('/reservations', (req, res, next) => {
     - "requester": ID of user to reserve the parts under.
     - "asm" [optional]: Assembly ID to reserve the parts for.
  */
-router.post('/reservations', (req, res, next) => {
-    common.checkRequestParameters(req, 'part', 'count').then(
-        () => { return req.user.admin(); }
-    ).then(
-        (isAdmin) => {
-            if(isAdmin && req.body.requester) {
-                return new User(monk.id(req.body.requester));
-            } else if(isAdmin && req.body.username) {
-                return dbAPI.users.findOne({username: req.body.username}, {}).then(
-                    (doc) => { return new User(doc._id); }
-                );
+router.post('/reservations', common.asyncMiddleware(
+    async (req, res) => {
+        await common.checkRequestParameters(req, 'part', 'count');
+
+        var requester;
+        if(req.body.requester) {
+            if(await req.user.admin()) {
+                requester = new User(req.body.requester);
             } else {
-                return req.user;
+                throw new common.APIClientError(403, "Only Administrators can create reservations for other people.");
             }
+        } else {
+            requester = req.user;
         }
-    ).then(
-        (requester) => {
-            var item = new Item(monk.id(req.body.part));
-            return Promise.all([item.exists(), requester.exists(), item, requester]);
-        }
-    ).then(
-        (retns) => {
-            item_exists = retns[0];
-            requester_exists = retns[1];
-            item = retns[2];
-            requester = retns[3];
 
-            if(!item_exists) return Promise.reject(new APIClientError(404, "Requested part does not exist!"));
-            if(!requester_exists) return Promise.reject(new APIClientError(404, "Requesting user does not exist!"));
+        var item = new Item(req.body.part);
+        if(!(await item.exists())) throw new common.APIClientError(404, "Requested part does not exist!");
+        if(!(await requester.exists())) throw new common.APIClientError(404, "Requesting user does not exist!");
 
-            return Promise.all([item.available(), requester]);
-        }
-    ).then(
-        (retns) => {
-            avail_parts = retns[0];
-            requester = retns[1];
+        var rsvpCount = parseInt(req.body.count, 10);
+        if(rsvpCount > await item.available()) throw new common.APIClientError("Not enough parts available to satisfy new reservation.");
 
-            requested_parts = parseInt(req.body.count);
-            if(requested_parts > avail_parts)
-                return Promise.reject(new APIClientError("Not enough parts available to satisfy new reservation."));
+        var rsvp = new Reservation();
+        await Promise.all([
+            rsvp.requester(requester),
+            rsvp.count(rsvpCount),
+            rsvp.part(item),
+        ]);
+        await rsvp.save();
 
-            var rsvp = new Reservation();
-            rsvp.requester(requester);
-            rsvp.count(requested_parts);
-            rsvp.part(req.body.part);
-
-            return rsvp.save();
-        }
-    ).then(common.sendJSON(res, 201)).catch(next);
-});
+        res.status(201).json(await rsvp.summary());
+    }
+));
 
 router.use('/reservations/:rid', common.asyncMiddleware(
     async (req, res, next) => {

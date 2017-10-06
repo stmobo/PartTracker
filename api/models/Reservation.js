@@ -1,35 +1,48 @@
 var monk = require('monk');
 var ObjectID = require('mongodb').ObjectID;
+var type = require('type-detect');
+
 var dbAPI = require('api/db.js');
 var Item = require('api/models/Item.js');
 var User = require('api/models/User.js');
 
 var Reservation = function(id) {
-    if((id instanceof ObjectID) || (typeof id === 'string')) {
-        /* Load an item from the DB */
-        dbAPI.DatabaseItem.call(this, dbAPI.reservations, id);
-    } else {
-        dbAPI.DatabaseItem.call(this, dbAPI.reservations);
-    }
+    dbAPI.DatabaseItem.call(this, dbAPI.reservations, id);
 };
 
 Reservation.prototype = Object.create(dbAPI.DatabaseItem.prototype);
 Reservation.prototype.constructor = Reservation;
 
-Reservation.prototype.count = function(v) { return this.prop('count', v); };
+Reservation.prototype.count = async function(v) {
+    if(v !== undefined) {
+        if(typeof v === 'string' && !isNaN(parseInt(v, 10))) {
+            v = parseInt(v, 10);
+        } else if(typeof v !== 'number') {
+            throw new Error("Parameter to count() must be a number or a numerical string!");
+        }
 
-Reservation.prototype.requester = function(v) {
+        return this.prop('count', v);
+    } else {
+        var t = await this.prop('count');
+        if(typeof t === 'string' && !isNaN(parseInt(t, 10))) {
+            return parseInt(t, 10);
+        } else if(typeof t === 'number' || t === null) {
+            return t;
+        }
+
+        throw new Error("Got non-numerical, non-null value for count() from database!");
+    }
+};
+
+Reservation.prototype.requester = async function(v) {
     if(v === undefined) {
-        return this.prop('requester').then(
-            (userID) => {
-                if(userID === null) return null;
-                return new User(userID);
-            }
-        );
+        var userID = await this.prop('requester');
+        if(userID === null) return null;
+        return new User(userID);
     } else {
         if(v instanceof User) {
             return this.prop('requester', v.id());
-        } else if((v instanceof ObjectID) || (typeof v === 'string')) {
+        } else if((v instanceof ObjectID) || (type(v) === 'string')) {
             return this.prop('requester', monk.id(v));
         } else {
             throw new Error("Invalid UserID passed to setter!");
@@ -37,22 +50,16 @@ Reservation.prototype.requester = function(v) {
     }
 };
 
-Reservation.prototype.part = function(v) {
+Reservation.prototype.part = async function(v) {
     if(v === undefined) {
         /* Get part object. */
-        return this.prop('part').then(
-            (partID) => {
-                if(partID === null) {
-                    return null;
-                }
-
-                return new Item(partID);
-            }
-        );
+        var partID = await this.prop('part');
+        if(partID === null) return null;
+        return new Item(partID);
     } else {
         if(v instanceof Item) {
             return this.prop('part', v.id());
-        } else if((v instanceof ObjectID) || (typeof v === 'string')) {
+        } else if((v instanceof ObjectID) || (type(v) === 'string')) {
             return this.prop('part', monk.id(v));
         } else {
             throw new Error("Invalid PartID passed to setter!");
@@ -66,20 +73,20 @@ Reservation.prototype.summary = function () {
             return Promise.all([
                 this.prop('part'),
                 this.count(),
-                this.requester().then( (user) => user.summary() ),
+                this.requester(),
                 this.created(),
                 this.updated(),
             ]);
         }
     ).then(
-        (retn) => {
+        ([part, count, requester, created, updated]) => {
             return {
                 id: this.id(),
-                part: retn[0],
-                count: retn[1],
-                requester: retn[2],
-                created: retn[3],
-                updated: retn[4],
+                part: part,
+                count: count,
+                requester: requester.id(),
+                created: created,
+                updated: updated,
             };
         }
     );

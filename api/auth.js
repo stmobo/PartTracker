@@ -17,9 +17,9 @@ const initialRealName = 'Initial User';
 const initialPassword = 'changemenow';
 
 /* Create an initial user if necessary */
-dbAPI.users.findOne({ username: initialUserName }).then(
-    (doc) => {
-        if(doc !== null)
+dbAPI.users.count({}).then(
+    (count) => {
+        if(count > 0)
             return;
 
         var initUser = new User();

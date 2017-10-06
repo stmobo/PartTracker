@@ -1,8 +1,21 @@
+import "babel-polyfill";
+
 import React from 'react';
 import ReactDOM from 'react-dom';
-import ItemList from "./ItemList.jsx";
+import { Provider } from 'react-redux';
 
-ReactDOM.render(
-    <ItemList />,
-    document.getElementById('root')
+import ItemList from './inventory/ItemList.jsx';
+
+import { store, persist } from './common/store.js';
+import api from './common/api.js';
+
+persist.then(
+    (store) => {
+        ReactDOM.render(
+            <Provider store={store}>
+                <ItemList />
+            </Provider>,
+            document.getElementById('root')
+        );
+    }
 );

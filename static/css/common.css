@@ -7,7 +7,12 @@ body {
     padding-right: 20px;
 }
 
-.list-button .list-create-new-button {
+.list-button, .list-create-new-button {
+    margin-top: 5px;
+    margin-left: 5px;
+}
+
+.edit-form-btn {
     margin-left: 5px;
 }
 
@@ -18,4 +23,30 @@ body {
 
 .list-row {
     border-top-style: inset;
+}
+
+.list-timestamp {
+    padding-left: 0.5em;
+}
+
+.list-editor input[type=number] {
+    width: 75%;
+}
+
+.offset-button {
+    opacity: 0;
+    padding-left: 0.5em;
+}
+
+abbr.offset-button {
+    text-decoration: none;
+    border-bottom: none;
+}
+
+.list-row:hover .offset-button {
+    opacity: 0.5;
+}
+
+.list-row .offset-button:hover {
+    opacity: 1.0;
 }
