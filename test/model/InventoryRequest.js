@@ -23,6 +23,26 @@ describe('Model: InventoryRequest', function () {
 
     describe('#count()', function () {
         common.numeric_prop_tests(dbAPI.requests, InventoryRequest, 'count');
+
+        it('should affect the requested() property for associated Item objects', async function () {
+            var itemInstance = await Item.generate();
+            var userInstance = await User.generate();
+
+            var reqInstance = new InventoryRequest();
+
+            var reqCount = 50;
+            await Promise.all([
+                reqInstance.item(itemInstance),
+                reqInstance.requester(userInstance),
+                reqInstance.count(reqCount),
+                reqInstance.status('waiting'),
+                reqInstance.eta(new Date()),
+            ]);
+
+            await reqInstance.save();
+
+            return expect(itemInstance.requested()).to.become(reqCount);
+        });
     });
 
     describe('#item()', function () {

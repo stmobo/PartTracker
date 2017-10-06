@@ -79,6 +79,21 @@ Item.prototype.reserved = function () {
     );
 };
 
+Item.prototype.requested = async function() {
+    var aggregate = await dbAPI.requests.aggregate([
+        { $match: { item: this.id() } },
+        { $group: { _id: null, requested: { $sum: "$count" } } }
+    ]);
+
+    if(aggregate[0] === undefined) {
+        return 0;
+    }
+
+    var rval = parseInt(aggregate[0].requested);
+    if(isNaN(rval)) return 0;
+    return rval;
+}
+
 /* Get number of available units for this item */
 Item.prototype.available = function () {
     return Promise.all([
@@ -91,30 +106,28 @@ Item.prototype.available = function () {
     );
 };
 
-Item.prototype.summary = function () {
-    return this.fetch().then(
-        () => {
-            return Promise.all([
-                this.name(),
-                this.count(),
-                this.reserved(),
-                this.created(),
-                this.updated(),
-            ]);
-        }
-    ).then(
-        (retn) => {
-            return {
-                id: this.id(),
-                name: retn[0],
-                count: retn[1],
-                reserved: retn[2],
-                available: retn[1] - retn[2],
-                created: retn[3],
-                updated: retn[4]
-            };
-        }
-    );
+Item.prototype.summary = async function () {
+    await this.fetch()
+
+    var [name, count, reserved, requested, created, updated] = await Promise.all([
+        this.name(),
+        this.count(),
+        this.reserved(),
+        this.requested(),
+        this.created(),
+        this.updated(),
+    ]);
+
+    return {
+        id: this.id(),
+        name,
+        count,
+        reserved,
+        requested,
+        created,
+        updated,
+        available: count-reserved,
+    };
 };
 
 Item.prototype.reservations = function () {

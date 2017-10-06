@@ -51,6 +51,18 @@ describe('Model: Item', function() {
         });
     });
 
+    describe('#requested()', function() {
+        it('should return the number of requested units of an item', async function() {
+            /* Note that we test the non-zero case in the tests for InventoryRequest objects. */
+            var testItem = new Item();
+
+            await testItem.count(testCount);
+            await testItem.save();
+
+            return testItem.requested().should.become(0);
+        });
+    });
+
     describe('#available()', function() {
         it('should return the number of non-reserved units of an item', async function() {
             /* Note that we test the non-zero case in the tests for Reservation objects. */
@@ -66,7 +78,7 @@ describe('Model: Item', function() {
     describe('#summary()', function() {
         common.summary_tests(dbAPI.inventory, Item, { name: 'foobar', count: 0 });
 
-        it("should calculate how many units of an item are reserved and available", async function() {
+        it("should calculate how many units of an item are reserved, available, and requested", async function() {
             var testItem = new Item();
             var testItemID = testItem.id();
 
@@ -82,6 +94,9 @@ describe('Model: Item', function() {
 
             testItemSummary.should.have.own.property('reserved');
             testItemSummary.reserved.should.equal(0);
+
+            testItemSummary.should.have.own.property('requested');
+            testItemSummary.requested.should.equal(0);
 
             testItemSummary.should.have.own.property('available');
             testItemSummary.available.should.equal(testCount);
