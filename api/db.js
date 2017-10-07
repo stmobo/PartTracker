@@ -134,7 +134,6 @@ DatabaseItem.prototype.save = function () {
                     {
                         id: this.id().toString(),
                         collection: this.db.name,
-                        object: JSON.stringify(spec)
                     }
                 );
 
@@ -146,7 +145,6 @@ DatabaseItem.prototype.save = function () {
                     {
                         id: this.id().toString(),
                         collection: this.db.name,
-                        //spec: JSON.stringify(spec)
                     }
                 );
 
