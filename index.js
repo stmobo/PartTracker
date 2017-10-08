@@ -103,7 +103,7 @@ app.use('/api', reservations_router);
 app.use('/api', requests_router);
 app.use('/api', time_router);
 
-app.get('/', (req, res) => {
+app.get(['/', '/inventory', '/requests', '/activities', '/users'], (req, res) => {
     res.status(200).sendFile(__dirname+'/static/single.html');
 })
 

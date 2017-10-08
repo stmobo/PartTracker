@@ -8,6 +8,7 @@ module.exports = {
     delete: deleteOperation,
     setCurrentUser: setCurrentUser,
     setCollectionETag,
+    setNotification,
 };
 
 function updateOperation(collection, object) {
@@ -65,5 +66,33 @@ function setCollectionETag(collection, etag) {
         type: 'set-collection-etag',
         collection,
         data: etag,
+    }
+}
+
+function setNotification(priority, message, autoTimeout) {
+    if(autoTimeout === undefined) {
+        return {
+            type: 'set-notification',
+            priority: priority,
+            message: message,
+        }
+    } else {
+        return function(dispatch, getState) {
+            dispatch({
+                type: 'set-notification',
+                priority: priority,
+                message: message,
+            });
+
+            if(autoTimeout !== undefined) {
+                window.setTimeout(() => {
+                    dispatch({
+                        type: 'set-notification',
+                        priority: undefined,
+                        message: undefined,
+                    });
+                }, autoTimeout);
+            }
+        }
     }
 }

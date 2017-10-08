@@ -25,6 +25,7 @@ const initialState = {
         disabled: false,
         ETag: '',
     },
+    notification: {}
 }
 
 /* Main state shape:
@@ -122,6 +123,16 @@ function rehydrateReducer(state, action) {
     return stateClone;
 }
 
+function notificationReducer(state, action) {
+    var stateClone = Object.assign({}, state);
+    stateClone.notification = {
+        priority: action.priority,
+        message: action.message
+    };
+
+    return stateClone;
+}
+
 function mainReducer(state, action) {
     if(typeof state === 'undefined') {
         return initialState;
@@ -138,6 +149,8 @@ function mainReducer(state, action) {
             return auth_reducer(state, action);
         case 'set-collection-etag':
             return etag_reducer(state, action);
+        case 'set-notification':
+            return notificationReducer(state, action);
         case REHYDRATE:
             return rehydrateReducer(state, action);
         default:
@@ -155,7 +168,7 @@ var store = redux.createStore(
 
 var persist = new Promise((resolve, reject) => {
     try {
-        persistStore(store, {storage: localforage_store}, () => {
+        persistStore(store, {blacklist: ['notification'], storage: localforage_store}, () => {
             var api = require('./api.js');
 
             store.dispatch(api.readCollection('users'));

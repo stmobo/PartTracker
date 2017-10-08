@@ -7,10 +7,13 @@ import {
   BrowserRouter as Router,
   Route,
   Link,
+  Switch,
+  Redirect,
   withRouter
 } from 'react-router-dom';
 
 import MainNavbar from './Navbar.jsx';
+import NotificationHandler from './Notification.jsx';
 import ItemList from './inventory/ItemList.jsx';
 import RequestList from './requests/RequestList.jsx';
 import UserList from './users/UserList.jsx';
@@ -18,6 +21,7 @@ import ActivityList from './activities/ActivityList.jsx';
 
 import { store, persist } from './common/store.js';
 import api from './common/api.js';
+import actions from './common/actions.js';
 
 function App({  }) {
     return (
@@ -32,6 +36,7 @@ function App({  }) {
                         <Route path="/users" render={withRouter(UserList)} />
                         <Redirect from="/" to="/inventory"/>
                     </Switch>
+                    <NotificationHandler />
                 </div>
             </Router>
         </Provider>
@@ -44,5 +49,7 @@ persist.then(
             <App />,
             document.getElementById('root')
         );
+
+        store.dispatch(actions.setNotification('success', 'Test notification.'))
     }
 );

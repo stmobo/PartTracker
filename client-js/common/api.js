@@ -11,6 +11,7 @@ module.exports = {
     readCollection: apiReadCollection,
     getCurrentUser: getCurrentUser,
     checkIn: checkIn,
+    login: login,
 }
 
 /* Reads a collection element from the API and stores it. */
@@ -109,6 +110,29 @@ function apiCreate(collection, object) {
         var createdObject = await res.json();
 
         dispatch(actions.create(collection, createdObject));
+    }
+}
+
+function login(username, password) {
+    return async function(dispatch, getState) {
+        var res = await fetch('/api/login', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                username: username,
+                password: password,
+            }),
+            redirect: 'follow'
+        });
+
+        var data = await res.json();
+        if(res.ok) {
+            dispatch(actions.setCurrentUser(data));
+        } else {
+            // data.message contains user-friendly login error message
+
+        }
     }
 }
 
