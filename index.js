@@ -23,6 +23,8 @@ var express = require('express');
 var passport = require('passport');
 var session = require('express-session');
 var compression = require('compression');
+var multistream = require('multistream');
+var fs = require('fs');
 
 var app = express();
 
@@ -60,9 +62,11 @@ app.get('/dist/js/jquery.min.js', (req, res) => { res.redirect('https://code.jqu
 app.get('/dist/css/bootstrap.min.css', (req, res) => { res.redirect('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'); })
 app.get('/dist/js/bootstrap.min.js', (req, res) => { res.redirect('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js'); })
 
-app.get('/', (req, res) => {
-    if(req.user) { res.redirect('/inventory.html'); }
-    else { res.redirect('/public/login.html'); }
+app.get('/', (req, res, next) => {
+    /* if(req.user) { res.redirect('/inventory.html'); }
+    else { res.redirect('/public/login.html'); } */
+    if(!req.user) { res.redirect('/public/login.html'); }
+    else { next(); }
 });
 
 /* API requests below this need to be authenticated */
@@ -98,6 +102,23 @@ app.use('/api', inventory_router);
 app.use('/api', reservations_router);
 app.use('/api', requests_router);
 app.use('/api', time_router);
+
+app.get('/', (req, res) => {
+    res.status(200).sendFile(__dirname+'/static/single.html');
+})
+
+app.get('/css/single.css', (req, res) => {
+    var cssStreams = [
+        fs.createReadStream(__dirname + '/static/css/inventory.css'),
+        fs.createReadStream(__dirname + '/static/css/users.css'),
+        fs.createReadStream(__dirname + '/static/css/activities.css'),
+        fs.createReadStream(__dirname + '/static/css/common.css'),
+    ]
+
+    res.type('css').status(200);
+    multistream(cssStreams).pipe(res);
+});
+
 app.use(express.static('static'));
 
 app.use((err, req, res, next) => {
@@ -124,7 +145,6 @@ if(args.no_https) {
     });
 } else {
     // Let's Encrypt+CertBot support and TLS options here!
-    var fs = require('fs');
     var http = require('http');
     var spdy = require('spdy'); // Provides server for HTTP/2, SPDY, and regular HTTPS
 
