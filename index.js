@@ -62,12 +62,29 @@ app.get('/dist/js/jquery.min.js', (req, res) => { res.redirect('https://code.jqu
 app.get('/dist/css/bootstrap.min.css', (req, res) => { res.redirect('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'); })
 app.get('/dist/js/bootstrap.min.js', (req, res) => { res.redirect('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js'); })
 
-app.get('/', (req, res, next) => {
-    /* if(req.user) { res.redirect('/inventory.html'); }
-    else { res.redirect('/public/login.html'); } */
-    if(!req.user) { res.redirect('/public/login.html'); }
+app.get(['/', '/inventory', '/requests', '/activities', '/users'], (req, res, next) => {
+    if(!req.user) { res.redirect('/login'); }
     else { next(); }
 });
+
+app.get(['/', '/inventory', '/requests', '/activities', '/users', '/login'], (req, res) => {
+    res.status(200).sendFile(__dirname+'/static/single.html');
+});
+
+app.get('/css/single.css', (req, res) => {
+    var cssStreams = [
+        fs.createReadStream(__dirname + '/static/css/inventory.css'),
+        fs.createReadStream(__dirname + '/static/css/users.css'),
+        fs.createReadStream(__dirname + '/static/css/activities.css'),
+        fs.createReadStream(__dirname + '/static/css/common.css'),
+    ]
+
+    res.type('css').status(200);
+    multistream(cssStreams).pipe(res);
+});
+
+
+app.use('/', express.static('static'));
 
 /* API requests below this need to be authenticated */
 app.use(ensureAuthenticated);
@@ -102,24 +119,6 @@ app.use('/api', inventory_router);
 app.use('/api', reservations_router);
 app.use('/api', requests_router);
 app.use('/api', time_router);
-
-app.get(['/', '/inventory', '/requests', '/activities', '/users'], (req, res) => {
-    res.status(200).sendFile(__dirname+'/static/single.html');
-})
-
-app.get('/css/single.css', (req, res) => {
-    var cssStreams = [
-        fs.createReadStream(__dirname + '/static/css/inventory.css'),
-        fs.createReadStream(__dirname + '/static/css/users.css'),
-        fs.createReadStream(__dirname + '/static/css/activities.css'),
-        fs.createReadStream(__dirname + '/static/css/common.css'),
-    ]
-
-    res.type('css').status(200);
-    multistream(cssStreams).pipe(res);
-});
-
-app.use(express.static('static'));
 
 app.use((err, req, res, next) => {
     Promise.resolve(common.errorHandlingMiddleware(err, req, res, next));

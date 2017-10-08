@@ -89,8 +89,14 @@ function collection_op_reducer(state, action) {
 function auth_reducer(state, action) {
     var stateClone = Object.assign({}, state);
     if(action.type === 'set-current-user') {
-        stateClone.logged_in = true;
-        stateClone.current_user = action.user;
+        if(action.user === undefined || action.user.username === undefined) {
+            stateClone.logged_in = false;
+            stateClone.current_user = {};
+        } else {
+            stateClone.logged_in = true;
+            stateClone.current_user = action.user;
+        }
+
     } else if(action.type === 'logout') {
         stateClone.logged_in = false;
         stateClone.current_user = initialState.current_user;
@@ -170,13 +176,6 @@ var persist = new Promise((resolve, reject) => {
     try {
         persistStore(store, {blacklist: ['notification'], storage: localforage_store}, () => {
             var api = require('./api.js');
-
-            store.dispatch(api.readCollection('users'));
-            store.dispatch(api.readCollection('reservations'));
-            store.dispatch(api.readCollection('inventory'));
-            store.dispatch(api.readCollection('activities'));
-            store.dispatch(api.readCollection('requests'));
-            store.dispatch(api.getCurrentUser());
 
             resolve(store);
         });

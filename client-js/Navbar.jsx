@@ -7,7 +7,9 @@ import {
   Route,
   Link,
   withRouter
-} from 'react-router-dom'
+} from 'react-router-dom';
+
+import api from './common/api.js';
 
 function mapStateToProps(state, ownProps) {
     return {
@@ -22,9 +24,20 @@ function UserInfoHeader({realname, username}) {
     );
 }
 
-UserInfoHeader = connect(mapStateToProps)(UserInfoHeader);
+UserInfoHeader = connect(mapStateToProps, mapDispatchToProps)(UserInfoHeader);
 
-export default function MainNavbar() {
+function mapDispatchToProps(dispatch, ownProps) {
+    return {
+        onLogout: (ev) => {
+            ev.stopPropagation();
+            dispatch(api.logout());
+        }
+    }
+}
+
+function MainNavbar({ logged_in, onLogout }) {
+    if(!logged_in) return null;
+
     return (
         <nav className="navbar navbar-default navbar-fixed-top">
             <div className="navbar-header">
@@ -39,9 +52,13 @@ export default function MainNavbar() {
                 </ul>
                 <ul className="nav navbar-nav navbar-right">
                     <li><UserInfoHeader /></li>
-                    <li><a href="/api/logout">Logout</a></li>
+                    <li><a onClick={onLogout}>Logout</a></li>
                 </ul>
             </div>
         </nav>
     );
 }
+
+export default connect((state) => {
+    return { logged_in: state.logged_in }
+}, mapDispatchToProps)(MainNavbar);

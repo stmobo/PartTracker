@@ -12,6 +12,7 @@ module.exports = {
     getCurrentUser: getCurrentUser,
     checkIn: checkIn,
     login: login,
+    logout: logout,
 }
 
 /* Reads a collection element from the API and stores it. */
@@ -95,6 +96,17 @@ function getCurrentUser() {
     }
 }
 
+function fetchAllCollections() {
+    return async function(dispatch, getState) {
+        dispatch(apiReadCollection('users'));
+        dispatch(apiReadCollection('reservations'));
+        dispatch(apiReadCollection('inventory'));
+        dispatch(apiReadCollection('activities'));
+        dispatch(apiReadCollection('requests'));
+        dispatch(getCurrentUser());
+    }
+}
+
 /* Thunk action creator for POST requests to the API. */
 function apiCreate(collection, object) {
     return async function(dispatch, getState) {
@@ -129,10 +141,23 @@ function login(username, password) {
         var data = await res.json();
         if(res.ok) {
             dispatch(actions.setCurrentUser(data));
+            dispatch(fetchAllCollections());
         } else {
             // data.message contains user-friendly login error message
-
+            dispatch(actions.setNotification('error', 'Login failed: '+data.message));
         }
+    }
+}
+
+function logout() {
+    return async function(dispatch, getState) {
+        var res = await fetch('/api/logout', {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        if(!res.ok) return common.errorHandler(res);
+        dispatch(actions.setCurrentUser());
     }
 }
 
