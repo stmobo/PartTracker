@@ -10,7 +10,7 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch, ownProps) {
     return {
         handleLogin: (username, password) => {
-            dispatch(api.login(username, password));
+            dispatch(api.login(ownProps.history, username, password));
         }
     }
 }

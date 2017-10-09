@@ -24,10 +24,16 @@ import { store, persist } from './common/store.js';
 import api from './common/api.js';
 import actions from './common/actions.js';
 
-function PrivateRoute({ component: Component, ...rest }) {
+function mapStateToProps(state, ownProps) {
+    return {
+        logged_in: state.current_user.id !== undefined
+    };
+}
+
+function PrivateRoute({ logged_in, component: Component, ...rest }) {
     return (<Route {...rest} render={
         (props) => {
-            if(!store.getState().logged_in) {
+            if(!logged_in) {
                 return (<Redirect to={{
                   pathname: '/login',
                   state: { from: props.location }
@@ -38,6 +44,8 @@ function PrivateRoute({ component: Component, ...rest }) {
         }
     } />);
 }
+
+PrivateRoute = withRouter(connect(mapStateToProps)(PrivateRoute));
 
 function App({ store }) {
     return (
@@ -67,6 +75,8 @@ persist.then(
             document.getElementById('root')
         );
 
-        store.dispatch(actions.setNotification('success', 'Test notification.'));
+        if(store.getState().current_user.id !== undefined) {
+            store.dispatch(api.fetchAllCollections());
+        }
     }
 );

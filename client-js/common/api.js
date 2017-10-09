@@ -13,6 +13,7 @@ module.exports = {
     checkIn: checkIn,
     login: login,
     logout: logout,
+    fetchAllCollections: fetchAllCollections,
 }
 
 /* Reads a collection element from the API and stores it. */
@@ -125,7 +126,7 @@ function apiCreate(collection, object) {
     }
 }
 
-function login(username, password) {
+function login(history, username, password) {
     return async function(dispatch, getState) {
         var res = await fetch('/api/login', {
             method: 'POST',
@@ -141,7 +142,9 @@ function login(username, password) {
         var data = await res.json();
         if(res.ok) {
             dispatch(actions.setCurrentUser(data));
-            dispatch(fetchAllCollections());
+            dispatch(fetchAllCollections()).then(
+                () => { history.push('/'); }
+            );
         } else {
             // data.message contains user-friendly login error message
             dispatch(actions.setNotification('error', 'Login failed: '+data.message));
@@ -149,15 +152,17 @@ function login(username, password) {
     }
 }
 
-function logout() {
+function logout(history) {
     return async function(dispatch, getState) {
         var res = await fetch('/api/logout', {
             method: 'GET',
             credentials: 'include',
+            redirect: 'follow'
         });
 
         if(!res.ok) return common.errorHandler(res);
-        dispatch(actions.setCurrentUser());
+        dispatch(actions.logout());
+        history.push('/login');
     }
 }
 

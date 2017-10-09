@@ -24,13 +24,13 @@ function UserInfoHeader({realname, username}) {
     );
 }
 
-UserInfoHeader = connect(mapStateToProps, mapDispatchToProps)(UserInfoHeader);
+UserInfoHeader = connect(mapStateToProps)(UserInfoHeader);
 
 function mapDispatchToProps(dispatch, ownProps) {
     return {
         onLogout: (ev) => {
             ev.stopPropagation();
-            dispatch(api.logout());
+            dispatch(api.logout(ownProps.history));
         }
     }
 }
@@ -59,6 +59,8 @@ function MainNavbar({ logged_in, onLogout }) {
     );
 }
 
-export default connect((state) => {
-    return { logged_in: state.logged_in }
+MainNavbar = connect((state) => {
+    return { logged_in: state.current_user.id !== undefined }
 }, mapDispatchToProps)(MainNavbar);
+
+export default withRouter(MainNavbar);

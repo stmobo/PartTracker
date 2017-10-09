@@ -16,7 +16,6 @@ const initialState = {
     activities: new Map(),
     users: new Map(),
     collection_etags: {},
-    logged_in: false,
     current_user: {
         username: '',
         realname: '',
@@ -89,16 +88,12 @@ function collection_op_reducer(state, action) {
 function auth_reducer(state, action) {
     var stateClone = Object.assign({}, state);
     if(action.type === 'set-current-user') {
-        if(action.user === undefined || action.user.username === undefined) {
-            stateClone.logged_in = false;
-            stateClone.current_user = {};
+        if(action.user === undefined) {
+            stateClone.current_user = initialState.current_user;
         } else {
-            stateClone.logged_in = true;
             stateClone.current_user = action.user;
         }
-
     } else if(action.type === 'logout') {
-        stateClone.logged_in = false;
         stateClone.current_user = initialState.current_user;
     }
 
@@ -175,8 +170,6 @@ var store = redux.createStore(
 var persist = new Promise((resolve, reject) => {
     try {
         persistStore(store, {blacklist: ['notification'], storage: localforage_store}, () => {
-            var api = require('./api.js');
-
             resolve(store);
         });
     } catch(e) {

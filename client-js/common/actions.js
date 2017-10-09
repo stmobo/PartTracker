@@ -9,6 +9,7 @@ module.exports = {
     setCurrentUser: setCurrentUser,
     setCollectionETag,
     setNotification,
+    logout,
 };
 
 function updateOperation(collection, object) {
@@ -59,6 +60,10 @@ function setCurrentUser(userObject) {
         type: 'set-current-user',
         user: userObject
     }
+}
+
+function logout() {
+    return { type: 'logout' };
 }
 
 function setCollectionETag(collection, etag) {
