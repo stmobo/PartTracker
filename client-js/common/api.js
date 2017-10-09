@@ -146,8 +146,8 @@ function login(history, username, password) {
                 () => { history.push('/'); }
             );
         } else {
-            // data.message contains user-friendly login error message
-            dispatch(actions.setNotification('error', 'Login failed: '+data.message));
+            // data[0].message contains user-friendly login error message
+            dispatch(actions.setNotification('error', 'Login failed: '+data[0].message));
         }
     }
 }
