@@ -38,12 +38,4 @@ function react_browserify(infile, outfile, outdir, debug) {
   return bundlefn;
 }
 
-gulp.task('build-login', react_browserify('login', 'login', 'public/js'));
-gulp.task('build-inventory', react_browserify('inventory'));
-gulp.task('build-users', react_browserify('users'));
-gulp.task('build-requests', react_browserify('Requests', 'requests'));
-gulp.task('build-activities', react_browserify('activities'));
-gulp.task('build-single', react_browserify('SinglePage', 'single'));
-gulp.task('build-nav', react_browserify('CommonNav', 'navbar'));
-
-gulp.task('build', ['build-single', 'build-login', 'build-inventory', 'build-users', 'build-nav', 'build-requests', 'build-activities']);
+gulp.task('build', react_browserify('SinglePage', 'single'));
