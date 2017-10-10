@@ -86,6 +86,12 @@ function getCurrentUser() {
             headers: reqHeaders,
         });
 
+        if(res.status === 401) {
+            // Unauthorized -- we're not really logged in
+            dispatch(actions.logout());
+            return;
+        }
+
         if(res.status >= 400 && res.status <= 599) return common.errorHandler(res);
         if(res.status !== 304) {
             var fetchedUser = await res.json();
@@ -104,7 +110,6 @@ function fetchAllCollections() {
         dispatch(apiReadCollection('inventory'));
         dispatch(apiReadCollection('activities'));
         dispatch(apiReadCollection('requests'));
-        dispatch(getCurrentUser());
     }
 }
 

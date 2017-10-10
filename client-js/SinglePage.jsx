@@ -75,6 +75,7 @@ persist.then(
             document.getElementById('root')
         );
 
+        store.dispatch(api.getCurrentUser());
         if(store.getState().current_user.id !== undefined) {
             store.dispatch(api.fetchAllCollections());
         }

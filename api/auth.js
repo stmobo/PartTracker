@@ -139,8 +139,21 @@ function authMiddleware(req, res, next) {
     } else {
         /* Attempt HTTP-Basic authentication w/o sessions */
         //console.log("Attempting basic authentication for " + req.originalUrl + " via " + req.method);
-        winston.log('info', "Attempting HTTP-Basic authentication for " + req.socket.remoteAddress + ".");
-        passport.authenticate('basic', { session: false })(req, res, next);
+        if(req.get('Authorization') !== undefined) {
+            winston.log('info', "Attempting HTTP-Basic authentication for " + req.socket.remoteAddress + ".");
+            passport.authenticate('basic', { session: false })(req, res, next);
+        } else {
+            res.status(401).send('Authentication is required to access this endpoint.');
+            /*
+            The usual error-handing middleware assumes that the user is logged-in
+            (it saves the username for logging); so we can't use it here
+            
+            next(new common.APIClientError(
+                401,
+                'Authentication is required to access this endpoint.'
+            ));
+            */
+        }
     }
 }
 
