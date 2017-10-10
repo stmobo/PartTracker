@@ -3,6 +3,24 @@ body {
     padding-top: 70px;
 }
 
+#notification {
+    position: fixed;
+    width: auto;
+    height: 2em;
+
+    width: 100%;
+
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+
+    bottom: 0px;
+}
+
+.notification-text {
+    border-top: groove;
+    padding: 1em;
+}
+
 .navbar-right {
     padding-right: 20px;
 }

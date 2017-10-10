@@ -11,6 +11,9 @@ module.exports = {
     readCollection: apiReadCollection,
     getCurrentUser: getCurrentUser,
     checkIn: checkIn,
+    login: login,
+    logout: logout,
+    fetchAllCollections: fetchAllCollections,
 }
 
 /* Reads a collection element from the API and stores it. */
@@ -83,6 +86,12 @@ function getCurrentUser() {
             headers: reqHeaders,
         });
 
+        if(res.status === 401) {
+            // Unauthorized -- we're not really logged in
+            dispatch(actions.logout());
+            return;
+        }
+
         if(res.status >= 400 && res.status <= 599) return common.errorHandler(res);
         if(res.status !== 304) {
             var fetchedUser = await res.json();
@@ -91,6 +100,16 @@ function getCurrentUser() {
             }
             dispatch(actions.setCurrentUser(fetchedUser));
         }
+    }
+}
+
+function fetchAllCollections() {
+    return async function(dispatch, getState) {
+        dispatch(apiReadCollection('users'));
+        dispatch(apiReadCollection('reservations'));
+        dispatch(apiReadCollection('inventory'));
+        dispatch(apiReadCollection('activities'));
+        dispatch(apiReadCollection('requests'));
     }
 }
 
@@ -109,6 +128,46 @@ function apiCreate(collection, object) {
         var createdObject = await res.json();
 
         dispatch(actions.create(collection, createdObject));
+    }
+}
+
+function login(history, username, password) {
+    return async function(dispatch, getState) {
+        var res = await fetch('/api/login', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                username: username,
+                password: password,
+            }),
+            redirect: 'follow'
+        });
+
+        var data = await res.json();
+        if(res.ok) {
+            dispatch(actions.setCurrentUser(data));
+            dispatch(fetchAllCollections()).then(
+                () => { history.push('/'); }
+            );
+        } else {
+            // data[0].message contains user-friendly login error message
+            dispatch(actions.setNotification('error', 'Login failed: '+data[0].message));
+        }
+    }
+}
+
+function logout(history) {
+    return async function(dispatch, getState) {
+        var res = await fetch('/api/logout', {
+            method: 'GET',
+            credentials: 'include',
+            redirect: 'follow'
+        });
+
+        if(!res.ok) return common.errorHandler(res);
+        dispatch(actions.logout());
+        history.push('/login');
     }
 }
 

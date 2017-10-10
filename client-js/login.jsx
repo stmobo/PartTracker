@@ -1,6 +1,19 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import {errorHandler, jsonOnSuccess, renderUpdateTime} from './common.jsx';
+import {connect} from 'react-redux';
+import api from './common/api.js';
+import actions from './common/actions.js';
+
+function mapStateToProps(state, ownProps) {
+    return {};
+}
+
+function mapDispatchToProps(dispatch, ownProps) {
+    return {
+        handleLogin: (username, password) => {
+            dispatch(api.login(ownProps.history, username, password));
+        }
+    }
+}
 
 class Login extends React.Component {
     constructor(props) {
@@ -8,7 +21,6 @@ class Login extends React.Component {
         this.state = {
             username: '',
             password: '',
-            flashMessage: '',
         }
 
         this.handleFormChange = this.handleFormChange.bind(this);
@@ -24,37 +36,12 @@ class Login extends React.Component {
 
     handleFormReset(ev) {
         ev.preventDefault();
-        this.setState({ username: '', password: '', flashMessage: ''});
+        this.setState({ username: '', password: '' });
     }
 
     handleFormSubmit(ev) {
         ev.preventDefault();
-        fetch('/api/login', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                username: this.state.username,
-                password: this.state.password,
-            }),
-            redirect: 'follow'
-        }).then(
-            (res) => {
-                return Promise.all([res.ok, res.text()]);
-            }
-        ).then(
-            (retns) => {
-                if(retns[0]) {
-                    // login successful
-                    sessionStorage.setItem('userobject', retns[1]);
-                    window.location.href = '/inventory.html';
-                } else {
-                    // login failed
-                    var info = JSON.parse(retns[1]);
-                    this.setState({ flashMessage: info[0].message });
-                }
-            }
-        ).catch(errorHandler);
+        this.props.handleLogin(this.state.username, this.state.password);
     }
 
     render() {
@@ -70,10 +57,6 @@ class Login extends React.Component {
             </form>
         );
     }
-
 }
 
-ReactDOM.render(
-    <Login />,
-    document.getElementById('root')
-);
+export default connect(mapStateToProps, mapDispatchToProps)(Login);

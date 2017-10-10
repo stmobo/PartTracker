@@ -16,7 +16,6 @@ const initialState = {
     activities: new Map(),
     users: new Map(),
     collection_etags: {},
-    logged_in: false,
     current_user: {
         username: '',
         realname: '',
@@ -25,6 +24,7 @@ const initialState = {
         disabled: false,
         ETag: '',
     },
+    notification: {}
 }
 
 /* Main state shape:
@@ -88,10 +88,12 @@ function collection_op_reducer(state, action) {
 function auth_reducer(state, action) {
     var stateClone = Object.assign({}, state);
     if(action.type === 'set-current-user') {
-        stateClone.logged_in = true;
-        stateClone.current_user = action.user;
+        if(action.user === undefined) {
+            stateClone.current_user = initialState.current_user;
+        } else {
+            stateClone.current_user = action.user;
+        }
     } else if(action.type === 'logout') {
-        stateClone.logged_in = false;
         stateClone.current_user = initialState.current_user;
     }
 
@@ -122,6 +124,16 @@ function rehydrateReducer(state, action) {
     return stateClone;
 }
 
+function notificationReducer(state, action) {
+    var stateClone = Object.assign({}, state);
+    stateClone.notification = {
+        priority: action.priority,
+        message: action.message
+    };
+
+    return stateClone;
+}
+
 function mainReducer(state, action) {
     if(typeof state === 'undefined') {
         return initialState;
@@ -138,6 +150,8 @@ function mainReducer(state, action) {
             return auth_reducer(state, action);
         case 'set-collection-etag':
             return etag_reducer(state, action);
+        case 'set-notification':
+            return notificationReducer(state, action);
         case REHYDRATE:
             return rehydrateReducer(state, action);
         default:
@@ -155,16 +169,7 @@ var store = redux.createStore(
 
 var persist = new Promise((resolve, reject) => {
     try {
-        persistStore(store, {storage: localforage_store}, () => {
-            var api = require('./api.js');
-
-            store.dispatch(api.readCollection('users'));
-            store.dispatch(api.readCollection('reservations'));
-            store.dispatch(api.readCollection('inventory'));
-            store.dispatch(api.readCollection('activities'));
-            store.dispatch(api.readCollection('requests'));
-            store.dispatch(api.getCurrentUser());
-
+        persistStore(store, {blacklist: ['notification'], storage: localforage_store}, () => {
             resolve(store);
         });
     } catch(e) {
@@ -174,4 +179,4 @@ var persist = new Promise((resolve, reject) => {
 
 
 
-module.exports = { store, persist };
+module.exports = { store, persist, mainReducer, initialState };

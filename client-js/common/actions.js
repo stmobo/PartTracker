@@ -8,6 +8,8 @@ module.exports = {
     delete: deleteOperation,
     setCurrentUser: setCurrentUser,
     setCollectionETag,
+    setNotification,
+    logout,
 };
 
 function updateOperation(collection, object) {
@@ -60,10 +62,42 @@ function setCurrentUser(userObject) {
     }
 }
 
+function logout() {
+    return { type: 'logout' };
+}
+
 function setCollectionETag(collection, etag) {
     return {
         type: 'set-collection-etag',
         collection,
         data: etag,
+    }
+}
+
+function setNotification(priority, message, autoTimeout) {
+    if(autoTimeout === undefined) {
+        return {
+            type: 'set-notification',
+            priority: priority,
+            message: message,
+        }
+    } else {
+        return function(dispatch, getState) {
+            dispatch({
+                type: 'set-notification',
+                priority: priority,
+                message: message,
+            });
+
+            if(autoTimeout !== undefined) {
+                window.setTimeout(() => {
+                    dispatch({
+                        type: 'set-notification',
+                        priority: undefined,
+                        message: undefined,
+                    });
+                }, autoTimeout);
+            }
+        }
     }
 }
