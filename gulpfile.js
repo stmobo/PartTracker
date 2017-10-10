@@ -32,7 +32,6 @@ function react_browserify(infile, outfile, outdir, debug) {
     ], cb);
   }
 
-  b.on('update', bundlefn);
   b.on('log', gutil.log);
 
   return bundlefn;
