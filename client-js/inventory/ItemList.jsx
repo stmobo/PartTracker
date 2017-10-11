@@ -19,8 +19,8 @@ function ItemListHeader({ setSortKey, sortState }) {
             <div className="col-md-6" onClick={setSortKey.bind(null, 'name')}>
                 {sortState.sortKey === 'name' && sortArrow}<strong>Item Name</strong>
             </div>
-            <div className="col-md-2" onClick={setSortKey.bind(null, 'status')}>
-                {sortState.sortKey === 'status' && sortArrow}<strong>Status</strong>
+            <div className="col-md-2">
+                <strong>Status</strong>
             </div>
             <div className="col-md-1" onClick={setSortKey.bind(null, 'available')}>
                 {sortState.sortKey === 'available' && sortArrow}<strong>Available</strong>
@@ -61,8 +61,19 @@ class ItemList extends React.Component {
         if(this.state.sortKey !== null) {
             renderCol = collection.slice();
             renderCol.sort((a,b) => {
-                if(a[this.state.sortKey] < b[this.state.sortKey]) return -1;
-                if(a[this.state.sortKey] === b[this.state.sortKey]) return 0;
+                var nA = a[this.state.sortKey];
+                var nB = b[this.state.sortKey];
+
+                if(this.state.sortKey === 'name') {
+                    nA = nA.toLowerCase();
+                    nB = nB.toLowerCase();
+                } else {
+                    nA = parseInt(nA, 10);
+                    nB = parseInt(nB, 10);
+                }
+
+                if(nA < nB) return -1;
+                if(nA === nB) return 0;
                 return 1;
             });
 
