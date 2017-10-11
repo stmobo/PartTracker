@@ -72,11 +72,16 @@ app.get(['/', '/inventory', '/requests', '/activities', '/users', '/login'], (re
 
 app.get('/css/single.css', (req, res) => {
     var cssStreams = [
-        fs.createReadStream(__dirname + '/static/css/inventory.css'),
-        fs.createReadStream(__dirname + '/static/css/users.css'),
-        fs.createReadStream(__dirname + '/static/css/activities.css'),
-        fs.createReadStream(__dirname + '/static/css/common.css'),
-    ]
+        '/static/css/inventory.css',
+        '/static/css/users.css',
+        '/static/css/login.css',
+        '/static/css/activities.css',
+        '/static/css/common.css',
+    ];
+
+    cssStreams = cssStreams.map(
+        fn => fs.createReadStream(__dirname + fn)
+    )
 
     res.type('css').status(200);
     multistream(cssStreams).pipe(res);
