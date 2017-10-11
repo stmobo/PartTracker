@@ -1,6 +1,6 @@
 .login-form {
-    /*width: 25%;
-    height: 25%;*/
+    width: 400px;
+    height: 250px;
 
     padding-left: 40px;
     padding-right: 40px;
@@ -12,7 +12,7 @@
 
     position: absolute;
     top:25%;
-    bottom: 25%;
+    bottom: 35%;
     left: 35%;
     right: 35%;
 
@@ -30,7 +30,6 @@
 
     position: relative;
     left: 25%;
-    right: 25%;
 }
 
 .login-header {
