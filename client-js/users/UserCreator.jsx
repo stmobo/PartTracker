@@ -46,24 +46,24 @@ class UserCreator extends React.Component {
 
     render() {
         if(this.state.editorVisible) {
-            return (
-                <div>
-                    <UserEditor showPWEditBox={false} onSubmit={this.handleCreate} onClose={this.hideEditor} />
-                    <div className="row">
-                        <div className="col-md-5">
-                            <input type="password" name="newPassword" placeholder="Password" value={this.state.newPassword} onChange={this.handlePWFieldUpdate} />
-                        </div>
-                    </div>
-                </div>
-            );
+            return [
+                <UserEditor key='user-editor' showPWEditBox={false} onSubmit={this.handleCreate} onClose={this.hideEditor} />,
+                <tr key='password-box'>
+                    <td colSpan='42'>
+                        <input type="password" name="newPassword" placeholder="Password" value={this.state.newPassword} onChange={this.handlePWFieldUpdate} />
+                    </td>
+                </tr>
+            ];
         } else {
-            return (<div className="row">
-                <div className="col-md-5">
-                    <button className="btn btn-primary btn-default list-create-new-button" onClick={this.showEditor}>
-                        Add New User
-                    </button>
-                </div>
-            </div>);
+            return (
+                <tr>
+                    <td colSpan='42'>
+                        <button className="btn btn-primary btn-default list-create-new-button" onClick={this.showEditor}>
+                            Add New User
+                        </button>
+                    </td>
+                </tr>
+            );
         }
     }
 }

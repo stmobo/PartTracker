@@ -8,23 +8,23 @@ import UserCreator from './UserCreator.jsx';
 
 function UserListHeader({ setSortKey, sortState }) {
     return (
-        <div className="list-header row">
-            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-5" sortKey='username'>
+        <tr>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey='username'>
                 User Name
             </ListHeaderColumn>
-            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-4" sortKey='realname'>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey='realname'>
                 Real Name
             </ListHeaderColumn>
-            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-1" sortKey='admin'>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey='admin'>
                 Is Admin
             </ListHeaderColumn>
-            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-1" sortKey='activityCreator'>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey='activityCreator'>
                 Edits Activities
             </ListHeaderColumn>
-            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-1" sortKey='disabled'>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey='disabled'>
                 Is Disabled
             </ListHeaderColumn>
-        </div>
+        </tr>
     );
 }
 
