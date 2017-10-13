@@ -29,10 +29,16 @@ class Activity extends React.Component {
 
     render() {
         if(this.state.editing) {
-            return (<ActivityEditor model={this.props.model} onSubmit={this.props.onUpdate} onClose={this.endEdit} />)
+            var renderer = (<ActivityEditor model={this.props.model} onSubmit={this.props.onUpdate} onClose={this.endEdit} />)
         } else {
-            return (<ActivityInfo model={this.props.model} onEdit={this.beginEdit} />);
+            var renderer = (<ActivityInfo model={this.props.model} onEdit={this.beginEdit} />);
         }
+
+        return (
+            <tbody>
+                {renderer}
+            </tbody>
+        )
     }
 }
 

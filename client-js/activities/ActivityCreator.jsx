@@ -26,8 +26,8 @@ class ActivityCreator extends React.Component {
         super(props);
 
         this.state = { visible: false }
-        this.show = (function(ev) { ev.stopPropagation(); this.setState({visible: true}) }).bind(this);
-        this.hide = (function(ev) { ev.stopPropagation(); this.setState({visible: false}) }).bind(this);
+        this.show = (function(ev) { if(ev) { ev.stopPropagation(); } this.setState({visible: true}) }).bind(this);
+        this.hide = (function(ev) { if(ev) { ev.stopPropagation(); } this.setState({visible: false}) }).bind(this);
     }
 
     render() {
@@ -36,15 +36,15 @@ class ActivityCreator extends React.Component {
             return null;
         }
 
-        if(this.state.editingNewActivity) {
+        if(this.state.visible) {
             return (<ActivityEditor onSubmit={onCreate} onClose={this.hide} />);
         } else {
             return (
-                <div className="list-header row">
-                    <div className="col-md-5">
+                <tr>
+                    <td colSpan='42'>
                         <button className="btn btn-primary btn-default list-create-new-button" onClick={this.show}>Submit New Activity</button>
-                    </div>
-                </div>
+                    </td>
+                </tr>
             );
         }
     }

@@ -8,7 +8,7 @@ import Activity from './Activity.jsx';
 
 function ActivityListHeader({ setSortKey, sortState }) {
     return (
-        <div className="list-header row">
+        <tr>
             <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-5" sortKey="title">
                 Title
             </ListHeaderColumn>
@@ -24,7 +24,7 @@ function ActivityListHeader({ setSortKey, sortState }) {
             <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-2" sortKey='endTime'>
                 End Time
             </ListHeaderColumn>
-        </div>
+        </tr>
     );
 }
 

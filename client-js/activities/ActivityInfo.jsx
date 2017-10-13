@@ -42,8 +42,8 @@ class ActivityInfo extends React.Component {
         var updated = new Date(this.props.model.updated);
 
         var descBox = (
-            <div className="row">
-                <div className="col-md-12">
+            <tr key='desc-box'>
+                <td colSpan='42'>
                     <div>{this.props.model.description}</div>
                     <div>
                         {this.props.editable && <button onClick={this.handleDelete} className="btn btn-danger btn-xs list-button">Delete</button>}
@@ -53,37 +53,43 @@ class ActivityInfo extends React.Component {
                     <CheckInList activity={this.props.model} />
                     <div><small>Created: {created.toLocaleString()}</small></div>
                     <div><small>Updated: {updated.toLocaleString()}</small></div>
-                </div>
-            </div>
+                </td>
+            </tr>
         );
 
         var startTime = new Date(this.props.model.startTime);
         var endTime = new Date(this.props.model.endTime);
 
-        return (
-            <div>
-                <div className="list-row row" onClick={this.toggleExpanded}>
-                    <div className="col-md-5">
-                        {!this.state.expanded && <span className="glyphicon glyphicon-menu-down text-left"></span>}
-                        {this.state.expanded && <span className="glyphicon glyphicon-menu-up text-left"></span>}
-                        {this.props.model.title}
-                    </div>
-                    <div className="col-md-2">
-                        {this.props.model.userHours.length}
-                    </div>
-                    <div className="col-md-1">
-                        {this.props.model.maxHours}
-                    </div>
-                    <div className="col-md-2">
-                        {startTime.toLocaleDateString()}, {startTime.toLocaleTimeString()}
-                    </div>
-                    <div className="col-md-2">
-                        {endTime.toLocaleDateString()}, {endTime.toLocaleTimeString()}
-                    </div>
-                </div>
-                {this.state.expanded && descBox}
-            </div>
-        );
+        var mainRow = (
+            <tr key='main-row' className="list-row" onClick={this.toggleExpanded}>
+                <td>
+                    {!this.state.expanded && <span className="glyphicon glyphicon-menu-down text-left"></span>}
+                    {this.state.expanded && <span className="glyphicon glyphicon-menu-up text-left"></span>}
+                    {this.props.model.title}
+                </td>
+                <td>
+                    {this.props.model.userHours.length}
+                </td>
+                <td>
+                    {this.props.model.maxHours}
+                </td>
+                <td>
+                    {startTime.toLocaleDateString()}, {startTime.toLocaleTimeString()}
+                </td>
+                <td>
+                    {endTime.toLocaleDateString()}, {endTime.toLocaleTimeString()}
+                </td>
+            </tr>
+        )
+
+        if(this.state.expanded) {
+            return [
+                mainRow,
+                descBox
+            ]
+        } else {
+            return [ mainRow ];
+        }
     }
 }
 

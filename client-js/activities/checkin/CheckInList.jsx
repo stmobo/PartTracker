@@ -21,7 +21,7 @@ function CheckInList({ activity, collection, editable }) {
     );
 
     return (
-        <ul className="activity-userhours-list col-md-12">
+        <ul className="activity-userhours-list">
             {elements}
             {editable && <CheckInCreator activity={activity} />}
         </ul>
