@@ -305,6 +305,10 @@ describe('Routes: /api/activities', function () {
 
             it('should return 403 Forbidden for unauthorized users (non-activity editors / attendance editors)', async function () {
                 var activity = await Activity.generate();
+                var userA = await User.generate();
+
+                await activity.userHours([await Activity.generate_checkin(userA, activity)]);
+                await activity.save();
 
                 app.fake_user.activityCreator = false;
                 app.fake_user.attendanceEditor = false;
@@ -314,6 +318,9 @@ describe('Routes: /api/activities', function () {
                     .catch(req_common.pass_failed_requests);
 
                 expect(res).to.have.status(403);
+
+                activity = new Activity(activity.id());
+                expect(await activity.userHours()).to.have.lengthOf.above(0);
             });
         });
 
@@ -365,6 +372,9 @@ describe('Routes: /api/activities', function () {
                     .catch(req_common.pass_failed_requests);
 
                 expect(res).to.have.status(403);
+
+                activity = new Activity(activity.id());
+                expect(await activity.userHours()).to.have.lengthOf(0);
             });
         });
 
@@ -414,10 +424,20 @@ describe('Routes: /api/activities', function () {
 
                 expect(res).to.have.status(204);
                 expect(res.body).to.be.empty;
+
+                activity = new Activity(activity.id());
+                expect(await activity.userHours()).to.have.lengthOf.above(0);
             });
 
             it('should return 403 Forbidden for unauthorized users', async function () {
                 var activity = await Activity.generate();
+                var userA = await User.generate();
+                var checkins = await Promise.all([
+                    Activity.generate_checkin(userA, activity),
+                ]);
+
+                await activity.userHours(checkins);
+                await activity.save();
 
                 app.fake_user.activityCreator = false;
                 app.fake_user.attendanceEditor = false;
@@ -426,6 +446,9 @@ describe('Routes: /api/activities', function () {
                     .catch(req_common.pass_failed_requests);
 
                 expect(res).to.have.status(403);
+
+                activity = new Activity(activity.id());
+                expect(await activity.userHours()).to.have.lengthOf.above(0);
             });
         });
     });
@@ -522,6 +545,8 @@ describe('Routes: /api/activities', function () {
                 await activity.userHours([checkin]);
                 await activity.save();
 
+                var normalizedResult = JSON.parse(JSON.stringify(await activity.userHours()));
+
                 app.fake_user.activityCreator = false;
                 app.fake_user.attendanceEditor = false;
                 var res = await chai.request(app)
@@ -530,6 +555,11 @@ describe('Routes: /api/activities', function () {
                     .catch(req_common.pass_failed_requests);
 
                 expect(res).to.have.status(403);
+
+                var newState = JSON.parse(JSON.stringify(await activity.userHours()));
+
+                expect(newState).to.have.lengthOf(1);
+                expect(newState).to.eql(normalizedResult);
             });
         });
 
@@ -588,6 +618,9 @@ describe('Routes: /api/activities', function () {
                     .catch(req_common.pass_failed_requests);
 
                 expect(res).to.have.status(403);
+
+                activity = new Activity(activity.id());
+                expect(await activity.userHours()).to.have.lengthOf.above(0); // nothing should actually change
             });
         });
     });
