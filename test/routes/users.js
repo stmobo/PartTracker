@@ -127,6 +127,9 @@ describe('Routes: /api/users', function () {
                 username: 'username',
                 realname: 'realname',
                 activityCreator: true,
+                inventoryEditor: true,
+                requestEditor: true,
+                attendanceEditor: true,
                 admin: true,
                 disabled: true,
             };
@@ -184,6 +187,9 @@ describe('Routes: /api/users', function () {
                     realname: 'User A',
                     admin: false,
                     activityCreator: false,
+                    inventoryEditor: false,
+                    requestEditor: false,
+                    attendanceEditor: false,
                     disabled: false
                 },
                 {
@@ -191,6 +197,9 @@ describe('Routes: /api/users', function () {
                     realname: 'User D',
                     admin: true,
                     activityCreator: true,
+                    inventoryEditor: true,
+                    requestEditor: true,
+                    attendanceEditor: true,
                     disabled: true
                 }
             ];
@@ -233,6 +242,9 @@ describe('Routes: /api/users', function () {
                     realname: 'User A',
                     admin: false,
                     activityCreator: false,
+                    inventoryEditor: false,
+                    requestEditor: false,
+                    attendanceEditor: false,
                     disabled: false
                 },
                 {
@@ -240,6 +252,9 @@ describe('Routes: /api/users', function () {
                     realname: 'User D',
                     admin: true,
                     activityCreator: true,
+                    inventoryEditor: true,
+                    requestEditor: true,
+                    attendanceEditor: true,
                     disabled: true
                 }
             ];
@@ -282,6 +297,9 @@ describe('Routes: /api/users', function () {
                     realname: 'User A',
                     admin: true,
                     activityCreator: true,
+                    inventoryEditor: true,
+                    requestEditor: true,
+                    attendanceEditor: true,
                     disabled: true
                 }
             ];
@@ -362,6 +380,9 @@ describe('Routes: /api/users', function () {
                 realname: 'User A',
                 admin: true,
                 activityCreator: true,
+                inventoryEditor: true,
+                requestEditor: true,
+                attendanceEditor: true,
                 disabled: true
             };
 
