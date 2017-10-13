@@ -87,33 +87,31 @@ export default class RequestEditor extends React.Component {
 
     render() {
         return (
-            <form className="list-row list-editor row" onReset={this.handleFormReset} onSubmit={this.handleFormSubmit}>
-                <div className="col-md-4">
+            <tr className="list-row list-editor">
+                <td>
                     <CollectionSelector sorted={true} collection="inventory" labelKey="name" initial={this.state.item} onChange={this.handleItemChange} />
-                </div>
-                <div className="col-md-1">
+                    <button type="button" name="submit" onClick={this.handleFormSubmit} className="btn btn-success btn-xs list-button">Submit</button>
+                    <button type="button" name="reset"  onClick={this.handleFormReset}  className="btn btn-danger btn-xs list-button">Reset</button>
+                    <button type="button" name="cancel" onClick={this.handleFormCancel} className="btn btn-danger btn-xs list-button">Cancel</button>
+                </td>
+                <td>
                     <input name="count" type="number" value={this.state.count} min="0" onChange={this.handleFormInputChange} />
-                </div>
-                <div className="col-md-1">
+                </td>
+                <td>
                     <select name="status" value={this.state.status} onChange={this.handleFormInputChange}>
                         <option value="waiting">Waiting</option>
                         <option value="in_progress">In Progress</option>
                         <option value="delayed">Delayed</option>
                         <option value="fulfilled">Fulfilled</option>
                     </select>
-                </div>
-                <div className="col-md-3">
+                </td>
+                <td>
                     <CollectionSelector sorted={true} collection="users" labelKey="realname" initial={this.state.requester} onChange={this.handleUserChange} />
-                </div>
-                <div className="col-md-3">
+                </td>
+                <td>
                     <input name="eta" type="datetime-local"  value={dateToInputValue(this.state.eta)} onChange={this.handleFormInputChange} />
-                </div>
-                <div className="col-md-4">
-                    <button type="submit" name="submit" className="btn btn-success btn-xs list-button">Submit</button>
-                    <button type="reset"  name="reset" className="btn btn-danger btn-xs list-button">Reset</button>
-                    <button type="button" name="cancel" onClick={this.handleFormCancel} className="btn btn-danger btn-xs list-button">Cancel</button>
-                </div>
-            </form>
+                </td>
+            </tr>
         );
     }
 };

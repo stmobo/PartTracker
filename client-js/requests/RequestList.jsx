@@ -9,7 +9,7 @@ import Request from './Request.jsx';
 
 function RequestListHeader({ setSortKey, sortState }) {
     return (
-        <div className="list-header row">
+        <tr>
             <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-4" sortKey='item'>
                 Item
             </ListHeaderColumn>
@@ -25,7 +25,7 @@ function RequestListHeader({ setSortKey, sortState }) {
             <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-3" sortKey='eta'>
                 ETA
             </ListHeaderColumn>
-        </div>
+        </tr>
     );
 }
 
