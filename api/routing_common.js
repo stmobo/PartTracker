@@ -35,9 +35,15 @@ module.exports = {
             method: req.method,
             url: req.originalUrl,
             remoteAddress: req.socket.remoteAddress,
-            username: await req.user.username(),
             responseCode: 400,
-            responseMsg: 'unknown message'
+            responseMsg: 'unknown message',
+            username: '',
+            userID: ''
+        }
+
+        if(req.user) {
+            metadata['username'] = await req.user.username();
+            metadata['userID'] = req.user.id();
         }
 
         if(err instanceof APIClientError) {
