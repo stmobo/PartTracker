@@ -59,7 +59,7 @@ export default function SortableCollection(collectionName, ElementComponent, Cre
                 x => (<ElementComponent key={x.id} model={x} />)
             );
 
-            if(isAdmin) {
+            if(isAdmin && canImportCSV) {
                 var importExport = (
                     <div>
                         <FileUploadButton accept=".csv" className="btn btn-default btn-sm list-create-new-button" onFileSelected={this.props.importCSV}>Import from CSV</FileUploadButton>

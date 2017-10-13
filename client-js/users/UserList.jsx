@@ -1,63 +1,54 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import {UpdateTime} from '../common.jsx';
-import FileUploadButton from '../common/FileUploadButton.jsx';
-import api from '../common/api.js';
+
+import SortableCollection from '../common/SortableCollection.jsx';
+import ListHeaderColumn from '../common/ListHeaderColumn.jsx';
 
 import User from './User.jsx';
 import UserCreator from './UserCreator.jsx';
 
-function UserListHeader() {
+function UserListHeader({ setSortKey, sortState }) {
     return (
         <div className="list-header row">
-            <div className="col-md-5"><strong>User Name</strong></div>
-            <div className="col-md-4"><strong>Real Name</strong></div>
-            <div className="col-md-1"><strong>Is Admin</strong></div>
-            <div className="col-md-1"><strong>Edits Activities</strong></div>
-            <div className="col-md-1"><strong>Is Disabled</strong></div>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-5" sortKey='username'>
+                User Name
+            </ListHeaderColumn>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-4" sortKey='realname'>
+                Real Name
+            </ListHeaderColumn>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-1" sortKey='admin'>
+                Is Admin
+            </ListHeaderColumn>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-1" sortKey='activityCreator'>
+                Edits Activities
+            </ListHeaderColumn>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-1" sortKey='disabled'>
+                Is Disabled
+            </ListHeaderColumn>
         </div>
     );
 }
 
-function mapStateToProps(state) {
-    var collection = Array.from(state.users.values());
-    var isAdmin = false;
+function UserComparer(sortKey, a, b) {
+    var nA = a[sortKey];
+    var nB = b[sortKey];
 
-    if(typeof state.current_user !== 'undefined') {
-        isAdmin = state.current_user.admin
+    switch(sortKey) {
+        case 'username':
+        case 'realname':
+            nA = nA.toLowerCase();
+            nB = nB.toLowerCase();
+            break;
+        case 'admin':
+        case 'activityCreator':
+        case 'disabled':
+            nA = nA.toString();
+            nB = nB.toString();
+            break;
     }
 
-    return {
-        collection,
-        isAdmin,
-    };
+    if(nA < nB) return -1;
+    if(nA === nB) return 0;
+    return 1;
 }
 
-function mapDispatchToProps(dispatch) {
-    return {
-        importCSV: (fileInput) => {
-            dispatch(api.importCSV('users', fileInput.files[0]));
-        },
-    };
-}
-
-function UserList({ collection, isAdmin, importCSV }) {
-    var elements = collection.map(
-        x => (<User key={x.id} model={x} />)
-    );
-
-    return (
-        <div className="container-fluid" id="inv-table">
-            <UserListHeader />
-            {elements}
-            {isAdmin && <UserCreator />}
-            <div>
-                {isAdmin && <FileUploadButton accept=".csv" className="btn btn-default btn-sm list-create-new-button" onFileSelected={importCSV}>Import from CSV</FileUploadButton>}
-                <a className="btn btn-default btn-sm list-create-new-button" href="/api/users.csv">Export to CSV</a>
-            </div>
-        </div>
-    )
-}
-
-UserList = connect(mapStateToProps, mapDispatchToProps)(UserList);
-export default UserList;
+export default SortableCollection('users', User, UserCreator, UserListHeader, UserComparer, true);

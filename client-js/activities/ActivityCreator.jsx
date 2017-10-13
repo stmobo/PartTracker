@@ -4,7 +4,13 @@ import api from '../common/api.js';
 import ActivityEditor from './ActivityEditor.jsx';
 
 function mapStateToProps(state, ownProps) {
-    return {};
+    if(state.current_user.id === undefined) {
+        return { editable: false };
+    } else {
+        return {
+            editable: state.current_user.activityCreator
+        };
+    }
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
@@ -17,7 +23,6 @@ function mapDispatchToProps(dispatch, ownProps) {
 
 class ActivityCreator extends React.Component {
     constructor(props) {
-        var { onCreate } = props;
         super(props);
 
         this.state = { visible: false }
@@ -26,8 +31,13 @@ class ActivityCreator extends React.Component {
     }
 
     render() {
+        var { onCreate, editable } = this.props;
+        if(!editable) {
+            return null;
+        }
+
         if(this.state.editingNewActivity) {
-            return (<ActivityEditor onSubmit={this.props.onCreate} onClose={this.hide} />);
+            return (<ActivityEditor onSubmit={onCreate} onClose={this.hide} />);
         } else {
             return (
                 <div className="list-header row">
