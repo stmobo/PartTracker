@@ -68,3 +68,8 @@ abbr.offset-button {
 .list-row .offset-button:hover {
     opacity: 1.0;
 }
+
+.sort-indicator {
+    margin-left: 3px;
+    font-size: 10px;
+}
