@@ -40,14 +40,14 @@ function usernamePasswordAuth(username, password, done) {
         (doc) => {
             if(doc === null) {
                 //console.log("Unknown user " + username + " attempted to authenticate.");
-                winston.log('warning', "Rejected authentication as " + username + ": user not found.");
+                winston.log('info', "Rejected authentication as " + username + ": user not found.");
                 return Promise.reject({message: 'User not found.'});
             }
 
 
             if(doc.disabled) {
                 //console.log("Disabled user " + username + " attempted to authenticate.");
-                winston.log('warning', "Rejected authentication as " + username + ": login for user disabled.");
+                winston.log('info', "Rejected authentication as " + username + ": login for user disabled.");
                 return Promise.reject({message: 'Login for user disabled.'});
             }
 
@@ -65,7 +65,7 @@ function usernamePasswordAuth(username, password, done) {
                 return done(null, user);
             } else {
                 //console.log("User " + username + " attempted to authenticate with an invalid password.");
-                winston.log('warning', "Rejected authentication as " + username + ": invalid password.");
+                winston.log('info', "Rejected authentication as " + username + ": invalid password.");
                 return Promise.reject({message: 'Incorrect password.'});
             }
         }
