@@ -31,13 +31,9 @@ class ReservationCreator extends React.Component {
             return (<ReservationEditor parentItem={this.props.parentItem} onSubmit={this.props.onCreate} onCancel={this.closeCreateForm} />);
         } else {
             return (
-                <div className="row">
-                    <div className="col-md-5">
-                        <button className="btn btn-primary btn-default list-create-new-button" onClick={this.openCreateForm}>
-                            Submit New Reservation
-                        </button>
-                    </div>
-                </div>
+                <button className="btn btn-primary btn-default list-create-new-button" onClick={this.openCreateForm}>
+                    Submit New Reservation
+                </button>
             );
         }
     }

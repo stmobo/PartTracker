@@ -6,7 +6,7 @@ export default function ReservationInfo({ model, requesterModel, onEdit, onDelet
     var handleDelete = (ev) => { ev.preventDefault(); ev.stopPropagation(); onDelete(); }
 
     return (
-        <li className="inv-rsvp-item">
+        <li className="inv-rsvp-item list-row">
             {model.count} reserved by <strong>{requesterModel.realname}</strong> (<strong>{requesterModel.username}</strong>)
             <UpdateTime updated={model.updated} />
             <span onClick={handleEdit} className="glyphicon glyphicon-pencil offset-button"></span>

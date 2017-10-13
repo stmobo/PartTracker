@@ -14,11 +14,15 @@ body {
     margin-bottom: 1.5em;
 
     bottom: 0px;
+
+    pointer-events: none;
 }
 
 .notification-text {
     border-top: groove;
     padding: 1em;
+
+    pointer-events: auto;
 }
 
 .navbar-right {
@@ -32,15 +36,6 @@ body {
 
 .edit-form-btn {
     margin-left: 5px;
-}
-
-.list-row, .list-header {
-    padding-top: 0.5em;
-    padding-bottom: 0.5em;
-}
-
-.list-row {
-    border-top-style: inset;
 }
 
 .list-timestamp {

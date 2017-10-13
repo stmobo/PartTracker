@@ -30,13 +30,13 @@ class ItemCreateForm extends React.Component {
             return (<ItemEditor onSubmit={this.props.onCreate} onCancel={this.closeCreateForm} />);
         } else {
             return (
-                <div className="list-row list-header row">
-                    <div className="col-md-5">
+                <tr>
+                    <td colSpan='6'>
                         <button className="btn btn-primary btn-default list-create-new-button" onClick={this.openCreateForm}>
                             Submit New Item
                         </button>
-                    </div>
-                </div>
+                    </td>
+                </tr>
             );
         }
     }

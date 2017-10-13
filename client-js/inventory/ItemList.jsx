@@ -8,26 +8,26 @@ import ItemCreateForm from "./ItemCreateForm.jsx";
 
 function ItemListHeader({ setSortKey, sortState }) {
     return (
-        <div className="list-header row">
-            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey="name" className="col-md-6">
+        <tr className="">
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey="name">
                 Item Name
             </ListHeaderColumn>
-            <div className="col-md-2">
-                <strong>Status</strong>
-            </div>
-            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey="available" className="col-md-1">
+            <th>
+                Status
+            </th>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey="available">
                 Available
             </ListHeaderColumn>
-            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey="requested" className="col-md-1">
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey="requested">
                 Requested
             </ListHeaderColumn>
-            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey="reserved" className="col-md-1">
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey="reserved">
                 Reserved
             </ListHeaderColumn>
-            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey="count" className="col-md-1">
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} sortKey="count">
                 Total
             </ListHeaderColumn>
-        </div>
+        </tr>
     );
 }
 

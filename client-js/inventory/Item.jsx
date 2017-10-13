@@ -45,16 +45,16 @@ class Item extends React.Component {
         var { model, onUpdate, onDelete } = this.props;
 
         if(this.state.editing) {
-            var itemRenderer = (<ItemEditor model={model} expanded={this.state.expanded} onSubmit={onUpdate} onCancel={this.stopEdit} />);
+            var itemRenderer = (<ItemEditor model={model} expanded={this.state.expanded} onSubmit={onUpdate} onCancel={this.stopEdit} onClick={this.toggleRSVPList} />);
         } else {
-            var itemRenderer = (<ItemInfo itemModel={model} expanded={this.state.expanded} onDelete={onDelete} onEdit={this.startEdit} />);
+            var itemRenderer = (<ItemInfo itemModel={model} expanded={this.state.expanded} onDelete={onDelete} onEdit={this.startEdit} onClick={this.toggleRSVPList} />);
         }
 
         return (
-            <div>
-                <div onClick={this.toggleRSVPList}>{itemRenderer}</div>
+            <tbody>
+                {itemRenderer}
                 {this.state.expanded && <ReservationList parentItem={model} />}
-            </div>
+            </tbody>
         )
     }
 }
