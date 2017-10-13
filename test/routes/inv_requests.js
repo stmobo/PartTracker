@@ -20,6 +20,11 @@ var InventoryRequest = require('api/models/InventoryRequest.js');
 var app = req_common.isolate_module(require('api/inv_requests.js'));
 
 describe('Routes: /api/requests', function () {
+    beforeEach(async function () {
+        app.current_user = undefined;
+        app.fake_user.requestEditor = true;
+    });
+
     afterEach(async function () {
         return Promise.all([
             dbAPI.users.remove({}),
@@ -100,6 +105,29 @@ describe('Routes: /api/requests', function () {
             res.body.should.eql(normalizedResult);
         });
 
+        it('should return 403 Forbidden for unauthorized users', async function () {
+            var reqUser = await User.generate();
+            var reqItem = await Item.generate();
+
+            var newObject = {
+                requester: reqUser.id().toString(),
+                item: reqItem.id().toString(),
+                count: 10,
+                status: 'waiting',
+                eta: new Date().toISOString()
+            };
+
+            app.fake_user.requestEditor = false;
+            var res = await chai.request(app)
+                .post('/api/requests')
+                .set('Accept', 'application/json')
+                .send(newObject)
+                .catch(req_common.pass_failed_requests);
+
+            expect(res).to.have.status(403);
+            expect(await dbAPI.requests.find({}, {})).to.have.lengthOf(0);
+        });
+
         it('should reject requests with missing parameters', async function () {
             var res = await chai.request(app)
                 .post('/api/requests')
@@ -107,6 +135,7 @@ describe('Routes: /api/requests', function () {
                 .send({}).catch((err) => { return err.response; });
 
             expect(res).to.have.status(400); // 400 Bad Request
+            expect(await dbAPI.requests.find({}, {})).to.have.lengthOf(0);
         });
     });
 
@@ -192,6 +221,47 @@ describe('Routes: /api/requests', function () {
             expect(normalizedResult).to.deep.include(payload);
             res.body.should.eql(normalizedResult);
         });
+
+        it('should return 403 Forbidden for unauthorized users', async function () {
+            var reqUser = await User.generate();
+            var reqItem = await Item.generate();
+
+            var reqUser2 = await User.generate();
+            var reqItem2 = await Item.generate();
+
+            var serverInstance = new InventoryRequest();
+            await Promise.all([
+                serverInstance.item(reqItem),
+                serverInstance.requester(reqUser),
+                serverInstance.count(50),
+                serverInstance.status('waiting')
+            ]);
+            await serverInstance.save();
+
+            var oldSummary = JSON.parse(JSON.stringify(await serverInstance.summary()));
+
+            app.fake_user.requestEditor = false;
+            var payload = {
+                item: reqUser2.id().toString(),
+                requester: reqItem2.id().toString(),
+                count: 100,
+                status: 'delayed',
+                eta: new Date(Date.now()+1000*3600).toISOString()
+            };
+
+            var res = await chai.request(app)
+                .put('/api/requests/'+serverInstance.id().toString())
+                .set('Accept', 'application/json')
+                .send(payload)
+                .catch(req_common.pass_failed_requests);
+
+            expect(res).to.have.status(403);
+
+            // nothing should change
+            serverInstance = new InventoryRequest(serverInstance.id());
+            var normalizedResult = JSON.parse(JSON.stringify(await serverInstance.summary()));
+            expect(normalizedResult).to.eql(oldSummary);
+        });
     });
 
     describe('DELETE /api/requests/:qid', function () {
@@ -216,6 +286,30 @@ describe('Routes: /api/requests', function () {
 
             serverInstance = new InventoryRequest(serverInstance.id());
             return serverInstance.exists().should.become(false);
+        });
+
+        it('should return 403 Forbidden for unauthorized users', async function () {
+            var reqUser = await User.generate();
+            var reqItem = await Item.generate();
+
+            var serverInstance = new InventoryRequest();
+            await Promise.all([
+                serverInstance.item(reqItem),
+                serverInstance.requester(reqUser),
+                serverInstance.count(50),
+                serverInstance.status('waiting')
+            ]);
+            await serverInstance.save();
+
+            app.fake_user.requestEditor = false;
+            var res = await chai.request(app)
+                .delete('/api/requests/'+serverInstance.id().toString())
+                .catch(req_common.pass_failed_requests);
+
+            expect(res).to.have.status(403);
+
+            serverInstance = new InventoryRequest(serverInstance.id());
+            expect(serverInstance.exists()).to.become(true);
         });
     });
 });
