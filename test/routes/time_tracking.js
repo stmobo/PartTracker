@@ -23,6 +23,7 @@ describe('Routes: /api/activities', function () {
         app.current_user = undefined;
         app.fake_user.admin = true;
         app.fake_user.activityCreator = true;
+        app.fake_user.attendanceEditor = true;
 
         return dbAPI.activities.remove({});
     });
@@ -283,10 +284,30 @@ describe('Routes: /api/activities', function () {
                 expect(normalizedResult).to.have.deep.members(payload);
             });
 
-            it('should return 403 Forbidden for unauthorized users', async function () {
+            it('should accept requests from Attendance Editors (specifically)', async function () {
+                var activity = await Activity.generate();
+                var userA = await User.generate();
+
+                await activity.userHours([await Activity.generate_checkin(userA, activity)]);
+                await activity.save();
+
+                app.fake_user.activityCreator = false;
+                app.fake_user.attendanceEditor = true;
+                var res = await chai.request(app)
+                    .put(`/api/activities/${activity.id().toString()}/users`)
+                    .set('Accept', 'application/json')
+                    .send([])
+                    .catch(req_common.catch_failed_requests);
+
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+            });
+
+            it('should return 403 Forbidden for unauthorized users (non-activity editors / attendance editors)', async function () {
                 var activity = await Activity.generate();
 
                 app.fake_user.activityCreator = false;
+                app.fake_user.attendanceEditor = false;
                 var res = await chai.request(app)
                     .put(`/api/activities/${activity.id().toString()}/users`)
                     .send([])
@@ -318,10 +339,26 @@ describe('Routes: /api/activities', function () {
                 expect(res.body).to.eql(checkin);
             });
 
-            it('should return 403 Forbidden for unauthorized users', async function () {
+            it('should accept requests from Attendance Editors (specifically)', async function () {
+                var activity = await Activity.generate();
+                var user = await User.generate();
+                var checkin = await Activity.generate_checkin(user, activity);
+
+                var res = await chai.request(app)
+                    .post(`/api/activities/${activity.id().toString()}/users`)
+                    .set('Accept', 'application/json')
+                    .send(checkin)
+                    .catch(req_common.catch_failed_requests);
+
+                expect(res).to.have.status(201);
+                expect(res).to.be.json;
+            });
+
+            it('should return 403 Forbidden for unauthorized users (non-activity editors / attendance editors)', async function () {
                 var activity = await Activity.generate();
 
                 app.fake_user.activityCreator = false;
+                app.fake_user.attendanceEditor = false;
                 var res = await chai.request(app)
                     .post(`/api/activities/${activity.id().toString()}/users`)
                     .send({})
@@ -358,11 +395,32 @@ describe('Routes: /api/activities', function () {
                 expect(await activity.userHours()).to.have.lengthOf(0);
             });
 
+            it('should accept requests from Attendance Editors (specifically)', async function () {
+                var activity = await Activity.generate();
+                var userA = await User.generate();
+                var checkins = await Promise.all([
+                    Activity.generate_checkin(userA, activity),
+                ]);
+
+                await activity.userHours(checkins);
+                await activity.save();
+
+                expect(await activity.userHours()).to.have.lengthOf.above(0);
+
+                var res = await chai.request(app)
+                    .delete(`/api/activities/${activity.id().toString()}/users`)
+                    .set('Accept', 'application/json')
+                    .catch(req_common.catch_failed_requests);
+
+                expect(res).to.have.status(204);
+                expect(res.body).to.be.empty;
+            });
 
             it('should return 403 Forbidden for unauthorized users', async function () {
                 var activity = await Activity.generate();
 
                 app.fake_user.activityCreator = false;
+                app.fake_user.attendanceEditor = false;
                 var res = await chai.request(app)
                     .delete(`/api/activities/${activity.id().toString()}/users`)
                     .catch(req_common.pass_failed_requests);
@@ -437,6 +495,25 @@ describe('Routes: /api/activities', function () {
                 expect(res.body).to.eql(payload);
             });
 
+            it('should accept requests from Attendance Editors (specifically)', async function () {
+                var activity = await Activity.generate();
+                var user = await User.generate();
+                var checkin = await Activity.generate_checkin(user, activity);
+
+                await activity.userHours([checkin]);
+                await activity.save();
+
+                app.fake_user.activityCreator = false;
+                app.fake_user.attendanceEditor = true;
+                var res = await chai.request(app)
+                    .put(`/api/activities/${activity.id().toString()}/users/${user.id().toString()}`)
+                    .send({})
+                    .catch(req_common.catch_failed_requests);
+
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+            });
+
             it('should return 403 Forbidden for unauthorized users', async function () {
                 var activity = await Activity.generate();
                 var user = await User.generate();
@@ -446,6 +523,7 @@ describe('Routes: /api/activities', function () {
                 await activity.save();
 
                 app.fake_user.activityCreator = false;
+                app.fake_user.attendanceEditor = false;
                 var res = await chai.request(app)
                     .put(`/api/activities/${activity.id().toString()}/users/${user.id().toString()}`)
                     .send({})
@@ -477,6 +555,24 @@ describe('Routes: /api/activities', function () {
                 expect(await activity.userHours()).to.have.lengthOf(0);
             });
 
+            it('should accept requests from Attendance Editors (specifically)', async function () {
+                var activity = await Activity.generate();
+                var user = await User.generate();
+                var checkin = await Activity.generate_checkin(user, activity);
+
+                await activity.userHours([checkin]);
+                await activity.save();
+
+                app.fake_user.activityCreator = false;
+                app.fake_user.attendanceEditor = true;
+                var res = await chai.request(app)
+                    .delete(`/api/activities/${activity.id().toString()}/users/${user.id().toString()}`)
+                    .catch(req_common.catch_failed_requests);
+
+                expect(res).to.have.status(204);
+                expect(res.body).to.be.empty;
+            });
+
             it('should return 403 Forbidden for unauthorized users', async function () {
                 var activity = await Activity.generate();
                 var user = await User.generate();
@@ -486,6 +582,7 @@ describe('Routes: /api/activities', function () {
                 await activity.save();
 
                 app.fake_user.activityCreator = false;
+                app.fake_user.attendanceEditor = false;
                 var res = await chai.request(app)
                     .delete(`/api/activities/${activity.id().toString()}/users/${user.id().toString()}`)
                     .catch(req_common.pass_failed_requests);
