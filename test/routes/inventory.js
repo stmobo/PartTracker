@@ -22,6 +22,7 @@ var app = req_common.isolate_module(require('api/inventory.js'));
 describe('Routes: /api/inventory', function () {
     beforeEach(function () {
         app.fake_user.admin = true;
+        app.fake_user.inventoryEditor = true;
     });
 
     afterEach(async function () {
@@ -125,6 +126,20 @@ describe('Routes: /api/inventory', function () {
                 .send({}).catch((err) => { return err.response; });
 
             expect(res).to.have.status(400); // 400 Bad Request
+        });
+
+        it('should reject requests from unauthorized users', async function () {
+            var payload = { name: 'test', count: 5 };
+
+            app.fake_user.inventoryEditor = false;
+            var res = await chai.request(app)
+                .post('/api/inventory')
+                .set('Accept', 'application/json')
+                .send(payload)
+                .catch(req_common.pass_failed_requests);
+
+            expect(res).to.have.status(403);
+            expect(await dbAPI.inventory.find({}, {})).to.have.lengthOf(0);
         });
 
         it('should reject attempts to create Items with duplicate names', async function () {
@@ -311,6 +326,31 @@ describe('Routes: /api/inventory', function () {
             expect(res).to.have.status(400);
         });
 
+        it('should reject requests from unauthorized users', async function () {
+            var item = await Item.generate();
+
+            var payload = {
+                name: 'Foobar',
+                count: 9999
+            };
+
+            var oldSummary = JSON.parse(JSON.stringify(await item.summary()));
+
+            app.fake_user.inventoryEditor = false;
+            var res = await chai.request(app)
+                .put('/api/inventory/'+item.id().toString())
+                .set('Accept', 'application/json')
+                .send(payload)
+                .catch(req_common.pass_failed_requests);
+
+            expect(res).to.have.status(403);
+
+            item = new Item(item.id());
+            var newSummary = JSON.parse(JSON.stringify(await item.summary()));
+
+            expect(newSummary).to.eql(oldSummary);
+        });
+
         after(async function () {
             return Promise.all([
                 dbAPI.reservations.remove({}),
@@ -331,6 +371,20 @@ describe('Routes: /api/inventory', function () {
 
             item = new Item(item.id());
             return expect(item.exists()).to.become(false);
+        });
+
+        it('should reject requests from unauthorized users', async function () {
+            var item = await Item.generate();
+
+            app.fake_user.inventoryEditor = false;
+            var res = await chai.request(app)
+                .delete('/api/inventory/'+item.id().toString())
+                .catch(req_common.pass_failed_requests);
+
+            expect(res).to.have.status(403);
+
+            item = new Item(item.id());
+            expect(item.exists()).to.become(true);
         });
     });
 })
