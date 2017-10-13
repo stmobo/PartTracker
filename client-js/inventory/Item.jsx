@@ -1,4 +1,6 @@
 import React from 'react';
+import {connect} from 'react-redux';
+import api from '../common/api.js';
 import ItemInfo from "./ItemInfo.jsx";
 import ItemEditor from "./ItemEditor.jsx";
 import ReservationList from "../reservations/ReservationList.jsx";
@@ -9,20 +11,26 @@ import ReservationList from "../reservations/ReservationList.jsx";
  *
  * props.onDelete(id) is a callback that similarly results in a DELETE request.
  */
-export default class Item extends React.Component {
+function mapStateToProps(state, ownProps) {
+    return {};
+}
+
+function mapDispatchToProps(dispatch, ownProps) {
+    return {
+        onUpdate: (newModel) => {
+            dispatch(api.update('inventory', newModel, ownProps.model.id));
+        },
+        onDelete: () => {
+            dispatch(api.delete('inventory', ownProps.model));
+        }
+    }
+}
+
+class Item extends React.Component {
     constructor(props) {
-        var { itemModel, onUpdate, onDelete } = props;
         super(props);
 
         this.state = { editing: false, expanded: false };
-
-        this.handleUpdate = (function(newModel) {
-            this.props.onUpdate(this.props.itemModel.id, newModel);
-        }).bind(this);
-
-        this.handleDelete = (function() {
-            this.props.onDelete(this.props.itemModel.id);
-        }).bind(this);
 
         this.startEdit = (function() { this.setState({ editing: true }); }).bind(this);
         this.stopEdit = (function() { this.setState({ editing: false }); }).bind(this);
@@ -34,18 +42,21 @@ export default class Item extends React.Component {
     }
 
     render() {
-        var itemRenderer;
+        var { model, onUpdate, onDelete } = this.props;
+
         if(this.state.editing) {
-            itemRenderer = (<ItemEditor model={this.props.itemModel} expanded={this.state.expanded} onSubmit={this.handleUpdate} onCancel={this.stopEdit} />);
+            var itemRenderer = (<ItemEditor model={model} expanded={this.state.expanded} onSubmit={onUpdate} onCancel={this.stopEdit} />);
         } else {
-            itemRenderer = (<ItemInfo itemModel={this.props.itemModel} expanded={this.state.expanded} onDelete={this.handleDelete} onEdit={this.startEdit} />);
+            var itemRenderer = (<ItemInfo itemModel={model} expanded={this.state.expanded} onDelete={onDelete} onEdit={this.startEdit} />);
         }
 
         return (
             <div>
                 <div onClick={this.toggleRSVPList}>{itemRenderer}</div>
-                {this.state.expanded && <ReservationList parentItem={this.props.itemModel} />}
+                {this.state.expanded && <ReservationList parentItem={model} />}
             </div>
         )
     }
 }
+
+export default connect(mapStateToProps, mapDispatchToProps)(Item);
