@@ -49,54 +49,86 @@ User.prototype.realname = async function(v) {
     return this.prop('realname', v);
 };
 
-User.prototype.admin = async function(v) {
-    if(v === undefined) return this.prop('admin');
-
+function checkBooleanValue(v) {
     if(type(v) === 'string') {
         v = v.toLowerCase();
-        if(v === 'true') { v = true; }
-        else if(v === 'false') { v = false; }
-        else { throw new Error("Given value for 'admin' cannot be converted to a boolean!"); }
-
-        return this.prop('admin', v);
+        if(v === 'true') { return true; }
+        else if(v === 'false') { return false; }
+        return null;
     } else if(type(v) === 'boolean') {
+        return v;
+    } else {
+        return null;
+    }
+}
+
+User.prototype.admin = async function(v) {
+    if(v === undefined) return this.prop('admin');
+    v = checkBooleanValue(v);
+
+    if(type(v) === 'boolean') {
         return this.prop('admin', v);
     } else {
-        throw new Error("Value for 'admin' must be a boolean.");
+        throw new Error("Given value for 'admin' cannot be converted to a boolean!");
     }
 };
 
+/* Controls editing activity details (and checkins) */
 User.prototype.activityCreator = async function(v) {
     if(v === undefined) return this.prop('activityCreator');
+    v = checkBooleanValue(v);
 
-    if(type(v) === 'string') {
-        v = v.toLowerCase();
-        if(v === 'true') { v = true; }
-        else if(v === 'false') { v = false; }
-        else { throw new Error("Given value for 'activityCreator' cannot be converted to a boolean!"); }
-
-        return this.prop('activityCreator', v);
-    } else if(type(v) === 'boolean') {
+    if(type(v) === 'boolean') {
         return this.prop('activityCreator', v);
     } else {
-        throw new Error("Value for 'activityCreator' must be a boolean.");
+        throw new Error("Given value for 'activityCreator' cannot be converted to a boolean!");
+    }
+};
+
+/* Controls editing checkins only (subset of activityCreator actions) */
+User.prototype.attendanceEditor = async function(v) {
+    if(v === undefined) return this.prop('attendanceEditor');
+    v = checkBooleanValue(v);
+
+    if(type(v) === 'boolean') {
+        return this.prop('attendanceEditor', v);
+    } else {
+        throw new Error("Given value for 'attendanceEditor' cannot be converted to a boolean!");
+    }
+};
+
+/* Controls editing item details and reservation details (though all users can edit their own reservations regardless of permissions) */
+User.prototype.inventoryEditor = async function(v) {
+    if(v === undefined) return this.prop('inventoryEditor');
+    v = checkBooleanValue(v);
+
+    if(type(v) === 'boolean') {
+        return this.prop('inventoryEditor', v);
+    } else {
+        throw new Error("Given value for 'inventoryEditor' cannot be converted to a boolean!");
+    }
+};
+
+/* Controls editing request details (though all users can edit their own requests regardless) */
+User.prototype.requestEditor = async function(v) {
+    if(v === undefined) return this.prop('requestEditor');
+    v = checkBooleanValue(v);
+
+    if(type(v) === 'boolean') {
+        return this.prop('requestEditor', v);
+    } else {
+        throw new Error("Given value for 'requestEditor' cannot be converted to a boolean!");
     }
 };
 
 User.prototype.disabled = async function(v) {
     if(v === undefined) return this.prop('disabled');
+    v = checkBooleanValue(v);
 
-    if(type(v) === 'string') {
-        v = v.toLowerCase();
-        if(v === 'true') { v = true; }
-        else if(v === 'false') { v = false; }
-        else { throw new Error("Given value for 'disabled' cannot be converted to a boolean!"); }
-
-        return this.prop('disabled', v);
-    } else if(type(v) === 'boolean') {
+    if(type(v) === 'boolean') {
         return this.prop('disabled', v);
     } else {
-        throw new Error("Value for 'disabled' must be a boolean.");
+        throw new Error("Given value for 'disabled' cannot be converted to a boolean!");
     }
 };
 
@@ -153,33 +185,46 @@ User.prototype.getActivityHours = async function() {
     });
 }
 
-User.prototype.summary = function () {
-    return this.fetch().then(
-        () => {
-            return Promise.all([
-                this.username(),
-                this.realname(),
-                this.admin(),
-                this.disabled(),
-                this.activityCreator(),
-                this.updated(),
-                this.created(),
-            ]);
-        }
-    ).then(
-        (retn) => {
-            return {
-                id: this.id(),
-                username: retn[0],
-                realname: retn[1],
-                admin: retn[2],
-                disabled: retn[3],
-                activityCreator: retn[4],
-                updated: retn[5],
-                created: retn[6],
-            };
-        }
-    );
+User.prototype.summary = async function () {
+    await this.fetch();
+
+    var [
+        username,
+        realname,
+        admin,
+        disabled,
+        activityCreator,
+        attendanceEditor,
+        inventoryEditor,
+        requestEditor,
+        updated,
+        created
+    ] = await Promise.all([
+        this.username(),
+        this.realname(),
+        this.admin(),
+        this.disabled(),
+        this.activityCreator(),
+        this.attendanceEditor(),
+        this.inventoryEditor(),
+        this.requestEditor(),
+        this.updated(),
+        this.created(),
+    ]);
+
+    return {
+        id: this.id(),
+        username,
+        realname,
+        admin,
+        disabled,
+        activityCreator,
+        attendanceEditor,
+        inventoryEditor,
+        requestEditor,
+        updated,
+        created
+    };
 };
 
 User.generate = async function () {
@@ -191,7 +236,10 @@ User.generate = async function () {
         instance.realname('realname'),
         instance.admin(false),
         instance.disabled(false),
-        instance.activityCreator(false)
+        instance.activityCreator(false),
+        instance.attendanceEditor(false),
+        instance.inventoryEditor(false),
+        instance.requestEditor(false)
     ]);
 
     await instance.save();

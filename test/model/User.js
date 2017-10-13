@@ -36,6 +36,18 @@ describe('Model: User', function () {
         common.boolean_prop_tests(dbAPI.users, User, 'activityCreator');
     });
 
+    describe('#attendanceEditor()', function () {
+        common.boolean_prop_tests(dbAPI.users, User, 'attendanceEditor');
+    });
+
+    describe('#inventoryEditor()', function () {
+        common.boolean_prop_tests(dbAPI.users, User, 'inventoryEditor');
+    });
+
+    describe('#requestEditor()', function () {
+        common.boolean_prop_tests(dbAPI.users, User, 'requestEditor');
+    });
+
     describe('#computePasswordHash()', function () {
         it('should return a Buffer', async function () {
             var instance = new User();
@@ -127,7 +139,10 @@ describe('Model: User', function () {
             username: 'foobar',
             admin: true,
             activityCreator: true,
-            disabled: false
+            attendanceEditor: true,
+            inventoryEditor: true,
+            requestEditor: true,
+            disabled: false,
         });
     });
 });
