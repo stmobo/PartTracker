@@ -1,0 +1,43 @@
+.login-form {
+    /*width: 25%;
+    height: 25%;*/
+
+    padding-left: 40px;
+    padding-right: 40px;
+
+    padding-top: 20px;
+    padding-bottom: 20px;
+
+    border-style: groove;
+
+    position: absolute;
+    top:25%;
+    bottom: 25%;
+    left: 35%;
+    right: 35%;
+
+    margin: auto;
+}
+
+.login-textbox {
+    display: block;
+}
+
+.login-textbox, .login-buttons, .login-header {
+    width: 50%;
+
+    margin: 0;
+
+    position: relative;
+    left: 25%;
+    right: 25%;
+}
+
+.login-header {
+    margin-bottom: 0.5em;
+    text-align: center;
+}
+
+.login-buttons {
+    margin-top: 5px;
+}

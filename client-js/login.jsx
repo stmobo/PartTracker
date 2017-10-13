@@ -47,10 +47,12 @@ class Login extends React.Component {
     render() {
         return (
             <form className="login-form" autoComplete="off" onSubmit={this.handleFormSubmit} onReset={this.handleFormReset}>
-                <div className="text-danger">{this.state.flashMessage}</div>
-                <div><label>Username: <input type="text" name="username" value={this.state.username} onChange={this.handleFormChange} /></label></div>
-                <div><label>Password: <input type="password" name="password" value={this.state.password} onChange={this.handleFormChange} /></label></div>
-                <div>
+                <h2 className="login-header">
+                    Login
+                </h2>
+                <label className="login-textbox">Username: <input type="text" name="username" value={this.state.username} onChange={this.handleFormChange} /></label>
+                <label className="login-textbox">Password: <input type="password" name="password" value={this.state.password} onChange={this.handleFormChange} /></label>
+                <div className="login-buttons">
                     <button className="btn btn-danger btn-sm" type="reset">Clear</button>
                     <button type="submit" className="btn btn-success btn-sm">Log In</button>
                 </div>
