@@ -8,9 +8,9 @@ export default function ListHeaderColumn({ setSortKey, sortState, sortKey, class
     }
 
     return (
-        <div className={className} onClick={setSortKey.bind(null, sortKey)}>
-            <strong>{children}</strong>
+        <th className={className} onClick={setSortKey.bind(null, sortKey)}>
+            {children}
             {sortState.sortKey === sortKey && sortArrow}
-        </div>
+        </th>
     );
 }

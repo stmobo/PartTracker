@@ -60,23 +60,30 @@ export default function SortableCollection(collectionName, ElementComponent, Cre
             );
 
             if(isAdmin && canImportCSV) {
+                /* colspan is set to 42 to span all columns */
                 var importExport = (
-                    <div>
-                        <FileUploadButton accept=".csv" className="btn btn-default btn-sm list-create-new-button" onFileSelected={this.props.importCSV}>Import from CSV</FileUploadButton>
-                        <a className="btn btn-default btn-sm list-create-new-button" href={"/api/"+collectionName+".csv"}>Export to CSV</a>
-                    </div>
+                    <tr>
+                        <td colSpan='42'>
+                            <FileUploadButton accept=".csv" className="btn btn-default btn-sm list-create-new-button" onFileSelected={this.props.importCSV}>Import from CSV</FileUploadButton>
+                            <a className="btn btn-default btn-sm list-create-new-button" href={"/api/"+collectionName+".csv"}>Export to CSV</a>
+                        </td>
+                    </tr>
                 );
             } else {
                 var importExport = null;
             }
 
             return (
-                <div className="container-fluid">
-                    <HeaderComponent setSortKey={this.setSortKey} sortState={this.state} />
+                <table className={"table table-hover "+collectionName+'-list'}>
+                    <thead>
+                        <HeaderComponent setSortKey={this.setSortKey} sortState={this.state} />
+                    </thead>
                     {elements}
-                    <CreatorComponent />
-                    {importExport}
-                </div>
+                    <tfoot>
+                        <CreatorComponent />
+                        {importExport}
+                    </tfoot>
+                </table>
             );
         }
     }
