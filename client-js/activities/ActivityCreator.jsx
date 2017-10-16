@@ -4,7 +4,13 @@ import api from '../common/api.js';
 import ActivityEditor from './ActivityEditor.jsx';
 
 function mapStateToProps(state, ownProps) {
-    return {};
+    if(state.current_user.id === undefined) {
+        return { editable: false };
+    } else {
+        return {
+            editable: state.current_user.activityCreator
+        };
+    }
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
@@ -17,24 +23,28 @@ function mapDispatchToProps(dispatch, ownProps) {
 
 class ActivityCreator extends React.Component {
     constructor(props) {
-        var { onCreate } = props;
         super(props);
 
         this.state = { visible: false }
-        this.show = (function(ev) { ev.stopPropagation(); this.setState({visible: true}) }).bind(this);
-        this.hide = (function(ev) { ev.stopPropagation(); this.setState({visible: false}) }).bind(this);
+        this.show = (function(ev) { if(ev) { ev.stopPropagation(); } this.setState({visible: true}) }).bind(this);
+        this.hide = (function(ev) { if(ev) { ev.stopPropagation(); } this.setState({visible: false}) }).bind(this);
     }
 
     render() {
-        if(this.state.editingNewActivity) {
-            return (<ActivityEditor onSubmit={this.props.onCreate} onClose={this.hide} />);
+        var { onCreate, editable } = this.props;
+        if(!editable) {
+            return null;
+        }
+
+        if(this.state.visible) {
+            return (<ActivityEditor onSubmit={onCreate} onClose={this.hide} />);
         } else {
             return (
-                <div className="list-header row">
-                    <div className="col-md-5">
+                <tr>
+                    <td colSpan='42'>
                         <button className="btn btn-primary btn-default list-create-new-button" onClick={this.show}>Submit New Activity</button>
-                    </div>
-                </div>
+                    </td>
+                </tr>
             );
         }
     }

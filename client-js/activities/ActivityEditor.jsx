@@ -75,36 +75,34 @@ export default class ActivityEditor extends React.Component {
     }
 
     render() {
-        return (
-            <form onSubmit={this.handleFormSubmit} onReset={this.handleFormReset}>
-                <div className="list-editor list-row row">
-                    <div className="col-md-5">
-                        <input type="text" name="title" placeholder="Title" value={this.state.title} onChange={this.handleFormChange} />
+        return [
+            <tr key="main-row" className="list-editor list-row">
+                <td>
+                    <input type="text" name="title" placeholder="Title" value={this.state.title} onChange={this.handleFormChange} />
+                </td>
+                <td>
+                    {this.state.userHours.length}
+                </td>
+                <td>
+                    <input type="number" name="maxHours" value={this.state.maxHours} onChange={this.handleFormChange} />
+                </td>
+                <td>
+                    <input type="datetime-local" name="startTime" value={this.state.startTime} onChange={this.handleFormChange} />
+                </td>
+                <td>
+                    <input type="datetime-local" name="endTime" value={this.state.endTime} onChange={this.handleFormChange} />
+                </td>
+            </tr>,
+            <tr key="desc-box" className="list-editor list-row">
+                <td colSpan='42'>
+                    <textarea name="description" placeholder="Description..." value={this.state.description} onChange={this.handleFormChange}></textarea>
+                    <div>
+                        <button type="button" name="submit" onClick={this.handleFormSubmit} className="btn btn-success btn-xs edit-form-btn">Update</button>
+                        <button type="button" name="reset"  onClick={this.handleFormReset}  className="btn btn-danger btn-xs edit-form-btn">Reset</button>
+                        <button type="button" name="cancel" onClick={this.handleFormCancel} className="btn btn-danger btn-xs edit-form-btn">Cancel</button>
                     </div>
-                    <div className="col-md-2">
-                        {this.state.userHours.length}
-                    </div>
-                    <div className="col-md-1">
-                        <input type="number" name="maxHours" value={this.state.maxHours} onChange={this.handleFormChange} />
-                    </div>
-                    <div className="col-md-2">
-                        <input type="datetime-local" name="startTime" value={this.state.startTime} onChange={this.handleFormChange} />
-                    </div>
-                    <div className="col-md-2">
-                        <input type="datetime-local" name="endTime" value={this.state.endTime} onChange={this.handleFormChange} />
-                    </div>
-                </div>
-                <div className="list-editor list-row row">
-                    <div className="col-md-12">
-                        <textarea name="description" placeholder="Description..." value={this.state.description} onChange={this.handleFormChange}></textarea>
-                        <div>
-                            <button type="submit" name="submit" className="btn btn-success btn-xs edit-form-btn">Update</button>
-                            <button type="reset"  name="reset" className="btn btn-danger btn-xs edit-form-btn">Reset</button>
-                            <button type="button" name="cancel" onClick={this.handleFormCancel} className="btn btn-danger btn-xs edit-form-btn">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        );
+                </td>
+            </tr>
+        ];
     }
 }

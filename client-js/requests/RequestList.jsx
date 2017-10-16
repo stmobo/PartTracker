@@ -1,41 +1,64 @@
 import React from 'react';
-import {connect} from 'react-redux';
-import api from '../common/api.js';
+import {store} from '../common/store.js';
+
+import SortableCollection from '../common/SortableCollection.jsx';
+import ListHeaderColumn from '../common/ListHeaderColumn.jsx';
 
 import RequestCreator from './RequestCreator.jsx';
 import Request from './Request.jsx';
 
-function RequestListHeader() {
+function RequestListHeader({ setSortKey, sortState }) {
     return (
-        <div className="list-header row">
-            <strong className="col-md-4">Item</strong>
-            <strong className="col-md-1">Count</strong>
-            <strong className="col-md-1">Status</strong>
-            <strong className="col-md-3">Requester</strong>
-            <strong className="col-md-3">ETA</strong>
-        </div>
+        <tr>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-4" sortKey='item'>
+                Item
+            </ListHeaderColumn>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-1" sortKey='count'>
+                Count
+            </ListHeaderColumn>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-1" sortKey='status'>
+                Status
+            </ListHeaderColumn>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-3" sortKey='requester'>
+                Requester
+            </ListHeaderColumn>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-3" sortKey='eta'>
+                ETA
+            </ListHeaderColumn>
+        </tr>
     );
 }
 
-function mapStateToProps(state, ownProps) {
-    return {
-        collection: Array.from(state.requests.values()),
+function RequestComparer(sortKey, a, b) {
+    var nA = a[sortKey];
+    var nB = b[sortKey];
+
+    switch(sortKey) {
+        case 'item':
+            nA = store.getState().inventory.get(nA).name.toLowerCase();
+            nB = store.getState().inventory.get(nB).name.toLowerCase();
+            break;
+        case 'requester':
+            nA = store.getState().users.get(nA).realname.toLowerCase();
+            nB = store.getState().users.get(nB).realname.toLowerCase();
+            break;
+        case 'count':
+            nA = parseInt(nA, 10);
+            nB = parseInt(nB, 10);
+            break;
+        case 'status':
+            nA = nA.toLowerCase();
+            nB = nB.toLowerCase();
+            break;
+        case 'eta':
+            nA = (new Date(nA)).getTime();
+            nB = (new Date(nB)).getTime();
+            break;
     }
+
+    if(nA < nB) return -1;
+    if(nA === nB) return 0;
+    return 1;
 }
 
-function RequestList({ collection }) {
-    var elements = collection.map(
-        x => (<Request key={x.id} model={x} />)
-    );
-
-    return (
-        <div className="container-fluid">
-            <RequestListHeader />
-            {elements}
-            <RequestCreator />
-        </div>
-    );
-}
-
-RequestList = connect(mapStateToProps)(RequestList);
-export default RequestList;
+export default SortableCollection('requests', Request, RequestCreator, RequestListHeader, RequestComparer);

@@ -16,14 +16,19 @@ function ReservationList({ collection, parentItem }) {
         x => (<Reservation key={x.id} model={x} />)
     );
 
-    return (
-        <div className="inv-rsvp-list row">
-            <div className="col-md-12">
+    return [
+        <tr key='rsvp-list' className="inv-rsvp-list">
+            <td colSpan='42'>
                 {elements.length > 0 && <ul>{elements}</ul>}
+            </td>
+        </tr>,
+        <tr key='rsvp-creator'>
+            <td colSpan='42'>
                 <ReservationCreator parentItem={parentItem} />
-            </div>
-        </div>
-    );
+            </td>
+        </tr>
+    ];
+
 }
 
 function mapStateToProps(state, ownProps) {

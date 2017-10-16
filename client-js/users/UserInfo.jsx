@@ -20,16 +20,16 @@ export default function UserInfo({ model, canEdit, onEdit, onDelete }) {
     );
 
     return (
-        <div className="list-row row">
-            <div className="list-username col-md-5">
+        <tr className="list-row">
+            <td className="list-username">
                 {model.username}
                 <UpdateTime updated={model.updated} />
                 {canEdit && editingButtons}
-            </div>
-            <div className="col-md-4 list-realname">{model.realname}</div>
-            <div className="col-md-1 list-admin">{model.admin ? "Yes" : "No"}</div>
-            <div className="col-md-1 list-activity-creator">{model.activityCreator ? "Yes" : "No"}</div>
-            <div className="col-md-1 list-disabled">{model.disabled ? "Yes" : "No"}</div>
-        </div>
+            </td>
+            <td className="list-realname">{model.realname}</td>
+            <td className="list-admin">{model.admin ? "Yes" : "No"}</td>
+            <td className="list-activity-creator">{model.activityCreator ? "Yes" : "No"}</td>
+            <td className="list-disabled">{model.disabled ? "Yes" : "No"}</td>
+        </tr>
     );
 }

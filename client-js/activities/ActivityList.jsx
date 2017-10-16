@@ -1,46 +1,65 @@
 import React from 'react';
-import {connect} from 'react-redux';
-import api from '../common/api.js';
+
+import SortableCollection from '../common/SortableCollection.jsx';
+import ListHeaderColumn from '../common/ListHeaderColumn.jsx';
+
 import ActivityCreator from './ActivityCreator.jsx';
 import Activity from './Activity.jsx';
 
-function ActivityListHeader() {
+function ActivityListHeader({ setSortKey, sortState }) {
     return (
-        <div className="list-header row">
-            <strong className="col-md-5">Title</strong>
-            <strong className="col-md-2"># Users Checked In</strong>
-            <strong className="col-md-1">Hours</strong>
-            <strong className="col-md-2">Start Time</strong>
-            <strong className="col-md-2">End Time</strong>
-        </div>
+        <tr>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-5" sortKey="title">
+                Title
+            </ListHeaderColumn>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-2" sortKey='users_checked_in'>
+                # Users Checked In
+            </ListHeaderColumn>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-1" sortKey='maxHours'>
+                Hours
+            </ListHeaderColumn>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-2" sortKey='startTime'>
+                Start Time
+            </ListHeaderColumn>
+            <ListHeaderColumn setSortKey={setSortKey} sortState={sortState} className="col-md-2" sortKey='endTime'>
+                End Time
+            </ListHeaderColumn>
+        </tr>
     );
 }
 
-function mapStateToProps(state, ownProps) {
-    var collection = Array.from(state.activities.values());
-    return {
-        collection,
-        editable: state.current_user.activityCreator,
-    };
+function ActivityComparer(sortKey, a, b) {
+    if(sortKey === 'users_checked_in') {
+        var nA = null;
+        var nB = null;
+    } else {
+        var nA = a[sortKey];
+        var nB = b[sortKey];
+    }
+
+    switch(sortKey) {
+        case 'title':
+            nA = nA.toLowerCase();
+            nB = nB.toLowerCase();
+            break;
+        case 'users_checked_in':
+            nA = a.userHours.length;
+            nB = b.userHours.length;
+            break;
+        case 'maxHours':
+            nA = parseInt(a.maxHours, 10);
+            nB = parseInt(b.maxHours, 10);
+            break;
+        case 'startTime':
+        case 'endTime':
+            nA = (new Date(nA)).getTime();
+            nB = (new Date(nB)).getTime();
+            break;
+    }
+
+    if(nA < nB) return -1;
+    if(nA === nB) return 0;
+    return 1;
 }
 
-function mapDispatchToProps(dispatch, ownProps) {
-    return {};
-}
-
-function ActivityList({ collection, editable }) {
-    var elements = collection.map(
-        x => (<Activity key={x.id} model={x} />)
-    );
-
-    return (
-        <div className="container-fluid">
-            <ActivityListHeader />
-            {elements}
-            {editable && <ActivityCreator />}
-        </div>
-    );
-}
-
-ActivityList = connect(mapStateToProps, mapDispatchToProps)(ActivityList);
-export default ActivityList;
+export default SortableCollection('activities', Activity, ActivityCreator, ActivityListHeader, ActivityComparer);

@@ -29,11 +29,11 @@ class RequestCreator extends React.Component {
             return (<RequestEditor onSubmit={this.props.onCreate} onClose={this.closeForm} />);
         } else {
             return (
-                <div className="list-header row">
-                    <div className="col-md-12">
+                <tr>
+                    <td colSpan='42'>
                         <button className="btn btn-primary btn-default list-create-new-button" onClick={this.openForm}>Submit New Request</button>
-                    </div>
-                </div>
+                    </td>
+                </tr>
             );
         }
     }

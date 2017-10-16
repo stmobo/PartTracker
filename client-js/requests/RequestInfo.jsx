@@ -59,26 +59,26 @@ function RequestInfo({ model, itemModel, requesterModel, onDelete, onEdit }) {
     }
 
     return (
-        <div className="list-row row">
-            <div className="col-md-4">
+        <tr className="list-row">
+            <td>
                 <strong>{itemModel.name}</strong>
                 <UpdateTime updated={model.updated} />
                 <button onClick={handleDelete} className="btn btn-danger btn-xs list-button">Delete</button>
                 <button onClick={handleEdit} className="btn btn-default btn-xs list-button">Edit</button>
-            </div>
-            <div className="col-md-1">
+            </td>
+            <td>
                 {model.count}
-            </div>
-            <div className="col-md-1">
+            </td>
+            <td>
                 {friendlyStatus}
-            </div>
-            <div className="col-md-3">
+            </td>
+            <td>
                 {requesterModel.realname} ({requesterModel.username})
-            </div>
-            <div className="col-md-3">
+            </td>
+            <td>
                 {formattedETA}
-            </div>
-        </div>
+            </td>
+        </tr>
     );
 }
 

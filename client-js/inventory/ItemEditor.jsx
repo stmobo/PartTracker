@@ -83,25 +83,25 @@ export default class ItemEditor extends React.Component {
         }
 
         return (
-            <form className="list-row list-editor row" onSubmit={this.handleFormSubmit} onReset={this.handleFormCancel}>
-                <div className="col-md-6">
+            <tr className="list-editor" onClick={this.props.onClick}>
+                <td>
                     {(this.props.expanded === false) && <span className="glyphicon glyphicon-menu-down text-left"></span>}
                     {(this.props.expanded === true) && <span className="glyphicon glyphicon-menu-up text-left"></span>}
                     <input type="text" name="name" value={this.state.name} onChange={this.handleFormChange} />
-                    <button type="submit" className="btn btn-success btn-xs edit-form-btn">Save</button>
-                    <button type="reset" className="btn btn-danger btn-xs edit-form-btn">Reset</button>
+                    <button onClick={this.handleFormSubmit} className="btn btn-success btn-xs edit-form-btn">Save</button>
+                    <button onClick={this.handleFormReset} className="btn btn-danger btn-xs edit-form-btn">Reset</button>
                     <button onClick={this.handleFormCancel} className="btn btn-danger btn-xs edit-form-btn">Cancel</button>
-                </div>
-                <div className="col-md-2">{status}</div>
-                <div className={"col-md-1 "+tr_ctxt_class}>
+                </td>
+                <td>{status}</td>
+                <td className={tr_ctxt_class}>
                     <input type="number" name="available" value={this.state.available} min="0" onChange={this.handleFormChange} />
-                </div>
-                <div className="col-md-1">{this.state.requested}</div>
-                <div className="col-md-1">{this.state.reserved}</div>
-                <div className="col-md-1">
+                </td>
+                <td>{this.state.requested}</td>
+                <td>{this.state.reserved}</td>
+                <td>
                     <input type="number" name="count" value={this.state.count} min={this.state.reserved} onChange={this.handleFormChange} />
-                </div>
-            </form>
+                </td>
+            </tr>
         );
     }
 }

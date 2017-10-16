@@ -112,27 +112,27 @@ export default class UserEditor extends React.Component {
         }
 
         return (
-            <form className="list-row list-editor row" onSubmit={this.handleFormSubmit} onReset={this.handleFormReset}>
-                <div className="col-md-5">
+            <tr className="list-row list-editor">
+                <td>
                     <input type="text" name="username" placeholder="Username" value={this.state.username} onChange={this.handleFormChange} />
                     {newPWForm}
-                    <button type="submit" className="btn btn-success btn-xs edit-form-btn">Save</button>
-                    <button type="reset" className="btn btn-danger btn-xs edit-form-btn">Reset</button>
+                    <button onClick={this.handleFormSubmit} className="btn btn-success btn-xs edit-form-btn">Save</button>
+                    <button onClick={this.handleFormReset} className="btn btn-danger btn-xs edit-form-btn">Reset</button>
                     <button onClick={this.handleFormCancel} className="btn btn-danger btn-xs edit-form-btn">Cancel</button>
-                </div>
-                <div className="col-md-4">
+                </td>
+                <td>
                     <input type="text" name="realname" placeholder="Real Name" value={this.state.realname} onChange={this.handleFormChange} />
-                </div>
-                <div className="col-md-1">
+                </td>
+                <td>
                     <input type="checkbox" name="admin" checked={this.state.admin} onChange={this.handleFormChange} />
-                </div>
-                <div className="col-md-1">
+                </td>
+                <td>
                     <input type="checkbox" name="activityCreator" checked={this.state.activityCreator} onChange={this.handleFormChange} />
-                </div>
-                <div className="col-md-1">
+                </td>
+                <td>
                     <input type="checkbox" name="disabled" checked={this.state.disabled} onChange={this.handleFormChange} />
-                </div>
-            </form>
+                </td>
+            </tr>
         );
     }
 }

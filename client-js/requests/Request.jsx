@@ -32,10 +32,16 @@ class Request extends React.Component {
 
     render() {
         if(this.state.editing) {
-            return (<RequestEditor model={this.props.model} onSubmit={this.props.onUpdate} onClose={this.stopEditing} />);
+            var renderer = (<RequestEditor model={this.props.model} onSubmit={this.props.onUpdate} onClose={this.stopEditing} />);
         } else {
-            return (<RequestInfo model={this.props.model} onEdit={this.startEditing} />);
+            var renderer = (<RequestInfo model={this.props.model} onEdit={this.startEditing} />);
         }
+
+        return (
+            <tbody>
+                {renderer}
+            </tbody>
+        )
     }
 }
 

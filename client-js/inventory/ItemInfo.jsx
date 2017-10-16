@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 import {UpdateTime} from '../common.jsx';
 
 /* Renders one item statically. */
-export default function ItemInfo({ itemModel, expanded, onEdit, onDelete }) {
+export default function ItemInfo({ itemModel, expanded, onEdit, onDelete, onClick }) {
     var tr_ctxt_class = "col-md-1 ";
     var status = "";
 
@@ -19,8 +19,8 @@ export default function ItemInfo({ itemModel, expanded, onEdit, onDelete }) {
     var handleDelete = (ev) => { ev.preventDefault(); ev.stopPropagation(); onDelete(); }
 
     return (
-        <div className="list-row row">
-            <div className="inv-item-name col-md-6">
+        <tr className="list-row" onClick={onClick}>
+            <td>
                 {(expanded === false) && <span className="glyphicon glyphicon-menu-down text-left"></span>}
                 {(expanded === true) && <span className="glyphicon glyphicon-menu-up text-left"></span>}
 
@@ -28,12 +28,12 @@ export default function ItemInfo({ itemModel, expanded, onEdit, onDelete }) {
                 <UpdateTime updated={itemModel.updated} />
                 <span onClick={handleEdit} className="glyphicon glyphicon-pencil offset-button"></span>
                 <span onClick={handleDelete} className="glyphicon glyphicon-remove offset-button"></span>
-            </div>
-            <div className="col-md-2">{status}</div>
-            <div className={tr_ctxt_class}>{itemModel.available}</div>
-            <div className="col-md-1">{itemModel.requested}</div>
-            <div className="col-md-1">{itemModel.reserved}</div>
-            <div className="col-md-1">{itemModel.count}</div>
-        </div>
+            </td>
+            <td>{status}</td>
+            <td className={tr_ctxt_class}>{itemModel.available}</td>
+            <td>{itemModel.requested}</td>
+            <td>{itemModel.reserved}</td>
+            <td>{itemModel.count}</td>
+        </tr>
     );
 }
