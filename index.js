@@ -66,7 +66,7 @@ app.get(['/', '/inventory', '/requests', '/activities', '/users'], (req, res, ne
     else { next(); }
 });
 
-app.get(['/', '/inventory', '/requests', '/activities', '/users', '/login'], (req, res) => {
+app.get(['/', '/inventory', '/requests', '/activities', '/users', '/login', '/single.html'], (req, res) => {
     res.status(200).sendFile(__dirname+'/static/single.html');
 });
 
@@ -87,7 +87,14 @@ app.get('/css/single.css', (req, res) => {
     multistream(cssStreams).pipe(res);
 });
 
-app.use('/js', express.static('/static/js'));
+app.get('/js/single.js', (req, res) => {
+    res.status(200).sendFile(__dirname+'/static/js/single.js');
+});
+
+
+app.get('/service-worker.js', (req, res) => {
+    res.status(200).sendFile(__dirname+'/static/js/service-worker.js');
+});
 
 /* API requests below this need to be authenticated */
 app.use(ensureAuthenticated);

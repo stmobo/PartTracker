@@ -24,7 +24,8 @@ const initialState = {
         disabled: false,
         ETag: '',
     },
-    notification: {}
+    notification: {},
+    online: true,
 }
 
 /* Main state shape:
@@ -134,6 +135,10 @@ function notificationReducer(state, action) {
     return stateClone;
 }
 
+function onlineStatusReducer(state, action) {
+    return Object.assign({}, state, { online: action.status });
+}
+
 function mainReducer(state, action) {
     if(typeof state === 'undefined') {
         return initialState;
@@ -154,6 +159,8 @@ function mainReducer(state, action) {
             return notificationReducer(state, action);
         case REHYDRATE:
             return rehydrateReducer(state, action);
+        case 'set-online-status':
+            return onlineStatusReducer(state, action);
         default:
             return state;
     }

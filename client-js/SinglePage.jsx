@@ -26,7 +26,7 @@ import actions from './common/actions.js';
 
 function mapStateToProps(state, ownProps) {
     return {
-        logged_in: state.current_user.id !== undefined
+        logged_in: typeof state.current_user.id !== 'undefined'
     };
 }
 
@@ -70,11 +70,6 @@ function App({ store }) {
 
 persist.then(
     (store) => {
-        ReactDOM.render(
-            <App store={store} />,
-            document.getElementById('root')
-        );
-
         if(store.getState().current_user.id !== undefined) {
             store.dispatch(api.getCurrentUser());
 
@@ -86,15 +81,19 @@ persist.then(
     }
 );
 
-/* register service worker */
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
-      // Registration was successful
-      console.log('ServiceWorker registration successful with scope: ', registration.scope);
-    }, function(err) {
-      // registration failed :(
-      console.log('ServiceWorker registration failed: ', err);
-    });
-  });
+function updateOnlineStatus() {
+    store.dispatch(actions.setOnlineStatus(navigator.onLine));
 }
+
+/* listen for on/off-line events */
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+window.addEventListener('load', function() {
+    updateOnlineStatus();
+
+    ReactDOM.render(
+        <App store={store} />,
+        document.getElementById('root')
+    );
+})

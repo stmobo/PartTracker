@@ -10,7 +10,7 @@ function mapStateToProps(state, ownProps) {
     var canEdit = false;
 
     if(typeof state.current_user !== 'undefined') {
-        canEdit = state.current_user.admin
+        canEdit = state.current_user.admin && state.online
     }
 
     return {

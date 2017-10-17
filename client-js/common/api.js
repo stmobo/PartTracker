@@ -208,6 +208,19 @@ function login(history, username, password) {
 
         var data = await res.json();
         if(res.ok) {
+            /* register service worker now that we're authenticated */
+            if ('serviceWorker' in navigator) {
+                try {
+                    var registration = await navigator.serviceWorker.register('/service-worker.js');
+
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    dispatch(actions.setNotification('success', "Caching complete. You should be able to access this page while offline now."));
+                } catch (err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                    dispatch(actions.setNotification('error', "Service worker installation failed; check console for details."));
+                }
+            }
+
             dispatch(actions.setCurrentUser(data));
             dispatch(fetchAllCollections()).then(
                 () => { history.push('/'); }
