@@ -46,9 +46,9 @@ class ActivityInfo extends React.Component {
                 <td colSpan='42'>
                     <div>{this.props.model.description}</div>
                     <div>
-                        {this.props.editable && <button onClick={this.handleDelete} className="btn btn-danger btn-xs list-button">Delete</button>}
-                        {this.props.editable && <button onClick={this.handleEdit} className="btn btn-default btn-xs list-button">Edit</button>}
-                        {this.props.canCheckIn && <button onClick={this.handleCheckin} className="btn btn-default btn-xs list-button">Check In</button>}
+                        {this.props.editable && navigator.onLine && <button onClick={this.handleDelete} className="btn btn-danger btn-xs list-button">Delete</button>}
+                        {this.props.editable && navigator.onLine &&  <button onClick={this.handleEdit} className="btn btn-default btn-xs list-button">Edit</button>}
+                        {this.props.canCheckIn && navigator.onLine && <button onClick={this.handleCheckin} className="btn btn-default btn-xs list-button">Check In</button>}
                     </div>
                     <CheckInList activity={this.props.model} />
                     <div><small>Created: {created.toLocaleString()}</small></div>

@@ -79,10 +79,12 @@ export default function SortableCollection(collectionName, ElementComponent, Cre
                         <HeaderComponent setSortKey={this.setSortKey} sortState={this.state} />
                     </thead>
                     {elements}
-                    <tfoot>
-                        <CreatorComponent />
-                        {importExport}
-                    </tfoot>
+                    {navigator.onLine &&
+                        <tfoot>
+                            <CreatorComponent />
+                            {importExport}
+                        </tfoot>
+                    }
                 </table>
             );
         }

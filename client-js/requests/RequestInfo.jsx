@@ -63,8 +63,8 @@ function RequestInfo({ model, itemModel, requesterModel, onDelete, onEdit }) {
             <td>
                 <strong>{itemModel.name}</strong>
                 <UpdateTime updated={model.updated} />
-                <button onClick={handleDelete} className="btn btn-danger btn-xs list-button">Delete</button>
-                <button onClick={handleEdit} className="btn btn-default btn-xs list-button">Edit</button>
+                {navigator.onLine && <button onClick={handleDelete} className="btn btn-danger btn-xs list-button">Delete</button>}
+                {navigator.onLine && <button onClick={handleEdit} className="btn btn-default btn-xs list-button">Edit</button>}
             </td>
             <td>
                 {model.count}

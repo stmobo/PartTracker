@@ -37,4 +37,25 @@ function react_browserify(infile, outfile, outdir, debug) {
   return bundlefn;
 }
 
-gulp.task('build', react_browserify('SinglePage', 'single'));
+gulp.task('build-spa', react_browserify('SinglePage', 'single'));
+gulp.task('build-sw', function(cb) {
+    var debug = !gutil.env.production;
+
+    var b = browserify('client-js/service-worker.js', {debug: debug});
+
+    if(!debug) {
+        b.transform(envify({ NODE_ENV: 'production' }), { global: true });
+        b.transform('uglifyify', { global: true });
+    }
+
+    b.on('log', gutil.log);
+
+    pump([
+        b.bundle(),
+        source('service-worker.js'),
+        debug ? gutil.noop() : streamify(uglify()),
+        gulp.dest('static/js')
+    ], cb);
+});
+
+gulp.task('build', ['build-spa', 'build-sw']);

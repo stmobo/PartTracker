@@ -24,7 +24,7 @@ export default function UserInfo({ model, canEdit, onEdit, onDelete }) {
             <td className="list-username">
                 {model.username}
                 <UpdateTime updated={model.updated} />
-                {canEdit && editingButtons}
+                {canEdit && navigator.onLine && editingButtons}
             </td>
             <td className="list-realname">{model.realname}</td>
             <td className="list-admin">{model.admin ? "Yes" : "No"}</td>

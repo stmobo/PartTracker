@@ -9,8 +9,8 @@ export default function ReservationInfo({ model, requesterModel, onEdit, onDelet
         <li className="inv-rsvp-item list-row">
             {model.count} reserved by <strong>{requesterModel.realname}</strong> (<strong>{requesterModel.username}</strong>)
             <UpdateTime updated={model.updated} />
-            <span onClick={handleEdit} className="glyphicon glyphicon-pencil offset-button"></span>
-            <span onClick={handleDelete} className="glyphicon glyphicon-remove offset-button"></span>
+            {navigator.onLine && <span onClick={handleEdit} className="glyphicon glyphicon-pencil offset-button"></span>}
+            {navigator.onLine && <span onClick={handleDelete} className="glyphicon glyphicon-remove offset-button"></span>}
         </li>
     );
 }

@@ -26,8 +26,8 @@ export default function ItemInfo({ itemModel, expanded, onEdit, onDelete, onClic
 
                 {itemModel.name}
                 <UpdateTime updated={itemModel.updated} />
-                <span onClick={handleEdit} className="glyphicon glyphicon-pencil offset-button"></span>
-                <span onClick={handleDelete} className="glyphicon glyphicon-remove offset-button"></span>
+                {navigator.onLine && <span onClick={handleEdit} className="glyphicon glyphicon-pencil offset-button"></span>}
+                {navigator.onLine && <span onClick={handleDelete} className="glyphicon glyphicon-remove offset-button"></span>}
             </td>
             <td>{status}</td>
             <td className={tr_ctxt_class}>{itemModel.available}</td>
