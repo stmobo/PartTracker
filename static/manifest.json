@@ -1,0 +1,35 @@
+{
+    "short_name": "PartTracker",
+    "name": "Dragon Robotics Inventory Tracker",
+    "start_url": "/inventory",
+    "icons": [
+        {
+            "src": "img/favicon-512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        },
+        {
+            "src": "img/favicon-192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "img/favicon-96.png",
+            "type": "image/png",
+            "sizes": "96x96"
+        },
+        {
+            "src": "img/favicon-64.png",
+            "type": "image/png",
+            "sizes": "64x64"
+        },
+        {
+            "src": "img/favicon-32.png",
+            "type": "image/png",
+            "sizes": "32x32"
+        }
+    ],
+    "background_color": "#e7e7e7",
+    "theme_color": "#e7e7e7",
+    "display": "standalone"
+}
