@@ -1,4 +1,4 @@
-const version = "v1.0.0-rc2-1";
+const version = "v1.0.0-rc2-2";
 const CACHE_NAME = 'parttracker-cache';
 const DYNCACHE_NAME = 'parttracker-dynamic-cache';
 const urls_to_cache = [

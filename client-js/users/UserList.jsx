@@ -41,8 +41,8 @@ function UserComparer(sortKey, a, b) {
         case 'admin':
         case 'activityCreator':
         case 'disabled':
-            nA = nA.toString();
-            nB = nB.toString();
+            nA = nA ? 'Yes' : 'No';
+            nB = nB ? 'Yes' : 'No';
             break;
     }
 
