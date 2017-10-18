@@ -85,13 +85,15 @@ export default function SortableCollection(collectionName, ElementComponent, Cre
             }
 
             return (
-                <table className={"table table-hover "+collectionName+'-list'}>
-                    <thead>
-                        <HeaderComponent setSortKey={this.setSortKey} sortState={this.state} />
-                    </thead>
-                    {elements}
-                    {table_footer}
-                </table>
+                <div className="table-responsive sortable-collection">
+                    <table className={"table table-hover "+collectionName+'-list'}>
+                        <thead>
+                            <HeaderComponent setSortKey={this.setSortKey} sortState={this.state} />
+                        </thead>
+                        {elements}
+                        {table_footer}
+                    </table>
+                </div>
             );
         }
     }
