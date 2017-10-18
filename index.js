@@ -87,11 +87,8 @@ app.get('/css/single.css', (req, res) => {
     multistream(cssStreams).pipe(res);
 });
 
-app.get('/js/single.js', (req, res) => {
-    res.status(200).sendFile(__dirname+'/static/js/single.js');
-});
 
-
+app.use('/', express.static('static/'));
 app.get('/service-worker.js', (req, res) => {
     res.status(200).sendFile(__dirname+'/static/js/service-worker.js');
 });

@@ -96,4 +96,21 @@ window.addEventListener('load', function() {
         <App store={store} />,
         document.getElementById('root')
     );
-})
+});
+
+/* Install service worker */
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js').then(
+        (registration) => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            registration.onupdatefound = () => {
+                store.dispatch(actions.setNotification('success', "Caching complete. You should be able to access this page while offline now."));
+            }
+        }
+    ).catch(
+        (err) => {
+            console.log('ServiceWorker registration failed: ', err);
+            store.dispatch(actions.setNotification('error', "Service worker registration failed; check console for details."));
+        }
+    )
+}
