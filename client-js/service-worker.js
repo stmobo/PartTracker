@@ -1,12 +1,16 @@
+const version = "v1.0.0-rc2-1";
 const CACHE_NAME = 'parttracker-cache';
 const DYNCACHE_NAME = 'parttracker-dynamic-cache';
 const urls_to_cache = [
+    '/manifest.json',
     '/css/single.css',
     '/dist/css/bootstrap.min.css',
     '/js/single.js',
     '/dist/js/jquery.min.js',
     '/dist/js/bootstrap.min.js',
-    '/dist/fonts/glyphicons-halflings-regular.woff2'
+    '/dist/fonts/glyphicons-halflings-regular.woff2',
+    '/img/favicon-192.png',
+    '/img/favicon-64.png',
 ];
 
 const api_urls_to_cache = [
@@ -18,25 +22,9 @@ const api_urls_to_cache = [
 ]
 
 async function handleInstall(event) {
-    var [static_cache, dynamic_cache] = await Promise.all([
-        caches.open(CACHE_NAME),
-        caches.open(DYNCACHE_NAME)
-    ]);
+    var static_cache = await caches.open(CACHE_NAME);
 
-    console.log(`Opened caches ${CACHE_NAME} and ${DYNCACHE_NAME}`);
-
-    // API requests need auth
-    var api_fetches = api_urls_to_cache.map(
-        async (url) => {
-            var res = await fetch(url, {
-                credentials: 'include',
-                headers: {"Accept": "application/json"},
-            });
-
-            if(!res.ok) throw res;
-            return dynamic_cache.put(url, res);
-        }
-    );
+    console.log(`Opened cache ${CACHE_NAME}`);
 
     // '/' will redirect to '/login' when doing a default fetch
     var root_pg = await fetch('/single.html');
@@ -50,7 +38,6 @@ async function handleInstall(event) {
         static_cache.put('/login', root_pg.clone()),
         static_cache.put('/', root_pg),
         static_cache.addAll(urls_to_cache),
-        api_fetches
     ]);
 }
 
@@ -90,4 +77,26 @@ async function getFetchResponse(event) {
 
 self.addEventListener('fetch', function(event) {
     event.respondWith(getFetchResponse(event));
+});
+
+self.addEventListener('message', async function(event) {
+    var msg = event.data;
+
+    if(msg.type === 'logged-in') {
+        // API requests need auth
+        var dynamic_cache = await caches.open(DYNCACHE_NAME);
+        var api_fetches = api_urls_to_cache.map(
+            async (url) => {
+                var res = await fetch(url, {
+                    credentials: 'include',
+                    headers: {"Accept": "application/json"},
+                });
+
+                if(!res.ok) throw res;
+                return dynamic_cache.put(url, res);
+            }
+        );
+
+        await Promise.all(api_fetches);
+    }
 });

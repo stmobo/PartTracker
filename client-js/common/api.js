@@ -34,30 +34,34 @@ function apiReadElement(collection, objectOrID) {
             reqHeaders["If-None-Match"] = storedElement.ETag;
         }
 
-        var network_res = fetch(url, {
-            method: 'GET',
-            credentials: 'include',
-            headers: reqHeaders,
-        }).then(
-            async (res) => {
-                if(res.status >= 400 && res.status <= 599) throw res;
+        if(navigator.onLine) {
+            var network_res = fetch(url, {
+                method: 'GET',
+                credentials: 'include',
+                headers: reqHeaders,
+            }).then(
+                async (res) => {
+                    if(res.status >= 400 && res.status <= 599) throw res;
 
-                networkDataReceived = true;
-                if(res.status !== 304) {
-                    var fetchedObject = await res.json();
-                    if(res.headers.has('ETag')) {
-                        fetchedObject.ETag = res.headers.get('ETag');
+                    networkDataReceived = true;
+                    if(res.status !== 304) {
+                        var fetchedObject = await res.json();
+                        if(res.headers.has('ETag')) {
+                            fetchedObject.ETag = res.headers.get('ETag');
+                        }
+                        dispatch(actions.update(collection, fetchedObject));
                     }
-                    dispatch(actions.update(collection, fetchedObject));
                 }
-            }
-        ).catch(common.errorHandler);
+            ).catch(common.errorHandler);
+        } else {
+            var network_res = Promise.reject(new Error("Cannot access network."));
+        }
 
         // simultaneously load from cache
         var cache_res = caches.match(url).then(
             async (res) => {
                 if(!res) {
-                    return network_res;
+                    throw new Error("Resource not in cache.");
                 }
 
                 var fetchedObject = await res.json();
@@ -80,30 +84,34 @@ function apiReadCollection(collection) {
         }
 
         // network response
-        var network_res = await fetch(url, {
-            method: 'GET',
-            credentials: 'include',
-            headers: reqHeaders,
-        }).then(
-            async (res) => {
-                if(res.status >= 400 && res.status <= 599) throw res;
+        if(navigator.onLine) {
+            var network_res = await fetch(url, {
+                method: 'GET',
+                credentials: 'include',
+                headers: reqHeaders,
+            }).then(
+                async (res) => {
+                    if(res.status >= 400 && res.status <= 599) throw res;
 
-                networkDataReceived = true;
-                if(res.status !== 304) {
-                    var fetchedCollection = await res.json();
-                    if(res.headers.has('ETag')) {
-                        dispatch(actions.setCollectionETag(collection, res.headers.get('ETag')));
+                    networkDataReceived = true;
+                    if(res.status !== 304) {
+                        var fetchedCollection = await res.json();
+                        if(res.headers.has('ETag')) {
+                            dispatch(actions.setCollectionETag(collection, res.headers.get('ETag')));
+                        }
+                        dispatch(actions.update_collection(collection, fetchedCollection));
                     }
-                    dispatch(actions.update_collection(collection, fetchedCollection));
                 }
-            }
-        ).catch(common.errorHandler);
+            ).catch(common.errorHandler);
+        } else {
+            var network_res = Promise.reject(new Error("Cannot access network."));
+        }
 
         // cache response
         var cache_res = caches.match(url).then(
             async (res) => {
                 if(!res) {
-                    return network_res;
+                    throw new Error("Collection not in cache.");
                 }
 
                 var fetchedCollection = await res.json();
@@ -125,35 +133,40 @@ function getCurrentUser() {
             reqHeaders['If-None-Match'] = existingUserInfo.ETag;
         }
 
-        var network_res = await fetch('/api/user', {
-            method: 'GET',
-            credentials: 'include',
-            headers: reqHeaders,
-        }).then(
-            async (res) => {
-                if(res.status === 401) {
-                    // Unauthorized -- we're not really logged in
-                    dispatch(actions.logout());
-                    return;
-                }
-
-                if(res.status >= 400 && res.status <= 599) throw res;
-
-                networkDataReceived = true;
-                if(res.status !== 304) {
-                    var fetchedUser = await res.json();
-                    if(res.headers.has('ETag')) {
-                        fetchedUser.ETag = res.headers.get('ETag');
+        if(navigator.onLine) {
+            var network_res = await fetch('/api/user', {
+                method: 'GET',
+                credentials: 'include',
+                headers: reqHeaders,
+            }).then(
+                async (res) => {
+                    if(res.status === 401) {
+                        // Unauthorized -- we're not really logged in
+                        dispatch(actions.logout());
+                        return;
                     }
-                    dispatch(actions.setCurrentUser(fetchedUser));
+
+                    if(res.status >= 400 && res.status <= 599) throw res;
+
+                    networkDataReceived = true;
+                    if(res.status !== 304) {
+                        var fetchedUser = await res.json();
+                        if(res.headers.has('ETag')) {
+                            fetchedUser.ETag = res.headers.get('ETag');
+                        }
+                        dispatch(actions.setCurrentUser(fetchedUser));
+                    }
                 }
-            }
-        ).catch(common.errorHandler);
+            ).catch(common.errorHandler);
+        } else {
+            var network_res = Promise.reject(new Error("Cannot access network."));
+        }
+
 
         var cache_res = caches.match('/api/user').then(
             async (res) => {
                 if(!res) {
-                    return network_res;
+                    throw new Error("Resource not in cache.");
                 }
 
                 var fetchedUser = await res.json();
@@ -208,17 +221,13 @@ function login(history, username, password) {
 
         var data = await res.json();
         if(res.ok) {
-            /* register service worker now that we're authenticated */
-            if ('serviceWorker' in navigator) {
-                try {
-                    var registration = await navigator.serviceWorker.register('/service-worker.js');
-
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    dispatch(actions.setNotification('success', "Caching complete. You should be able to access this page while offline now."));
-                } catch (err) {
-                    console.log('ServiceWorker registration failed: ', err);
-                    dispatch(actions.setNotification('error', "Service worker installation failed; check console for details."));
-                }
+            if(navigator.serviceWorker.controller !== null) {
+                console.log('Found service worker; sending login notification.');
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'logged-in'
+                });
+            } else {
+                console.log('Could not find controlling service worker?');
             }
 
             dispatch(actions.setCurrentUser(data));
