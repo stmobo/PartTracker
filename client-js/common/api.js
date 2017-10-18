@@ -24,82 +24,157 @@ function apiReadElement(collection, objectOrID) {
     }
 
     return async function(dispatch, getState) {
+        var networkDataReceived = false;
+        var url = `/api/${collection}/${id}`;
+
+        // kick off the network request
         var storedElement = getState()[collection].get(id);
         var reqHeaders = {"Accept": "application/json"}
         if(storedElement !== undefined && storedElement.ETag !== undefined) {
             reqHeaders["If-None-Match"] = storedElement.ETag;
         }
 
-        var res = await fetch(`/api/${collection}/${id}`, {
-            method: 'GET',
-            credentials: 'include',
-            headers: reqHeaders,
-        });
+        if(navigator.onLine) {
+            var network_res = fetch(url, {
+                method: 'GET',
+                credentials: 'include',
+                headers: reqHeaders,
+            }).then(
+                async (res) => {
+                    if(res.status >= 400 && res.status <= 599) throw res;
 
-        if(res.status >= 400 && res.status <= 599) return common.errorHandler(res);
-
-        if(res.status !== 304) {
-            var fetchedObject = await res.json();
-            if(res.headers.has('ETag')) {
-                fetchedObject.ETag = res.headers.get('ETag');
-            }
-            dispatch(actions.update(collection, fetchedObject));
+                    networkDataReceived = true;
+                    if(res.status !== 304) {
+                        var fetchedObject = await res.json();
+                        if(res.headers.has('ETag')) {
+                            fetchedObject.ETag = res.headers.get('ETag');
+                        }
+                        dispatch(actions.update(collection, fetchedObject));
+                    }
+                }
+            ).catch(common.errorHandler);
+        } else {
+            var network_res = Promise.reject(new Error("Cannot access network."));
         }
+
+        // simultaneously load from cache
+        var cache_res = caches.match(url).then(
+            async (res) => {
+                if(!res) {
+                    throw new Error("Resource not in cache.");
+                }
+
+                var fetchedObject = await res.json();
+                if(!networkDataReceived) {
+                    dispatch(actions.update(collection, fetchedObject));
+                }
+            }
+        ).catch(e => network_res).catch(common.errorHandler);
     }
 }
 
 function apiReadCollection(collection) {
     return async function(dispatch, getState) {
+        var networkDataReceived = false;
+        var url = `/api/${collection}`;
+
         var reqHeaders = {"Accept": "application/json"}
         if(getState().collection_etags[collection] !== undefined) {
             reqHeaders["If-None-Match"] = getState().collection_etags[collection];
         }
 
-        var res = await fetch(`/api/${collection}`, {
-            method: 'GET',
-            credentials: 'include',
-            headers: reqHeaders,
-        });
+        // network response
+        if(navigator.onLine) {
+            var network_res = await fetch(url, {
+                method: 'GET',
+                credentials: 'include',
+                headers: reqHeaders,
+            }).then(
+                async (res) => {
+                    if(res.status >= 400 && res.status <= 599) throw res;
 
-        if(res.status >= 400 && res.status <= 599) return common.errorHandler(res);
-        if(res.status !== 304) {
-            var fetchedCollection = await res.json();
-            if(res.headers.has('ETag')) {
-                dispatch(actions.setCollectionETag(collection, res.headers.get('ETag')));
-            }
-            dispatch(actions.update_collection(collection, fetchedCollection));
+                    networkDataReceived = true;
+                    if(res.status !== 304) {
+                        var fetchedCollection = await res.json();
+                        if(res.headers.has('ETag')) {
+                            dispatch(actions.setCollectionETag(collection, res.headers.get('ETag')));
+                        }
+                        dispatch(actions.update_collection(collection, fetchedCollection));
+                    }
+                }
+            ).catch(common.errorHandler);
+        } else {
+            var network_res = Promise.reject(new Error("Cannot access network."));
         }
+
+        // cache response
+        var cache_res = caches.match(url).then(
+            async (res) => {
+                if(!res) {
+                    throw new Error("Collection not in cache.");
+                }
+
+                var fetchedCollection = await res.json();
+                if(!networkDataReceived) {
+                    dispatch(actions.update_collection(collection, fetchedCollection));
+                }
+            }
+        ).catch(e => network_res).catch(common.errorHandler);
     }
 }
 
 function getCurrentUser() {
     return async function(dispatch, getState) {
+        var networkDataReceived = false;
+
         var existingUserInfo = getState().current_user;
         var reqHeaders = {"Accept": "application/json"};
         if(existingUserInfo.ETag !== undefined && existingUserInfo.ETag !== '') {
             reqHeaders['If-None-Match'] = existingUserInfo.ETag;
         }
 
-        var res = await fetch('/api/user', {
-            method: 'GET',
-            credentials: 'include',
-            headers: reqHeaders,
-        });
+        if(navigator.onLine) {
+            var network_res = await fetch('/api/user', {
+                method: 'GET',
+                credentials: 'include',
+                headers: reqHeaders,
+            }).then(
+                async (res) => {
+                    if(res.status === 401) {
+                        // Unauthorized -- we're not really logged in
+                        dispatch(actions.logout());
+                        return;
+                    }
 
-        if(res.status === 401) {
-            // Unauthorized -- we're not really logged in
-            dispatch(actions.logout());
-            return;
+                    if(res.status >= 400 && res.status <= 599) throw res;
+
+                    networkDataReceived = true;
+                    if(res.status !== 304) {
+                        var fetchedUser = await res.json();
+                        if(res.headers.has('ETag')) {
+                            fetchedUser.ETag = res.headers.get('ETag');
+                        }
+                        dispatch(actions.setCurrentUser(fetchedUser));
+                    }
+                }
+            ).catch(common.errorHandler);
+        } else {
+            var network_res = Promise.reject(new Error("Cannot access network."));
         }
 
-        if(res.status >= 400 && res.status <= 599) return common.errorHandler(res);
-        if(res.status !== 304) {
-            var fetchedUser = await res.json();
-            if(res.headers.has('ETag')) {
-                fetchedUser.ETag = res.headers.get('ETag');
+
+        var cache_res = caches.match('/api/user').then(
+            async (res) => {
+                if(!res) {
+                    throw new Error("Resource not in cache.");
+                }
+
+                var fetchedUser = await res.json();
+                if(!networkDataReceived) {
+                    dispatch(actions.setCurrentUser(fetchedUser));
+                }
             }
-            dispatch(actions.setCurrentUser(fetchedUser));
-        }
+        ).catch(e => network_res).catch(common.errorHandler);
     }
 }
 
@@ -146,6 +221,15 @@ function login(history, username, password) {
 
         var data = await res.json();
         if(res.ok) {
+            if(navigator.serviceWorker.controller !== null) {
+                console.log('Found service worker; sending login notification.');
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'logged-in'
+                });
+            } else {
+                console.log('Could not find controlling service worker?');
+            }
+
             dispatch(actions.setCurrentUser(data));
             dispatch(fetchAllCollections()).then(
                 () => { history.push('/'); }

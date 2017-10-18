@@ -15,6 +15,7 @@ export default function SortableCollection(collectionName, ElementComponent, Cre
         return {
             collection,
             isAdmin,
+            canEdit: state.online,
         };
     }
 
@@ -26,7 +27,7 @@ export default function SortableCollection(collectionName, ElementComponent, Cre
         };
     }
 
-    class WrapperComponent extends React.Component {
+    class CollectionComponent extends React.Component {
         constructor(props) {
             super(props);
 
@@ -44,7 +45,7 @@ export default function SortableCollection(collectionName, ElementComponent, Cre
         }
 
         render() {
-            var { collection, isAdmin } = this.props;
+            var { collection, isAdmin, canEdit } = this.props;
 
             var renderCol = collection;
             if(this.state.sortKey !== '') {
@@ -73,20 +74,29 @@ export default function SortableCollection(collectionName, ElementComponent, Cre
                 var importExport = null;
             }
 
-            return (
-                <table className={"table table-hover "+collectionName+'-list'}>
-                    <thead>
-                        <HeaderComponent setSortKey={this.setSortKey} sortState={this.state} />
-                    </thead>
-                    {elements}
+            var table_footer = null;
+            if(canEdit) {
+                table_footer = (
                     <tfoot>
                         <CreatorComponent />
                         {importExport}
                     </tfoot>
-                </table>
+                );
+            }
+
+            return (
+                <div className="table-responsive sortable-collection">
+                    <table className={"table table-hover "+collectionName+'-list'}>
+                        <thead>
+                            <HeaderComponent setSortKey={this.setSortKey} sortState={this.state} />
+                        </thead>
+                        {elements}
+                        {table_footer}
+                    </table>
+                </div>
             );
         }
     }
 
-    return connect(mapStateToProps, mapDispatchToProps)(WrapperComponent);
+    return connect(mapStateToProps, mapDispatchToProps)(CollectionComponent);
 }

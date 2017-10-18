@@ -2,8 +2,14 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {UpdateTime} from '../common.jsx';
 
+function mapStateToProps(state, ownProps) {
+    return {
+        canEdit: state.online
+    }
+}
+
 /* Renders one item statically. */
-export default function ItemInfo({ itemModel, expanded, onEdit, onDelete, onClick }) {
+function ItemInfo({ itemModel, expanded, canEdit, onEdit, onDelete, onClick }) {
     var tr_ctxt_class = "col-md-1 ";
     var status = "";
 
@@ -26,8 +32,8 @@ export default function ItemInfo({ itemModel, expanded, onEdit, onDelete, onClic
 
                 {itemModel.name}
                 <UpdateTime updated={itemModel.updated} />
-                <span onClick={handleEdit} className="glyphicon glyphicon-pencil offset-button"></span>
-                <span onClick={handleDelete} className="glyphicon glyphicon-remove offset-button"></span>
+                {canEdit && <span onClick={handleEdit} className="glyphicon glyphicon-pencil offset-button"></span>}
+                {canEdit && <span onClick={handleDelete} className="glyphicon glyphicon-remove offset-button"></span>}
             </td>
             <td>{status}</td>
             <td className={tr_ctxt_class}>{itemModel.available}</td>
@@ -37,3 +43,5 @@ export default function ItemInfo({ itemModel, expanded, onEdit, onDelete, onClic
         </tr>
     );
 }
+
+export default connect(mapStateToProps)(ItemInfo);

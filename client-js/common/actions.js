@@ -10,6 +10,7 @@ module.exports = {
     setCollectionETag,
     setNotification,
     logout,
+    setOnlineStatus,
 };
 
 function updateOperation(collection, object) {
@@ -99,5 +100,24 @@ function setNotification(priority, message, autoTimeout) {
                 }, autoTimeout);
             }
         }
+    }
+}
+
+function setOnlineStatus(status) {
+    return function(dispatch, getState) {
+        if(status) {
+            // now online
+            if(getState().online !== undefined && !getState().online) {
+                dispatch(setNotification('success', 'You are now online again.'));
+            }
+        } else {
+            // now offline
+            dispatch(setNotification('error', "You appear to be offline. Editing will be disabled until you're online again."));
+        }
+
+        dispatch({
+            type: 'set-online-status',
+            status
+        });
     }
 }

@@ -26,7 +26,7 @@ import actions from './common/actions.js';
 
 function mapStateToProps(state, ownProps) {
     return {
-        logged_in: state.current_user.id !== undefined
+        logged_in: typeof state.current_user.id !== 'undefined'
     };
 }
 
@@ -70,14 +70,9 @@ function App({ store }) {
 
 persist.then(
     (store) => {
-        ReactDOM.render(
-            <App store={store} />,
-            document.getElementById('root')
-        );
-
         if(store.getState().current_user.id !== undefined) {
             store.dispatch(api.getCurrentUser());
-            
+
             /* Test current user again -- last call might have cleared it */
             if(store.getState().current_user.id !== undefined) {
                 store.dispatch(api.fetchAllCollections());
@@ -85,3 +80,37 @@ persist.then(
         }
     }
 );
+
+function updateOnlineStatus() {
+    store.dispatch(actions.setOnlineStatus(navigator.onLine));
+}
+
+/* listen for on/off-line events */
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+window.addEventListener('load', function() {
+    updateOnlineStatus();
+
+    ReactDOM.render(
+        <App store={store} />,
+        document.getElementById('root')
+    );
+});
+
+/* Install service worker */
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js').then(
+        (registration) => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            registration.onupdatefound = () => {
+                store.dispatch(actions.setNotification('success', "Caching complete. You should be able to access this page while offline now."));
+            }
+        }
+    ).catch(
+        (err) => {
+            console.log('ServiceWorker registration failed: ', err);
+            store.dispatch(actions.setNotification('error', "Service worker registration failed; check console for details."));
+        }
+    )
+}

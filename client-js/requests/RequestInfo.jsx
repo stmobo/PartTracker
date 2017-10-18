@@ -17,6 +17,7 @@ function mapStateToProps(state, ownProps) {
     return {
         itemModel,
         requesterModel,
+        canEdit: state.online
     }
 }
 
@@ -28,7 +29,7 @@ function mapDispatchToProps(dispatch, ownProps) {
     };
 }
 
-function RequestInfo({ model, itemModel, requesterModel, onDelete, onEdit }) {
+function RequestInfo({ model, itemModel, requesterModel, canEdit, onDelete, onEdit }) {
     var friendlyStatus = 'Unknown';
     switch(model.status) {
         case 'waiting':
@@ -63,8 +64,8 @@ function RequestInfo({ model, itemModel, requesterModel, onDelete, onEdit }) {
             <td>
                 <strong>{itemModel.name}</strong>
                 <UpdateTime updated={model.updated} />
-                <button onClick={handleDelete} className="btn btn-danger btn-xs list-button">Delete</button>
-                <button onClick={handleEdit} className="btn btn-default btn-xs list-button">Edit</button>
+                {canEdit && <button onClick={handleDelete} className="btn btn-danger btn-xs list-button">Delete</button>}
+                {canEdit && <button onClick={handleEdit} className="btn btn-default btn-xs list-button">Edit</button>}
             </td>
             <td>
                 {model.count}

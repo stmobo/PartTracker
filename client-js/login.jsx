@@ -4,7 +4,9 @@ import api from './common/api.js';
 import actions from './common/actions.js';
 
 function mapStateToProps(state, ownProps) {
-    return {};
+    return {
+        isLoggedIn: (typeof state.current_user.id !== 'undefined')
+    };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
@@ -18,6 +20,7 @@ function mapDispatchToProps(dispatch, ownProps) {
 class Login extends React.Component {
     constructor(props) {
         super(props);
+
         this.state = {
             username: '',
             password: '',
@@ -26,6 +29,12 @@ class Login extends React.Component {
         this.handleFormChange = this.handleFormChange.bind(this);
         this.handleFormReset = this.handleFormReset.bind(this);
         this.handleFormSubmit = this.handleFormSubmit.bind(this);
+    }
+
+    componentDidUpdate() {
+        if(this.props.isLoggedIn) {
+            this.props.history.push('/inventory');
+        }
     }
 
     handleFormChange(ev) {

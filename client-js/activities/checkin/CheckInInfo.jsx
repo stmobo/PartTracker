@@ -10,7 +10,7 @@ function mapStateToProps(state, ownProps) {
 
     return {
         userModel,
-        canEdit: state.current_user.activityCreator,
+        canEdit: state.current_user.activityCreator && state.online,
     }
 }
 
