@@ -11,10 +11,23 @@ import {errorHandler, jsonOnSuccess, renderUpdateTime} from '../common.jsx';
 import { store } from "../common/store.js";
 import api from "../common/api.js";
 
-function ReservationList({ collection, parentItem }) {
+function ReservationList({ collection, parentItem, canEdit }) {
     var elements = collection.map(
         x => (<Reservation key={x.id} model={x} />)
     );
+
+    if(canEdit) {
+        var createForm = (
+            <tr key='rsvp-creator'>
+                <td colSpan='42'>
+                    <ReservationCreator parentItem={parentItem} />
+                </td>
+            </tr>
+        );
+    } else {
+        var createForm = null;
+    }
+
 
     return [
         <tr key='rsvp-list' className="inv-rsvp-list">
@@ -22,13 +35,8 @@ function ReservationList({ collection, parentItem }) {
                 {elements.length > 0 && <ul>{elements}</ul>}
             </td>
         </tr>,
-        <tr key='rsvp-creator'>
-            <td colSpan='42'>
-                <ReservationCreator parentItem={parentItem} />
-            </td>
-        </tr>
+        createForm
     ];
-
 }
 
 function mapStateToProps(state, ownProps) {
@@ -38,7 +46,8 @@ function mapStateToProps(state, ownProps) {
     );
 
     return {
-        collection: rsvps
+        collection: rsvps,
+        canEdit: state.online
     };
 }
 
