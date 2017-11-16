@@ -2,6 +2,11 @@ language: node_js
 nodejs:
     - "lts/*"
 
+addons:
+    apt:
+        packages:
+            - mongodb
+            
 cache:
     directories:
         - "node_modules"
