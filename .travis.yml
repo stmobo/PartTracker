@@ -2,17 +2,18 @@ language: node_js
 nodejs:
     - "lts/*"
 
-addons:
-    apt:
-        packages:
-            - mongodb
-            
+#addons:
+#    apt:
+#        packages:
+#            - mongodb
+
 cache:
     directories:
         - "node_modules"
 
 before_install:
-    - npm install -g gulp-cli
+    - npm install --global mongodb-download gulp-cli
+    - mongodb-download
 
 install:
     - npm install
