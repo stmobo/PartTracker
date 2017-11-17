@@ -1,28 +1,16 @@
 language: node_js
 nodejs:
-    - "lts/*"
-
-#addons:
-#    apt:
-#        packages:
-#            - mongodb
-
+- lts/*
 cache:
-    directories:
-        - "node_modules"
-
+  directories:
+  - node_modules
 before_install:
-    - npm install --global gulp-cli typescript
-    - npm install @types/node github:mihaerzen/mongodb-download
-    - tsc --project node_modules/mongodb-download
-
+- npm install --global gulp-cli typescript
+- npm install @types/node github:mihaerzen/mongodb-download
+- tsc --project node_modules/mongodb-download
 install:
-    - npm install
-    - npm run-script build-production
-    # maybe we don't need to run build-production? CI runs backend tests only
-
-# script phase calls `npm test` by default
-
-# Note: still need to add:
-# SSH + Git deployment to testing.faraway-vision.io
-# Slack notifications for builds
+- npm install
+- npm run-script build-production
+notifications:
+  slack:
+    secure: kUh8fanrGsJrOI9NuyB4C8yyYzN+YqaNw5V2ZMuHv5OUaFZlAa7dj19Luek7uCf5SBYt0xZWBgFbubqkcnCLYb0gGBMJB6ULG3XcUhSCDTwVwIECsWmtwjiK2MgLdqemwE5e7zN45kH9+ZqlcJugKfwFPwp0QisX8FtKCm9gpJeu6gXXxjoBdtmYVdVkAq+Tu9gwNGfqvJkieKovx07LJQUCDc0rUxuiyogpzqDZH0OSEaJZzk6s2fza6gYsLJkdSgPQK8Dx20ER3oRWWu181WsEtdfIu+grg9uGmFeF28rfFXVfBONUpxT60fBb0uCjDBHbRhEV8ab2sgw1VJWMCf9s78wbQUj0iZ56/I9rClpNvOdM91RZRtZWFW1cVWoGMYwwUd9esUypLRE47uB9YFCndwtd3a4IfVFa1KMBeuWV3QRIYC02Z0JWNDf1r/HFAG4OF1S8uFMSzfKLzwgw8wq2blVESm40VR9r5EuLHULktdtNvgz5KKKy3nw3PnutO94kUi1LEcSDfxid78S0N2klSKnG7dSDgzoOj1T/A3tlrwiLP6C8CA3npCl+4NHwi+aoRWMdd1ZVSh0GTa2zGyxgJktTf0TTvsBF8gETLFp/8xxRb4waf7CgAG9EBpxbt5ja2sZMeUt9dGtT9HOeSgfVIjA9VCAs4SFMm/ndwnc=
