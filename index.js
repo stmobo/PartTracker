@@ -3,7 +3,11 @@ require('app-module-path').addPath(__dirname);
 var args = require('minimist')(process.argv.slice(2));
 
 if(!args.no_stackdriver) {
-    require('@google-cloud/trace-agent').start();
+    try {
+        require('@google-cloud/trace-agent').start();
+    } catch(err) {
+        console.log(`Could not start Stackdriver Trace agent: [${e.name}]: ${e.message}`);
+    };
 }
 
 var winston = require('winston');
@@ -15,8 +19,14 @@ winston.level = args.log_level ||'info';
 winston.add(winston.transports.File, { filename: args.log_file || '/var/log/parttracker.log' });
 
 if(!args.no_stackdriver) {
-    var stackdriver_transport = require('@google-cloud/logging-winston');
-    winston.add(stackdriver_transport);
+    try {
+        var stackdriver_transport = require('@google-cloud/logging-winston');
+        winston.add(stackdriver_transport);
+    } catch(err) {
+        // log and continue
+        winston.log('error', `Could not start Stackdriver Logging transport for Winston: [${e.name}]: ${e.message}`);
+    };
+
 }
 
 if(!args.no_syslog) {
@@ -25,7 +35,10 @@ if(!args.no_syslog) {
         winston.add(winston.transports.Syslog, {
             app_name: 'parttrackerd'
         });
-    } catch(err) {}; // do nothing
+    } catch(err) {
+        // log and continue
+        winston.log('error', `Could not start Syslog transport for Winston: [${e.name}]: ${e.message}`);
+    };
 }
 
 //winston.remove(winston.transports.Console);
