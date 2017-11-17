@@ -20,10 +20,12 @@ if(!args.no_stackdriver) {
 }
 
 if(!args.no_syslog) {
-    require('winston-syslog').Syslog;
-    winston.add(winston.transports.Syslog, {
-        app_name: 'parttrackerd'
-    });
+    try {
+        require('winston-syslog').Syslog;
+        winston.add(winston.transports.Syslog, {
+            app_name: 'parttrackerd'
+        });
+    } catch(err) {}; // do nothing
 }
 
 //winston.remove(winston.transports.Console);

@@ -1,0 +1,28 @@
+language: node_js
+nodejs:
+    - "lts/*"
+
+#addons:
+#    apt:
+#        packages:
+#            - mongodb
+
+cache:
+    directories:
+        - "node_modules"
+
+before_install:
+    - npm install --global gulp-cli typescript
+    - npm install @types/node github:mihaerzen/mongodb-download
+    - tsc --project node_modules/mongodb-download
+
+install:
+    - npm install
+    - npm run-script build-production
+    # maybe we don't need to run build-production? CI runs backend tests only
+
+# script phase calls `npm test` by default
+
+# Note: still need to add:
+# SSH + Git deployment to testing.faraway-vision.io
+# Slack notifications for builds

@@ -11,6 +11,11 @@ const rimraf = promisify(require('rimraf'));
 var spin_up_tmpdb = require('test/support/temp_db.js');
 const dbAPI = require('api/db.js');
 
+var process = require('process');
+
+/* Make process crash on unhandled rejection */
+process.on('unhandledRejection', up => { throw up });
+
 spin_up_tmpdb().then(
     (tmpdir) => {
         //dbAPI.reset_database_connection('localhost:27017/parttracker');
