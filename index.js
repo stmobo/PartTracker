@@ -11,10 +11,12 @@ winston.level = args.log_level ||'info';
 winston.add(winston.transports.File, { filename: args.log_file || '/var/log/parttracker.log' });
 
 if(!args.no_syslog) {
-    require('winston-syslog').Syslog;
-    winston.add(winston.transports.Syslog, {
-        app_name: 'parttrackerd'
-    });
+    try {
+        require('winston-syslog').Syslog;
+        winston.add(winston.transports.Syslog, {
+            app_name: 'parttrackerd'
+        });
+    } catch(err) {}; // do nothing
 }
 
 //winston.remove(winston.transports.Console);

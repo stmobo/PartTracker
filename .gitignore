@@ -11,7 +11,6 @@ pids
 *.seed
 *.pid.lock
 data/
-package-lock.json
 
 static/js/*.js
 static/js/*.js.map

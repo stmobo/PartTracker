@@ -50,7 +50,9 @@
     "type-detect": "^4.0.3",
     "underscore": "^1.8.3",
     "uuid": "^3.1.0",
-    "winston": "^2.3.1",
+    "winston": "^2.3.1"
+  },
+  "optionalDependencies": {
     "winston-syslog": "^1.2.6"
   },
   "devDependencies": {
@@ -68,6 +70,7 @@
     "gulp-uglify": "^3.0.0",
     "gulp-util": "^3.0.8",
     "mocha": "^3.5.3",
+    "mongodb-download": "github:mihaerzen/mongodb-download",
     "mongodb-prebuilt": "^6.3.3",
     "pump": "^1.0.2",
     "rimraf": "^2.6.2",
