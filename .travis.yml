@@ -12,8 +12,9 @@ cache:
         - "node_modules"
 
 before_install:
-    - npm install --global gulp-cli
-    - npm install -g git+https://github.com/mihaerzen/mongodb-download.git
+    - npm install --global gulp-cli typescript github:mihaerzen/mongodb-download
+    - npm install @types/node
+    - tsc --project node_modules/mongodb-download
     - mongodb-download
 
 install:
