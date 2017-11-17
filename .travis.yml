@@ -2,12 +2,19 @@ language: node_js
 nodejs:
     - "lts/*"
 
+#addons:
+#    apt:
+#        packages:
+#            - mongodb
+
 cache:
     directories:
         - "node_modules"
 
 before_install:
-    - npm install -g gulp-cli
+    - npm install --global gulp-cli
+    - npm install -g git+https://github.com/mihaerzen/mongodb-download.git
+    - mongodb-download
 
 install:
     - npm install
@@ -15,3 +22,7 @@ install:
     # maybe we don't need to run build-production? CI runs backend tests only
 
 # script phase calls `npm test` by default
+
+# Note: still need to add:
+# SSH + Git deployment to testing.faraway-vision.io
+# Slack notifications for builds
